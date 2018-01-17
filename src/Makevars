@@ -1,0 +1,6 @@
+CFLAGS +=        -std=c++11 -fopenmp -Wall -O2 -march=native
+CXXFLAGS +=      -std=c++11 -fopenmp -Wall -O2 -march=native
+
+CPP=cpp
+CXX=icpc
+CC=icc

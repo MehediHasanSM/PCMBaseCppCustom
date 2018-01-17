@@ -1,0 +1,26 @@
+Package: PCMBaseCpp
+Type: Package
+Title: A C++ backend for calculating the likelihood of phylogenetic comparative models
+Version: 0.0.1
+Authors@R: c(person("Venelin", "Mitov", email = "vmitov@gmail.com",
+                 role = c("aut", "cre", "cph")))
+Maintainer: Who to complain to <vmitov@gmail.com>
+Description: This package can be used in combination with the PCMBase R-package
+  to enable fast and parallel likelihood calculation of phylogenetic comparative
+  models (PCMs). The use of the package is described in the vignette for the
+  PCMBase R-package.
+License: GPL (>= 3.0)
+LazyData: true
+Depends:
+    R (>= 3.1.0),
+    Rcpp,
+Imports:
+    PCMBase
+LinkingTo: Rcpp, RcppArmadillo
+Suggests:
+    testthat,
+    microbenchmark
+RoxygenNote: 6.0.1
+VignetteBuilder: knitr
+ByteCompile: yes
+NeedsCompilation: yes
