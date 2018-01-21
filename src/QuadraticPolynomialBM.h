@@ -59,8 +59,6 @@ public:
 
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
 
-  arma::cube V;
-  arma::cube V_1;
   arma::mat I;
 
   BM(TreeType const& tree, DataType const& input_data):
@@ -78,7 +76,7 @@ public:
 
     if(par.size() % (k*k + k*k) != 0) {
       std::ostringstream os;
-      os<<"The length of the parameter vector ("<<par.size()<<
+      os<<"ERR:03201:PCMBaseCpp:QuadraticPolynomialBM.h:SetParameter:: The length of the parameter vector ("<<par.size()<<
         ") should be a multiple of 3k^2+k, where k="<<k<<
           " is the number of traits.";
       throw std::logic_error(os.str());
@@ -88,9 +86,6 @@ public:
 
     this->Sigma = cube(&par[0], k, k, R);
     this->Sigmae = cube(&par[k*k*R], k, k, R);
-
-    this->V = cube(k, k, this->ref_tree_.num_nodes());
-    this->V_1 = cube(k, k, this->ref_tree_.num_nodes());
   }
 
   inline void InitNode(splittree::uint i) {
@@ -120,8 +115,8 @@ public:
 
       V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
       
-      this->A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      this->b(ki,ui).fill(0.0);
+      A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
+      b(ki,ui).fill(0.0);
       C.slice(i)(kj,kj) = -0.5 * I(ki,kj).t() * V_1.slice(i)(ki,ki) * I(ki,kj);
       d(kj,ui).fill(0.0);
       E.slice(i)(kj,ki) = I(ki,kj).t() * V_1.slice(i)(ki,ki);

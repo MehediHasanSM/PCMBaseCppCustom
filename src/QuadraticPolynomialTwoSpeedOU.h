@@ -44,7 +44,12 @@ public:
   typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
 
 
-
+  // a 0-threshold for abs(Lambda_i + Lambda_j), where Lambda_i and Lambda_j are
+  //  eigenvalues of the parameter matrix Alpha. This threshold-values is used as a condition to
+  // take the limit time of the expression `(1-exp(-Lambda_ij*time))/Lambda_ij` as
+  //   `(Lambda_i+Lambda_j) --> 0`.
+  double threshold_Lambda_ij_ = 1e-8;
+  
   //
   // model parameters
   //
@@ -76,8 +81,6 @@ public:
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   arma::cx_cube Lambda2_ij;
 
-  arma::cube V;
-  arma::cube V_1;
   arma::cube e_A1t;
   arma::mat I;
 
@@ -96,7 +99,7 @@ public:
 
     if(par.size() % (2*k*k + k + k*k + k*k) != 0) {
       std::ostringstream os;
-      os<<"The length of the parameter vector ("<<par.size()<<
+      os<<"ERR:03501:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:SetParameter:: The length of the parameter vector ("<<par.size()<<
         ") should be a multiple of 4k^2+k, where k="<<k<<
           " is the number of traits.";
       throw std::logic_error(os.str());
@@ -120,9 +123,6 @@ public:
     this->lambda2 = cx_mat(k, R);
     this->Lambda2_ij = cx_cube(k, k, R);
 
-    this->V = cube(k, k, this->ref_tree_.num_nodes());
-    this->V_1 = cube(k, k, this->ref_tree_.num_nodes());
-    
     this->e_A1t = cube(k, k, this->ref_tree_.num_nodes());
 
     for(uword r = 0; r < R; ++r) {
@@ -171,7 +171,7 @@ public:
 
       for(uword w = 0; w < k; ++w)
         for(uword j = w; j < k; ++j) {
-          if(abs(Lambda2_ij.slice(ri)(w,j)) == 0) {
+          if(abs(Lambda2_ij.slice(ri)(w,j)) <= threshold_Lambda_ij_) {
             fLambda2_ij(w,j) = fLambda2_ij(j,w) = ti;
           } else {
             fLambda2_ij(w,j) = fLambda2_ij(j,w) =
@@ -192,8 +192,8 @@ public:
       //e_At.slice(i) = expmat(-ti*Alpha1.slice(ri));
       e_A1t.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
 
-      this->A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      this->b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_A1t.slice(i).rows(ki)) * Theta.col(ri);
+      A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
+      b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_A1t.slice(i).rows(ki)) * Theta.col(ri);
       C.slice(i)(kj,kj) = -0.5*e_A1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_A1t.slice(i)(ki,kj);
       d(kj,ui) = -e_A1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * (I.rows(ki)-e_A1t.slice(i).rows(ki)) * Theta.col(ri);
       E.slice(i)(kj,ki) = e_A1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);

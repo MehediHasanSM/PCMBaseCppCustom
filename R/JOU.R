@@ -1,6 +1,9 @@
 #'@export
 newCppObject.JOU <- function(X, tree, model, metaInfo = validateModel(tree, model), ...) {
-  QuadraticPolynomialJOU$new(X, tree, metaInfo)
+  QuadraticPolynomialJOU$new(
+    X, tree, metaInfo,
+    threshold_detV = getOption("PCMBase.Threshold.SV", 1e-6),
+    thresholdLambda_ij = getOption("PCMBase.Threshold.Lambda_ij", 1e-8))
 }
 
 #' Calculate the coefficients L, m, r of the general
@@ -21,13 +24,22 @@ newCppObject.JOU <- function(X, tree, model, metaInfo = validateModel(tree, mode
 #' @param pruneI an object of class QuadraticPolynomialJOU, which has been created using
 #'   newCppObject.JOU.
 #'
+#' @importFrom abind abind
+#' @importFrom PCMBase validateModel presentCoordinates
+#'
 #' @export
 #' 
 #' @return a named list containing the following elements:
 #' L: a k x k matrix
 #' m: a k vector
 #' r: a number;
-Lmr.JOU <- function(model, metaI, pruneI) {
+Lmr.Rcpp_QuadraticPolynomialJOU <- function(
+  X, tree, model, 
+  metaI = validateModel(tree, model), 
+  pruneI = newCppObject(X, tree, model, metaI), 
+  pc = presentCoordinates(X, tree), 
+  root.only = FALSE, verbose = FALSE
+  ) {
   # number of regimes
   R <- metaI$R
   
@@ -56,9 +68,12 @@ Lmr.JOU <- function(model, metaI, pruneI) {
   
   Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", 0))
   
-  L <- matrix(Lmr_vec[1:(k*k)], k, k)
-  m <- Lmr_vec[k*k+(1:k)]
-  r <- Lmr_vec[k*k+k+1]
-  
-  list(L=L, m=m, r=r)
+  if(root.only) {
+    list(L = matrix(Lmr_vec[1:(k*k)], k, k),
+         m = Lmr_vec[k*k+(1:k)],
+         r = Lmr_vec[k*k+k+1]
+    )  
+  } else {
+    extractAbCdEfLmr(pruneI)
+  }
 }

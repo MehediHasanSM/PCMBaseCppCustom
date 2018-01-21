@@ -81,7 +81,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     std::vector<RegimeType> const& regimes_unique) {
   
   if(regimes_unique.size() == 0) {
-    throw std::logic_error("regimes_unique has 0 length but should have at least one regime.");
+    throw std::logic_error("ERR:03101:PCMBaseCpp:QuadraticPolynomial.h:mapRegimesToIndices:: regimes_unique has 0 length but should have at least one regime.");
   }
   std::unordered_map<RegimeType, arma::uword> map_regimes;
   arma::uword next_regime = 0;
@@ -89,7 +89,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     auto it = map_regimes.insert(std::pair<RegimeType, arma::uword>(r, next_regime));
     if(!it.second) {
       std::ostringstream os;
-      os<<"The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
+      os<<"ERR:03102:PCMBaseCpp:QuadraticPolynomial.h:mapRegimesToIndices:: The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
       throw std::logic_error(os.str());
     } else {
       ++next_regime;
@@ -100,7 +100,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     auto it = map_regimes.find(r);
     if(it == map_regimes.end()) {
       std::ostringstream os;
-      os<<"The regime named '"<<r<<"' was not found in regimes_unique.";
+      os<<"ERR:03103:PCMBaseCpp:QuadraticPolynomial.h:mapRegimesToIndices:: The regime named '"<<r<<"' was not found in regimes_unique.";
       throw std::logic_error(os.str());
     } else {
       regimeIndices.push_back(it->second);
@@ -126,7 +126,7 @@ public:
     BaseType(tree) {
     if(input_data.Pc_.n_cols != this->ref_tree_.num_tips()) {
       throw std::invalid_argument(
-          "The input matrix Pc_ must have as many rows as the number of traits and as many columns as the number of tips.");
+          "ERR:03111:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits and as many columns as the number of tips.");
     } else {
       // We need to be careful with the typedefs splittree::uvec and arma::uvec.
       using namespace arma;
@@ -140,7 +140,7 @@ public:
 
       if(k == 0) {
         throw std::invalid_argument(
-            "The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
+            "ERR:03112:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
       }
 
       this->Pc_ = imat(k, M, fill::zeros);
@@ -195,6 +195,10 @@ public:
   typedef splittree::TraversalTaskLightweight<
     PresentCoordinates<TreeType> > PresentCoordinatesTask;
 
+  
+  // singularity threshold for the determinant of V_i
+  double threshold_SV_ = 1e-6;
+  
   //
   // Input data consists of multiple trait values for each tip. Each
   // column corresponds to a tip.
@@ -211,6 +215,13 @@ public:
   arma::mat d;
   arma::cube E;
   arma::vec f;
+  
+  // 
+  // Variance - covariance matrices
+  //
+  arma::cube V;
+  arma::cube V_1;
+  
 
   //
   // Coefficients of the quadratic polynomial for each node
@@ -242,6 +253,9 @@ public:
     E(X.n_rows, X.n_rows, tree.num_nodes()),
     f(tree.num_nodes()),
 
+    V(X.n_rows, X.n_rows, tree.num_nodes()),
+    V_1(X.n_rows, X.n_rows, tree.num_nodes()),
+  
     L(X.n_rows, X.n_rows, tree.num_nodes()),
     m(X.n_rows, tree.num_nodes()),
     r(tree.num_nodes()),
@@ -261,7 +275,7 @@ public:
       pc.push_back(pc_task.spec().PcForNodeId(i));
       if(pc[i].n_elem == 0) {
         std::ostringstream oss;
-        oss<<"Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
+        oss<<"ERR:03121:PCMBaseCpp:QuadraticPolynomial.h:QuadraticPolynomial:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
         throw std::logic_error(oss.str());
       }
     }
@@ -302,13 +316,26 @@ public:
     splittree::uint j = this->ref_tree_.FindIdOfParent(i);
 
     uvec kj = pc[j], ki = pc[i];
-    //std::cout<<"i:"<<i<<", ki:"<<ki.t()<<", kj:"<<kj.t()<<std::endl;
 
+    // check that V.slice(i)(ki,ki) is non-singular
+    vec svd_V = svd(V.slice(i)(ki,ki));
+    double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
+    if(ratio_SV < threshold_SV_) {
+      ostringstream oss;
+      oss<<"ERR:03131:PCMBaseCpp:QuadraticPolynomial.h:VisitNode:: The matrix V for node "<<
+        this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: min(svd_V)/max(svd_V)="<<
+          ratio_SV<<", det(V)="<<det(V.slice(i)(ki,ki))<<
+            ". Check the model parameters and the length of the branch"<<
+              " leading to the node. For details on this error, read the User Guide.";
+      throw logic_error(oss.str());
+    }
+    
     if(i < this->ref_tree_.num_tips()) {
       arma::uvec ui(1);
       ui(0) = i;
 
-      L.slice(i) = C.slice(i);
+      // ensure symmetry of L.slice(i)
+      L.slice(i) = 0.5 * (C.slice(i) + C.slice(i).t());
       r(i) = (X(ki,ui).t() * A.slice(i)(ki,ki) * X(ki,ui) +
         X(ki,ui).t() * b(ki,ui) + f(i)).at(0,0);
       m(kj, ui) = d(kj, ui) + E.slice(i)(kj,ki) * X(ki,ui);
@@ -317,6 +344,8 @@ public:
       ui(0) = i;
 
       mat AplusL = A.slice(i)(ki,ki) + L.slice(i)(ki,ki);
+      // Ensure symmetry of AplusL:
+      AplusL = 0.5 * (AplusL + AplusL.t());
 
       mat AplusL_1 = inv(AplusL);
       mat EAplusL_1 = E.slice(i)(kj,ki) * AplusL_1;
@@ -326,6 +355,8 @@ public:
         0.25 * (b(ki,ui) + m(ki,ui)).t() * AplusL_1 * (b(ki,ui) + m(ki,ui))).at(0,0);
       m(kj,ui) = d(kj,ui) - 0.5*EAplusL_1 * (b(ki,ui) + m(ki,ui));
       L.slice(i)(kj,kj) = C.slice(i)(kj,kj) - 0.25 * EAplusL_1 * E.slice(i)(kj,ki).t();
+      // Ensure symmetry of L.slice(i)
+      L.slice(i)(kj,kj) = 0.5 * (L.slice(i)(kj,kj) + L.slice(i)(kj,kj).t());
     }
   }
 
