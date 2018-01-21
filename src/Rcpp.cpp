@@ -66,12 +66,11 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     Rcpp::List const& metaInfo, 
     double threshold_SV) {
   
-  arma::mat Xt = X.t();
-  arma::imat Pc(Xt.n_rows, Xt.n_cols, arma::fill::ones);
+  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
-  for(arma::uword i = 0; i < Xt.n_rows; ++i)
-    for(arma::uword j = 0; j < Xt.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(Xt(i,j)));
+  for(arma::uword i = 0; i < X.n_rows; ++i)
+    for(arma::uword j = 0; j < X.n_cols; ++j) {
+      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
     }
     
     arma::umat branches = tree["edge"];
@@ -100,7 +99,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialBM::DataType data(node_names, Xt, Pc);
+  typename QuadraticPolynomialBM::DataType data(node_names, X, Pc);
   auto pObj = new QuadraticPolynomialBM(br_0, br_1, lengths, data);
   
   if(threshold_SV <= 0) {
@@ -173,56 +172,6 @@ RCPP_MODULE(QuadraticPolynomialBM) {
   ;
 }
 
-
-template<class RegimeType>
-QuadraticPolynomialOU* CreateQuadraticPolynomialOU2(
-    arma::mat const& X,
-    Rcpp::List const& tree,
-    vector<RegimeType> const& regimes_unique) {
-  
-  arma::mat Xt = X.t();
-  arma::imat Pc(Xt.n_rows, Xt.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < Xt.n_rows; ++i)
-    for(arma::uword j = 0; j < Xt.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(Xt(i,j)));
-    }
-    
-    arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
-  
-  using namespace std;
-  
-  vector<arma::uword> regimes(branches.n_rows, 0);
-  
-  if(tree.containsElementNamed("edge.regime")) {
-    regimes = mapRegimesToIndices(
-      Rcpp::as<vector<RegimeType>>(tree["edge.regime"]), regimes_unique);
-  } 
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"The slot edge.regime in tree has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolynomialOU::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i];
-  }
-  
-  typename QuadraticPolynomialOU::DataType data(node_names, Xt, Pc);
-  return new QuadraticPolynomialOU(br_0, br_1, lengths, data);
-}
-
 QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
@@ -230,12 +179,11 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     double threshold_SV,
     double threshold_Lambda_ij) {
   
-  arma::mat Xt = X.t();
-  arma::imat Pc(Xt.n_rows, Xt.n_cols, arma::fill::ones);
+  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
-  for(arma::uword i = 0; i < Xt.n_rows; ++i)
-    for(arma::uword j = 0; j < Xt.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(Xt(i,j)));
+  for(arma::uword i = 0; i < X.n_rows; ++i)
+    for(arma::uword j = 0; j < X.n_cols; ++j) {
+      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
     }
     
   arma::umat branches = tree["edge"];
@@ -264,7 +212,7 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialOU::DataType data(node_names, Xt, Pc);
+  typename QuadraticPolynomialOU::DataType data(node_names, X, Pc);
   
   auto pObj = new QuadraticPolynomialOU(br_0, br_1, lengths, data);
   
@@ -345,56 +293,6 @@ RCPP_MODULE(QuadraticPolynomialOU) {
   ;
 }
 
-
-template<class RegimeType>
-QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU2(
-    arma::mat const& X,
-    Rcpp::List const& tree,
-    vector<RegimeType> const& regimes_unique) {
-  
-  arma::mat Xt = X.t();
-  arma::imat Pc(Xt.n_rows, Xt.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < Xt.n_rows; ++i)
-    for(arma::uword j = 0; j < Xt.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(Xt(i,j)));
-    }
-    
-    arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
-  
-  using namespace std;
-  
-  vector<arma::uword> regimes(branches.n_rows, 0);
-  
-  if(tree.containsElementNamed("edge.regime")) {
-    regimes = mapRegimesToIndices(
-      Rcpp::as<vector<RegimeType>>(tree["edge.regime"]), regimes_unique);
-  } 
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"The slot edge.regime in tree has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolynomialJOU::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i];
-  }
-  
-  typename QuadraticPolynomialJOU::DataType data(node_names, Xt, Pc);
-  return new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
-}
-
 QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
@@ -402,12 +300,11 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     double threshold_SV,
     double threshold_Lambda_ij) {
   
-  arma::mat Xt = X.t();
-  arma::imat Pc(Xt.n_rows, Xt.n_cols, arma::fill::ones);
+  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
-  for(arma::uword i = 0; i < Xt.n_rows; ++i)
-    for(arma::uword j = 0; j < Xt.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(Xt(i,j)));
+  for(arma::uword i = 0; i < X.n_rows; ++i)
+    for(arma::uword j = 0; j < X.n_cols; ++j) {
+      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
     }
     
     arma::umat branches = tree["edge"];
@@ -445,7 +342,7 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     lengths[i].jump_ = jumps[i];
   }
   
-  typename QuadraticPolynomialJOU::DataType data(node_names, Xt, Pc);
+  typename QuadraticPolynomialJOU::DataType data(node_names, X, Pc);
   auto pObj = new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
   
   if(threshold_SV <= 0) {
@@ -533,12 +430,11 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     double threshold_SV,
     double threshold_Lambda_ij) {
   
-  arma::mat Xt = X.t();
-  arma::imat Pc(Xt.n_rows, Xt.n_cols, arma::fill::ones);
+  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
-  for(arma::uword i = 0; i < Xt.n_rows; ++i)
-    for(arma::uword j = 0; j < Xt.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(Xt(i,j)));
+  for(arma::uword i = 0; i < X.n_rows; ++i)
+    for(arma::uword j = 0; j < X.n_cols; ++j) {
+      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
     }
     
     arma::umat branches = tree["edge"];
@@ -567,7 +463,7 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialTwoSpeedOU::DataType data(node_names, Xt, Pc);
+  typename QuadraticPolynomialTwoSpeedOU::DataType data(node_names, X, Pc);
   
   auto pObj = new QuadraticPolynomialTwoSpeedOU(br_0, br_1, lengths, data);
   

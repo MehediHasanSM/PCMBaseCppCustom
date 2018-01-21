@@ -11,14 +11,14 @@ newCppObject.OU <- function(X, tree, model, metaInfo = validateModel(tree, model
 #'
 #' @param model parameters of the OU process. This must be a
 #' named list with the following elements:
-#' Alpha: a R x k x k array, where R is the number of regimes of the
-#' OU process, k is the number of variables (traits), each Alpha[r,,]
+#' Alpha: a k x k x R array, where R is the number of regimes of the
+#' OU process, k is the number of variables (traits), each Alpha[,,r]
 #' containing the matrix Alpha for regime r;
-#' Theta: a R x k matrix, row Theta[r, ] containing the long-term
+#' Theta: a k x R matrix, row Theta[, r] containing the long-term
 #' mean Theta for regime r;
-#' Sigma: a R x k x k array, each Sigma[r,,] containing the
+#' Sigma: a k x k x R array, each Sigma[,,r] containing the
 #' matrix Sigma for regime r;
-#' Sigmae: a R x k x k array, each Sigmae[r,,] representing a diagonal matrix
+#' Sigmae: a k x k x R array, each Sigmae[,,r] representing a diagonal matrix
 #' with elements on the diagona corresponding to the environmental variances for
 #' the k traits in regime r
 #' @param pruneI an object of class QuadraticPolynomialOU, which has been created using
@@ -47,19 +47,7 @@ Lmr.Rcpp_QuadraticPolynomialOU <- function(
   # number of traits (variables)
   k <- metaI$k
   
-  par <- c()
-  for(r in 1:R) {
-    par <- c(par, model$Alpha[r,, , drop=FALSE])
-  }
-  for(r in 1:R) {
-    par <- c(par, model$Theta[r, , drop=FALSE])
-  }
-  for(r in 1:R) {
-    par <- c(par, model$Sigma[r,, , drop=FALSE])
-  }
-  for(r in 1:R) {
-    par <- c(par, model$Sigmae[r,, , drop=FALSE])
-  }
+  par <- c(model$Alpha, model$Theta, model$Sigma, model$Sigmae)
   
   Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", 0))
   

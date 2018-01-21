@@ -19,17 +19,17 @@ extractAbCdEfLmr <- function(pruneI) {
     L = spec$L, m = spec$m, r = spec$r, V = spec$V, V_1 = spec$V_1
   )
   with(specList,
-       list(A = abind(lapply(nodeIds, function(i) A[,, i, drop=TRUE]), along = -1),
-            b = abind(lapply(nodeIds, function(i) b[, i, drop=TRUE]), along = -1),
-            C = abind(lapply(nodeIds, function(i) C[,, i, drop=TRUE]), along = -1),
-            d = abind(lapply(nodeIds, function(i) d[, i, drop=TRUE]), along = -1),
-            E = abind(lapply(nodeIds, function(i) E[,, i, drop=TRUE]), along = -1),
-            f = as.vector(abind(lapply(nodeIds, function(i) f[i, drop=TRUE]), along = -1)),
-            V = abind(lapply(nodeIds, function(i) V[,, i, drop=TRUE]), along = -1),
-            V_1 = abind(lapply(nodeIds, function(i) V_1[,, i, drop=TRUE]), along = -1),
-            L = abind(lapply(nodeIds, function(i) L[,, i, drop=TRUE]), along = -1),
-            m = abind(lapply(nodeIds, function(i) m[, i, drop=TRUE]), along = -1),
-            r = as.vector(abind(lapply(nodeIds, function(i) r[i, drop=TRUE]), along = -1))
+       list(A = abind(lapply(nodeIds, function(i) A[,, i, drop=TRUE]), along = 3),
+            b = abind(lapply(nodeIds, function(i) b[, i, drop=TRUE]), along = 2),
+            C = abind(lapply(nodeIds, function(i) C[,, i, drop=TRUE]), along = 3),
+            d = abind(lapply(nodeIds, function(i) d[, i, drop=TRUE]), along = 2),
+            E = abind(lapply(nodeIds, function(i) E[,, i, drop=TRUE]), along = 3),
+            f = as.vector(abind(lapply(nodeIds, function(i) f[i, drop=TRUE]), along = 1)),
+            V = abind(lapply(nodeIds, function(i) V[,, i, drop=TRUE]), along = 3),
+            V_1 = abind(lapply(nodeIds, function(i) V_1[,, i, drop=TRUE]), along = 3),
+            L = abind(lapply(nodeIds, function(i) L[,, i, drop=TRUE]), along = 3),
+            m = abind(lapply(nodeIds, function(i) m[, i, drop=TRUE]), along = 2),
+            r = as.vector(abind(lapply(nodeIds, function(i) r[i, drop=TRUE]), along = 1))
             ))
 }
 

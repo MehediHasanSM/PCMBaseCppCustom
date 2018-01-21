@@ -9,13 +9,13 @@ newCppObject.BM <- function(X, tree, model, metaInfo = validateModel(tree, model
 #'
 #' @param model parameters of the OU process. This must be a
 #' named list with the following elements:
-#' Sigma: a R x k x k array, each Sigma[r,,] containing the
+#' Sigma: a k x k x R array, each Sigma[,,r] containing the
 #' matrix Sigma for regime r;
-#' Sigmae: a R x k x k array, each Sigmae[r,,] representing a diagonal matrix
+#' Sigmae: a k x k x R array, each Sigmae[,,r] representing a diagonal matrix
 #' with elements on the diagona corresponding to the environmental variances for
 #' the k traits in regime r
 #' @param pruneI an object of class QuadraticPolynomialOU, which has been created using
-#'   newCppObject.OU.
+#'   newCppObject.BM.
 #'
 #' @importFrom abind abind
 #' @importFrom PCMBase validateModel presentCoordinates
@@ -39,13 +39,7 @@ Lmr.Rcpp_QuadraticPolynomialBM <- function(
   # number of traits (variables)
   k <- metaI$k
   
-  par <- c()
-  for(r in 1:R) {
-    par <- c(par, model$Sigma[r,, , drop=FALSE])
-  }
-  for(r in 1:R) {
-    par <- c(par, model$Sigmae[r,, , drop=FALSE])
-  }
+  par <- c(model$Sigma, model$Sigmae)
   
   Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", 0))
   
