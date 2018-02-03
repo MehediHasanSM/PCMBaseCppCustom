@@ -4,7 +4,8 @@ newCppObject.TwoSpeedOU <- function(
   QuadraticPolynomialTwoSpeedOU$new(
     X, tree, metaInfo, 
     threshold_detV = getOption("PCMBase.Threshold.SV", 1e-6),
-    thresholdLambda_ij = getOption("PCMBase.Threshold.Lambda_ij", 1e-8))
+    thresholdLambda_ij = getOption("PCMBase.Threshold.Lambda_ij", 1e-8),
+    internal_pc_full = getOption("PCMBase.Internal.PC.Full", TRUE))
 }
 
 #' Calculate the coefficients L, m, r of the general
@@ -13,13 +14,13 @@ newCppObject.TwoSpeedOU <- function(
 #' @param model parameters of the 2SpOU process. This must be a
 #' named list with the following elements:
 #' 
-#' Alpha1: a k x k x R array, where R is the number of regimes of the
-#' OU process, k is the number of variables (traits), each Alpha1[,,r]
-#' containing the matrix Alpha1 for regime r;
+#' H1: a k x k x R array, where R is the number of regimes of the
+#' OU process, k is the number of variables (traits), each H1[,,r]
+#' containing the matrix H1 for regime r;
 #' 
-#' Alpha2: a k x k x R array, where R is the number of regimes of the
-#' OU process, k is the number of variables (traits), each Alpha2[,,r]
-#' containing the matrix Alpha2 for regime r;
+#' H2: a k x k x R array, where R is the number of regimes of the
+#' OU process, k is the number of variables (traits), each H2[,,r]
+#' containing the matrix H2 for regime r;
 #' 
 #' Theta: a k x R matrix, row Theta[, r] containing the long-term
 #' mean Theta for regime r;
@@ -55,9 +56,9 @@ Lmr.Rcpp_QuadraticPolynomialTwoSpeedOU <- function(
   # number of traits (variables)
   k <- metaI$k
   
-  par <- c(model$Alpha1, model$Alpha2, model$Theta, model$Sigma, model$Sigmae)
+  par <- c(model$H1, model$H2, model$Theta, model$Sigma, model$Sigmae)
   
-  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", 0))
+  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
   
   if(root.only) {
     list(L = matrix(Lmr_vec[1:(k*k)], k, k),

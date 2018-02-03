@@ -64,7 +64,8 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     arma::mat const&X, 
     Rcpp::List const& tree, 
     Rcpp::List const& metaInfo, 
-    double threshold_SV) {
+    double threshold_SV,
+    bool internal_pc_full) {
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -73,7 +74,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
       Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
     }
     
-    arma::umat branches = tree["edge"];
+  arma::umat branches = tree["edge"];
   splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
   splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
   splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
@@ -99,7 +100,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialBM::DataType data(node_names, X, Pc);
+  typename QuadraticPolynomialBM::DataType data(node_names, X, Pc, internal_pc_full);
   auto pObj = new QuadraticPolynomialBM(br_0, br_1, lengths, data);
   
   if(threshold_SV <= 0) {
@@ -177,7 +178,8 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     Rcpp::List const& tree, 
     Rcpp::List const& metaInfo, 
     double threshold_SV,
-    double threshold_Lambda_ij) {
+    double threshold_Lambda_ij,
+    bool internal_pc_full) {
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -212,7 +214,7 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialOU::DataType data(node_names, X, Pc);
+  typename QuadraticPolynomialOU::DataType data(node_names, X, Pc, internal_pc_full);
   
   auto pObj = new QuadraticPolynomialOU(br_0, br_1, lengths, data);
   
@@ -298,7 +300,8 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     Rcpp::List const& tree, 
     Rcpp::List const& metaInfo,
     double threshold_SV,
-    double threshold_Lambda_ij) {
+    double threshold_Lambda_ij,
+    bool internal_pc_full) {
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -342,7 +345,7 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     lengths[i].jump_ = jumps[i];
   }
   
-  typename QuadraticPolynomialJOU::DataType data(node_names, X, Pc);
+  typename QuadraticPolynomialJOU::DataType data(node_names, X, Pc, internal_pc_full);
   auto pObj = new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
   
   if(threshold_SV <= 0) {
@@ -428,7 +431,8 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     Rcpp::List const& tree,
     Rcpp::List const& metaInfo,
     double threshold_SV,
-    double threshold_Lambda_ij) {
+    double threshold_Lambda_ij,
+    bool internal_pc_full) {
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -437,7 +441,7 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
       Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
     }
     
-    arma::umat branches = tree["edge"];
+  arma::umat branches = tree["edge"];
   splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
   splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
   splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
@@ -463,7 +467,7 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialTwoSpeedOU::DataType data(node_names, X, Pc);
+  typename QuadraticPolynomialTwoSpeedOU::DataType data(node_names, X, Pc, internal_pc_full);
   
   auto pObj = new QuadraticPolynomialTwoSpeedOU(br_0, br_1, lengths, data);
   

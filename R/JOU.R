@@ -3,7 +3,8 @@ newCppObject.JOU <- function(X, tree, model, metaInfo = validateModel(tree, mode
   QuadraticPolynomialJOU$new(
     X, tree, metaInfo,
     threshold_detV = getOption("PCMBase.Threshold.SV", 1e-6),
-    thresholdLambda_ij = getOption("PCMBase.Threshold.Lambda_ij", 1e-8))
+    thresholdLambda_ij = getOption("PCMBase.Threshold.Lambda_ij", 1e-8),
+    internal_pc_full = getOption("PCMBase.Internal.PC.Full", TRUE))
 }
 
 #' Calculate the coefficients L, m, r of the general
@@ -11,9 +12,9 @@ newCppObject.JOU <- function(X, tree, model, metaInfo = validateModel(tree, mode
 #'
 #' @param model parameters of the JOU process. This must be a
 #' named list with the following elements:
-#' Alpha: a k x k x R array, where R is the number of regimes of the
-#' JOU process, k is the number of variables (traits), each Alpha[,,r]
-#' containing the matrix Alpha for regime r;
+#' H: a k x k x R array, where R is the number of regimes of the
+#' JOU process, k is the number of variables (traits), each H[,,r]
+#' containing the matrix H for regime r;
 #' Theta: a k x R matrix, row Theta[, r] containing the long-term
 #' mean Theta for regime r;
 #' Sigma: a k x k x R array, each Sigma[,,r] containing the
@@ -46,9 +47,9 @@ Lmr.Rcpp_QuadraticPolynomialJOU <- function(
   # number of traits (variables)
   k <- metaI$k
   
-  par <- c(model$Alpha, model$Theta, model$Sigma, model$Sigmae, model$mj, model$Sigmaj)
+  par <- c(model$H, model$Theta, model$Sigma, model$Sigmae, model$mj, model$Sigmaj)
   
-  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", 0))
+  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
   
   if(root.only) {
     list(L = matrix(Lmr_vec[1:(k*k)], k, k),

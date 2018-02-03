@@ -45,7 +45,7 @@ public:
 
 
   // a 0-threshold for abs(Lambda_i + Lambda_j), where Lambda_i and Lambda_j are
-  //  eigenvalues of the parameter matrix Alpha. This threshold-values is used as a condition to
+  //  eigenvalues of the parameter matrix H. This threshold-values is used as a condition to
   // take the limit time of the expression `(1-exp(-Lambda_ij*time))/Lambda_ij` as
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
@@ -58,19 +58,19 @@ public:
   uint R; 
 
   // Each slice or column of the following cubes or matrices correponds to one regime
-  arma::cube Alpha1;
-  arma::cube Alpha2;
+  arma::cube H1;
+  arma::cube H2;
   arma::mat Theta;
   arma::cube Sigma;
   arma::cube Sigmae;
 
-  // for Alpha1 defining the attraction to Theta
+  // for H1 defining the attraction to Theta
   arma::cx_cube P1;
   arma::cx_cube P1_1;
   // k-vectors of eigenvalues for each regime
   arma::cx_mat lambda1;
   
-  // for Alpha2 defining the rate of decorrelation
+  // for H2 defining the rate of decorrelation
   arma::cx_cube P2;
   arma::cx_cube P2_1;
   arma::cx_cube P2_1SigmaP2_1_t;
@@ -81,7 +81,7 @@ public:
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   arma::cx_cube Lambda2_ij;
 
-  arma::cube e_A1t;
+  arma::cube e_H1t;
   arma::mat I;
 
   TwoSpeedOU(TreeType const& tree, DataType const& input_data):
@@ -107,8 +107,8 @@ public:
 
     this->R = par.size() / (2*k*k + k + k*k + k*k);
 
-    this->Alpha1 = cube(&par[0], k, k, R);
-    this->Alpha2 = cube(&par[k*k*R], k, k, R);
+    this->H1 = cube(&par[0], k, k, R);
+    this->H2 = cube(&par[k*k*R], k, k, R);
     this->Theta = mat(&par[2*k*k*R], k, R);
     this->Sigma = cube(&par[2*k*k*R + k*R], k, k, R);
     this->Sigmae = cube(&par[2*k*k*R + k*R + k*k*R], k, k, R);
@@ -123,21 +123,21 @@ public:
     this->lambda2 = cx_mat(k, R);
     this->Lambda2_ij = cx_cube(k, k, R);
 
-    this->e_A1t = cube(k, k, this->ref_tree_.num_nodes());
+    this->e_H1t = cube(k, k, this->ref_tree_.num_nodes());
 
     for(uword r = 0; r < R; ++r) {
       using namespace std;
 
       cx_vec eigval1;
       cx_mat eigvec1;
-      eig_gen(eigval1, eigvec1, Alpha1.slice(r));
+      eig_gen(eigval1, eigvec1, H1.slice(r));
       lambda1.col(r) = eigval1;
       P1.slice(r) = eigvec1;
       P1_1.slice(r) = inv(P1.slice(r));
       
       cx_vec eigval2;
       cx_mat eigvec2;
-      eig_gen(eigval2, eigvec2, Alpha2.slice(r));
+      eig_gen(eigval2, eigvec2, H2.slice(r));
       lambda2.col(r) = eigval2;
       P2.slice(r) = eigvec2;
       P2_1.slice(r) = inv(P2.slice(r));
@@ -189,18 +189,18 @@ public:
       ui(0) = i;
 
       V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
-      //e_At.slice(i) = expmat(-ti*Alpha1.slice(ri));
-      e_A1t.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
+      //e_Ht.slice(i) = expmat(-ti*H1.slice(ri));
+      e_H1t.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
 
       A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_A1t.slice(i).rows(ki)) * Theta.col(ri);
-      C.slice(i)(kj,kj) = -0.5*e_A1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_A1t.slice(i)(ki,kj);
-      d(kj,ui) = -e_A1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * (I.rows(ki)-e_A1t.slice(i).rows(ki)) * Theta.col(ri);
-      E.slice(i)(kj,ki) = e_A1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
+      b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_H1t.slice(i).rows(ki)) * Theta.col(ri);
+      C.slice(i)(kj,kj) = -0.5*e_H1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_H1t.slice(i)(ki,kj);
+      d(kj,ui) = -e_H1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * (I.rows(ki)-e_H1t.slice(i).rows(ki)) * Theta.col(ri);
+      E.slice(i)(kj,ki) = e_H1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
       f(i) =
         -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
-        Theta.col(ri).t() * (I.rows(ki)-e_A1t.slice(i).rows(ki)).t() *
-        V_1.slice(i)(ki,ki) * (I.rows(ki)-e_A1t.slice(i).rows(ki)) * Theta.col(ri)).at(0,0);
+        Theta.col(ri).t() * (I.rows(ki)-e_H1t.slice(i).rows(ki)).t() *
+        V_1.slice(i)(ki,ki) * (I.rows(ki)-e_H1t.slice(i).rows(ki)) * Theta.col(ri)).at(0,0);
     }
   }
 };

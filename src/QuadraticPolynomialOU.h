@@ -46,7 +46,7 @@ public:
 
 
   // a 0-threshold for abs(Lambda_i + Lambda_j), where Lambda_i and Lambda_j are
-  //  eigenvalues of the parameter matrix Alpha. This threshold-values is used as a condition to
+  //  eigenvalues of the parameter matrix H. This threshold-values is used as a condition to
   // take the limit time of the expression `(1-exp(-Lambda_ij*time))/Lambda_ij` as
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
@@ -61,7 +61,7 @@ public:
   
   
   // Each slice or column of the following cubes or matrices correponds to one regime
-  arma::cube Alpha;
+  arma::cube H;
   arma::mat Theta;
   arma::cube Sigma;
   arma::cube Sigmae;
@@ -76,7 +76,7 @@ public:
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   arma::cx_cube Lambda_ij;
 
-  arma::cube e_At;
+  arma::cube e_Ht;
   arma::mat I;
 
   OU(TreeType const& tree, DataType const& input_data):
@@ -102,7 +102,7 @@ public:
 
     this->R = par.size() / (k*k + k + k*k + k*k);
 
-    this->Alpha = cube(&par[0], k, k, R);
+    this->H = cube(&par[0], k, k, R);
     this->Theta = mat(&par[k*k*R], k, R);
     this->Sigma = cube(&par[k*k*R + k*R], k, k, R);
     this->Sigmae = cube(&par[k*k*R + k*R + k*k*R], k, k, R);
@@ -113,7 +113,7 @@ public:
     this->lambda = cx_mat(k, R);
     this->Lambda_ij = cx_cube(k, k, R);
 
-    this->e_At = cube(k, k, this->ref_tree_.num_nodes());
+    this->e_Ht = cube(k, k, this->ref_tree_.num_nodes());
 
     for(uword r = 0; r < R; ++r) {
       using namespace std;
@@ -121,7 +121,7 @@ public:
       cx_vec eigval;
       cx_mat eigvec;
 
-      eig_gen(eigval, eigvec, Alpha.slice(r));
+      eig_gen(eigval, eigvec, H.slice(r));
 
       lambda.col(r) = eigval;
       P.slice(r) = eigvec;
@@ -176,18 +176,18 @@ public:
       ui(0) = i;
 
       V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
-      //e_At.slice(i) = expmat(-ti*Alpha.slice(ri));
-      e_At.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
+      //e_Ht.slice(i) = expmat(-ti*H.slice(ri));
+      e_Ht.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
 
       A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_At.slice(i).rows(ki)) * Theta.col(ri);
-      C.slice(i)(kj,kj) = -0.5*e_At.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_At.slice(i)(ki,kj);
-      d(kj,ui) = -e_At.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * (I.rows(ki)-e_At.slice(i).rows(ki)) * Theta.col(ri);
-      E.slice(i)(kj,ki) = e_At.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
+      b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_Ht.slice(i).rows(ki)) * Theta.col(ri);
+      C.slice(i)(kj,kj) = -0.5*e_Ht.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_Ht.slice(i)(ki,kj);
+      d(kj,ui) = -e_Ht.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * (I.rows(ki)-e_Ht.slice(i).rows(ki)) * Theta.col(ri);
+      E.slice(i)(kj,ki) = e_Ht.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
       f(i) =
         -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
-        Theta.col(ri).t() * (I.rows(ki)-e_At.slice(i).rows(ki)).t() *
-        V_1.slice(i)(ki,ki) * (I.rows(ki)-e_At.slice(i).rows(ki)) * Theta.col(ri)).at(0,0);
+        Theta.col(ri).t() * (I.rows(ki)-e_Ht.slice(i).rows(ki)).t() *
+        V_1.slice(i)(ki,ki) * (I.rows(ki)-e_Ht.slice(i).rows(ki)) * Theta.col(ri)).at(0,0);
     }
   }
 };

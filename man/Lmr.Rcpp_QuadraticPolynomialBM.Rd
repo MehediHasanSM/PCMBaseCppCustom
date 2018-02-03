@@ -12,14 +12,14 @@ Lmr.Rcpp_QuadraticPolynomialBM(X, tree, model, metaI = validateModel(tree,
 \arguments{
 \item{model}{parameters of the OU process. This must be a
 named list with the following elements:
-Sigma: a R x k x k array, each Sigma[r,,] containing the
+Sigma: a k x k x R array, each Sigma[,,r] containing the
 matrix Sigma for regime r;
-Sigmae: a R x k x k array, each Sigmae[r,,] representing a diagonal matrix
+Sigmae: a k x k x R array, each Sigmae[,,r] representing a diagonal matrix
 with elements on the diagona corresponding to the environmental variances for
 the k traits in regime r}
 
 \item{pruneI}{an object of class QuadraticPolynomialOU, which has been created using
-newCppObject.OU.}
+newCppObject.BM.}
 }
 \value{
 a named list containing the following elements:

@@ -47,11 +47,14 @@ struct NumericTraitData {
   // tip in the tree. The number of rows in the matrix corresponds to the number
   // of traits.
   arma::imat const& Pc_;
+  bool internal_pc_full_;
 
+  
   NumericTraitData(
     std::vector<NameType> const& names,
     arma::mat const& X,
-    arma::imat const& Pc): names_(names), X_(X), Pc_(Pc) {}
+    arma::imat const& Pc, 
+    bool internal_pc_full): names_(names), X_(X), Pc_(Pc), internal_pc_full_(internal_pc_full) {}
 };
 
 struct LengthAndRegime {
@@ -121,6 +124,7 @@ public:
   typedef arma::uvec StateType;
 
   arma::imat Pc_;
+  bool internal_pc_full_;
 
   PresentCoordinates(TreeType const& tree, DataType const& input_data):
     BaseType(tree) {
@@ -143,28 +147,29 @@ public:
             "ERR:03112:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
       }
 
-      this->Pc_ = imat(k, M, fill::zeros);
-
-      //arma::uvec idxColsTips(
-      //    Seq(arma::uword(0), arma::uword(this->ref_tree_.num_tips() - 1)));
-      //arma::uvec idxRows(Seq(arma::uword(0), arma::uword(k - 1)));
+      this->internal_pc_full_ = input_data.internal_pc_full;
+      
+      if(internal_pc_full_) {
+        this->Pc_ = imat(k, M, fill::ones);
+      } else {
+        this->Pc_ = imat(k, M, fill::zeros);
+      }
 
       uvec ordNodes(
           this->ref_tree_.OrderNodesPosType(
               input_data.names_, static_cast<uword>(splittree::NA_UINT)));
 
       Pc_.cols(0, N - 1) = input_data.Pc_.cols(ordNodes);
-
-      //this->Pc_(idxRows, idxColsTips) = input_data.Pc_(idxRows, ordNodes);
     }
   }
 
   void SetParameter(ParameterType const& par) {}
 
   void PruneNode(uint i, uint i_parent) {
-    using namespace arma;
-    Pc_.col(i_parent) += Pc_.col(i);
-    //Pc_(span(), span(i_parent)) += Pc_(span(), span(i));
+    if(!internal_pc_full_) {
+      using namespace arma;
+      Pc_.col(i_parent) += Pc_.col(i);  
+    }
   }
 
   // Present coordinates for a node (to be called after tree traversal)
@@ -176,7 +181,6 @@ public:
         pc.push_back(u);
       }
     }
-
     return arma::uvec(&pc[0], pc.size());
   }
 
@@ -194,7 +198,6 @@ public:
 
   typedef splittree::TraversalTaskLightweight<
     PresentCoordinates<TreeType> > PresentCoordinatesTask;
-
   
   // singularity threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;

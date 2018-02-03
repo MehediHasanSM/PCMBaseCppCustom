@@ -14,26 +14,26 @@ Lmr.Rcpp_QuadraticPolynomialTwoSpeedOU(X, tree, model,
 \item{model}{parameters of the 2SpOU process. This must be a
 named list with the following elements:
 
-Alpha1: a R x k x k array, where R is the number of regimes of the
-OU process, k is the number of variables (traits), each Alpha1[r,,]
+Alpha1: a k x k x R array, where R is the number of regimes of the
+OU process, k is the number of variables (traits), each Alpha1[,,r]
 containing the matrix Alpha1 for regime r;
 
-Alpha2: a R x k x k array, where R is the number of regimes of the
-OU process, k is the number of variables (traits), each Alpha2[r,,]
+Alpha2: a k x k x R array, where R is the number of regimes of the
+OU process, k is the number of variables (traits), each Alpha2[,,r]
 containing the matrix Alpha2 for regime r;
 
-Theta: a R x k matrix, row Theta[r, ] containing the long-term
+Theta: a k x R matrix, row Theta[, r] containing the long-term
 mean Theta for regime r;
 
-Sigma: a R x k x k array, each Sigma[r,,] containing the
+Sigma: a k x k x R array, each Sigma[,,r] containing the
 matrix Sigma for regime r;
 
-Sigmae: a R x k x k array, each Sigmae[r,,] representing a diagonal matrix
+Sigmae: a k x k x R array, each Sigmae[,,r] representing a diagonal matrix
 with elements on the diagona corresponding to the environmental variances for
 the k traits in regime r}
 
 \item{pruneI}{an object of class QuadraticPolynomialOU, which has been created using
-newCppObject.OU.}
+newCppObject.TwoSpeedOU.}
 }
 \value{
 a named list containing the following elements:

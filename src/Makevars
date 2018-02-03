@@ -1,5 +1,7 @@
-CFLAGS +=        -std=c++11 -fopenmp -Wall -O2 -march=native
-CXXFLAGS +=      -std=c++11 -fopenmp -Wall -O2 -march=native
+PKG_LIBS = `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"` $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+CFLAGS +=        -std=c++11 -fopenmp -Wall -O2
+CXXFLAGS +=      -std=c++11 -fopenmp -Wall -O2
 
 CPP=cpp
 CXX=icpc

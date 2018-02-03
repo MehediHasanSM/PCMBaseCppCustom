@@ -1,7 +1,8 @@
 #'@export
 newCppObject.BM <- function(X, tree, model, metaInfo = validateModel(tree, model), ...) {
   QuadraticPolynomialBM$new(
-    X, tree, metaInfo, threshold_detV = getOption("PCMBase.Threshold.SV", 1e-6))
+    X, tree, metaInfo, threshold_detV = getOption("PCMBase.Threshold.SV", 1e-6),
+    internal_pc_full = getOption("PCMBase.Internal.PC.Full", TRUE))
 }
 
 #' Calculate the coefficients L, m, r of the general
@@ -41,7 +42,7 @@ Lmr.Rcpp_QuadraticPolynomialBM <- function(
   
   par <- c(model$Sigma, model$Sigmae)
   
-  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", 0))
+  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
   
   if(root.only) {
     list(L = matrix(Lmr_vec[1:(k*k)], k, k),
