@@ -1,5 +1,5 @@
 #'@export
-newCppObject.BM <- function(X, tree, model, metaInfo = validateModel(tree, model), ...) {
+PCMCppPruningObject.BM <- function(X, tree, model, metaInfo = PCMValidate(tree, model), ...) {
   QuadraticPolynomialBM$new(
     X, tree, metaInfo, threshold_detV = getOption("PCMBase.Threshold.SV", 1e-6),
     internal_pc_full = getOption("PCMBase.Internal.PC.Full", TRUE))
@@ -16,10 +16,10 @@ newCppObject.BM <- function(X, tree, model, metaInfo = validateModel(tree, model
 #' with elements on the diagona corresponding to the environmental variances for
 #' the k traits in regime r
 #' @param pruneI an object of class QuadraticPolynomialOU, which has been created using
-#'   newCppObject.BM.
+#'   PCMCppPruningObject.BM.
 #'
 #' @importFrom abind abind
-#' @importFrom PCMBase validateModel presentCoordinates
+#' @importFrom PCMBase PCMValidate PCMPresentCoordinates
 #'
 #' @export
 #' 
@@ -27,11 +27,11 @@ newCppObject.BM <- function(X, tree, model, metaInfo = validateModel(tree, model
 #' L: a k x k matrix
 #' m: a k vector
 #' r: a number;
-Lmr.Rcpp_QuadraticPolynomialBM <- function(
+PCMLmr.Rcpp_QuadraticPolynomialBM <- function(
   X, tree, model, 
-  metaI = validateModel(tree, model), 
-  pruneI = newCppObject(X, tree, model, metaI), 
-  pc = presentCoordinates(X, tree), 
+  metaI = PCMValidate(tree, model), 
+  pruneI = PCMCppPruningObject(X, tree, model, metaI), 
+  pc = PCMPresentCoordinates(X, tree), 
   root.only = FALSE, verbose = FALSE
   ) {
   # number of regimes
@@ -42,14 +42,14 @@ Lmr.Rcpp_QuadraticPolynomialBM <- function(
   
   par <- c(model$Sigma, model$Sigmae)
   
-  Lmr_vec <- pruneI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
+  PCMLmr_vec <- pruneI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
   
   if(root.only) {
-    list(L = matrix(Lmr_vec[1:(k*k)], k, k),
-         m = Lmr_vec[k*k+(1:k)],
-         r = Lmr_vec[k*k+k+1]
+    list(L = matrix(PCMLmr_vec[1:(k*k)], k, k),
+         m = PCMLmr_vec[k*k+(1:k)],
+         r = PCMLmr_vec[k*k+k+1]
     )  
   } else {
-    extractAbCdEfLmr(pruneI)
+    PCMExtractAbCdEfLmr(pruneI)
   }
 }

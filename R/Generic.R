@@ -1,13 +1,13 @@
 #' A generic method for creating C++ backend objects given a model, data and 
 #' a tree.
 #' @useDynLib PCMBaseCpp
-#' @importFrom PCMBase validateModel
+#' @importFrom PCMBase PCMValidate
 #' @export
-newCppObject <- function(X, tree, model, metaInfo = validateModel(tree, model), ...) {
-  UseMethod("newCppObject", model)
+PCMCppPruningObject <- function(X, tree, model, metaInfo = PCMValidate(tree, model), ...) {
+  UseMethod("PCMCppPruningObject", model)
 }
 
-extractAbCdEfLmr <- function(pruneI) {
+PCMExtractAbCdEfLmr <- function(pruneI) {
   tr <- pruneI$tree
   M <- tr$num_nodes
   # internal node ids from 1 to M

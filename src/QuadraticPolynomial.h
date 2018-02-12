@@ -147,7 +147,7 @@ public:
             "ERR:03112:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
       }
 
-      this->internal_pc_full_ = input_data.internal_pc_full;
+      this->internal_pc_full_ = input_data.internal_pc_full_;
       
       if(internal_pc_full_) {
         this->Pc_ = imat(k, M, fill::ones);
