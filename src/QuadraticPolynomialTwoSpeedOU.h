@@ -164,7 +164,6 @@ public:
       double ti = this->ref_tree_.LengthOfBranch(i).length_;
       uword ri = this->ref_tree_.LengthOfBranch(i).regime_;
 
-      uvec kj = BaseType::pc[j];
       uvec ki = BaseType::pc[i];
 
       arma::cx_mat fLambda2_ij(k, k);
@@ -179,28 +178,16 @@ public:
           }
         }
 
+      Phi.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
+      omega.col(i) = (I - Phi.slice(i)) * Theta.col(ri);
+      
       V.slice(i) = real(P2.slice(ri) * (fLambda2_ij % P2_1SigmaP2_1_t.slice(ri)) * P2.slice(ri).t());
-
       if(i < this->ref_tree_.num_tips()) {
         V.slice(i) += Sigmae.slice(ri);
       }
-
-      arma::uvec ui(1);
-      ui(0) = i;
-
       V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
-      //e_Ht.slice(i) = expmat(-ti*H1.slice(ri));
-      e_H1t.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
-
-      A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      b(ki,ui) = V_1.slice(i)(ki,ki) * (I.rows(ki) - e_H1t.slice(i).rows(ki)) * Theta.col(ri);
-      C.slice(i)(kj,kj) = -0.5*e_H1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_H1t.slice(i)(ki,kj);
-      d(kj,ui) = -e_H1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * (I.rows(ki)-e_H1t.slice(i).rows(ki)) * Theta.col(ri);
-      E.slice(i)(kj,ki) = e_H1t.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
-      f(i) =
-        -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
-        Theta.col(ri).t() * (I.rows(ki)-e_H1t.slice(i).rows(ki)).t() *
-        V_1.slice(i)(ki,ki) * (I.rows(ki)-e_H1t.slice(i).rows(ki)) * Theta.col(ri)).at(0,0);
+      
+      CalculateAbCdEf(i);
     }
   }
 };

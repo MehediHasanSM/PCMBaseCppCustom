@@ -90,37 +90,29 @@ public:
 
   inline void InitNode(splittree::uint i) {
     BaseType::InitNode(i);
-
+    
     using namespace arma;
-
+    
     if(i < this->ref_tree_.num_nodes() - 1) {
       uword k = BaseType::k;
-
+      
       splittree::uint j = this->ref_tree_.FindIdOfParent(i);
-
+      
       double ti = this->ref_tree_.LengthOfBranch(i).length_;
       uword ri = this->ref_tree_.LengthOfBranch(i).regime_;
-
-      uvec kj = BaseType::pc[j];
+      
       uvec ki = BaseType::pc[i];
-
+      
+      omega.col(i).fill(0);
+      Phi.slice(i) = I;
+      
       V.slice(i) = ti * Sigma.slice(ri); 
-
       if(i < this->ref_tree_.num_tips()) {
         V.slice(i) += Sigmae.slice(ri);
       }
-
-      arma::uvec ui(1);
-      ui(0) = i;
-
       V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
       
-      A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      b(ki,ui).fill(0.0);
-      C.slice(i)(kj,kj) = -0.5 * I(ki,kj).t() * V_1.slice(i)(ki,ki) * I(ki,kj);
-      d(kj,ui).fill(0.0);
-      E.slice(i)(kj,ki) = I(ki,kj).t() * V_1.slice(i)(ki,ki);
-      f(i) = -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))));
+      BaseType::CalculateAbCdEf(i);
     }
   }
 };

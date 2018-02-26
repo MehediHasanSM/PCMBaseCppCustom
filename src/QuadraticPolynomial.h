@@ -219,6 +219,12 @@ public:
   arma::cube E;
   arma::vec f;
   
+  //
+  // linear intercept and coefficient for the condiation mean: 
+  // E[X_i|X_j] = omega + Phi X_j
+  arma::mat omega;
+  arma::cube Phi;
+  
   // 
   // Variance - covariance matrices
   //
@@ -256,6 +262,9 @@ public:
     E(X.n_rows, X.n_rows, tree.num_nodes()),
     f(tree.num_nodes()),
 
+    omega(X.n_rows, tree.num_nodes()),
+    Phi(X.n_rows, X.n_rows, tree.num_nodes()),
+    
     V(X.n_rows, X.n_rows, tree.num_nodes()),
     V_1(X.n_rows, X.n_rows, tree.num_nodes()),
   
@@ -287,7 +296,7 @@ public:
   StateType StateAtNode(arma::uword i) const {
     using namespace std;
 
-    StateType res(k*k + k + 1 + k*k + k + k*k + k + k*k + 1);
+    StateType res(k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k + k*k + k*k + k*k);
 
     copy(L.begin_slice(i), L.end_slice(i), res.begin());
     copy(m.begin_col(i), m.end_col(i), res.begin() + k*k);
@@ -298,7 +307,11 @@ public:
     copy(d.begin_col(i), d.end_col(i), res.begin() + k*k + k + 1 + k*k + k + k*k);
     copy(E.begin_slice(i), E.end_slice(i), res.begin() + k*k + k + 1 + k*k + k + k*k + k);
     res[k*k + k + 1 + k*k + k + k*k + k + k*k] = f(i);
-
+    copy(omega.begin_col(i), omega.end_col(i), res.begin() + k*k + k + 1 + k*k + k + k*k + k + k*k + 1);
+    copy(Phi.begin_slice(i), Phi.end_slice(i), res.begin() + k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k);
+    copy(V.begin_slice(i), V.end_slice(i), res.begin() + k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k + k*k);
+    copy(V_1.begin_slice(i), V_1.end_slice(i), res.begin() + k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k + k*k + k*k);
+    
     return res;
   }
 
@@ -306,13 +319,38 @@ public:
     return StateAtNode(this->ref_tree_.num_nodes() - 1);
   }
 
-  void InitNode(uint i) {
+  // this function is to be called by daughter classes only after they have
+  // initialized omega, Phi and V
+  inline void CalculateAbCdEf(uint i) {
+    using namespace arma;
+    splittree::uint j = this->ref_tree_.FindIdOfParent(i);
+    uvec kj = pc[j], ki = pc[i];
+    uvec ui(1);
+    ui(0) = i;
+    
+    A.slice(i)(ki,ki) = -0.5 * V_1.slice(i)(ki,ki);
+    //A[ki,ki,i] <- (-0.5*V_1[ki,ki,i])
+    E.slice(i)(kj,ki) = Phi.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
+    //E[kj,ki,i] <- t(Phi[ki,kj,i]) %op% V_1[ki,ki,i]
+    b(ki,ui) = V_1.slice(i)(ki,ki) * omega(ki,ui);
+    //b[ki,i] <- V_1[ki,ki,i] %*% omega[ki,i]
+    C.slice(i)(kj,kj) = -0.5 * E.slice(i)(kj,ki) * Phi.slice(i)(ki,kj);
+    //C[kj,kj,i] <- -0.5 * matrix(E[kj,ki,i], sum(kj), sum(ki)) %*% matrix(Phi[ki,kj,i], sum(ki), sum(kj))
+    d(kj,ui) = -E.slice(i)(kj,ki) * omega(ki,ui);
+    //d[kj,i] <- -E[kj,ki,i] %op% omega[ki,i]
+    f(i) = -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
+      omega(ki,ui).t() * V_1.slice(i)(ki,ki) * omega(ki,ui) ).at(0,0);
+    //  (Theta.col(ri).t() * (I.rows(ki)-e_Ht.slice(i).rows(ki)).t() + xi*mj.col(ri).t()*e_Ht.slice(i).rows(ki).t()) * V_1.slice(i)(ki,ki) * ((I.rows(ki)-e_Ht.slice(i).rows(ki)) * Theta.col(ri) + xi*e_Ht.slice(i).rows(ki)*mj.col(ri))).at(0,0);
+    //f[i] <- -0.5 * (t(omega[ki,i]) %*% V_1[ki,ki,i] %*% omega[ki,i] + sum(ki)*log(2*pi) + log(det(as.matrix(V[ki,ki,i])))) 
+  }
+  
+  inline void InitNode(uint i) {
     L.slice(i).fill(0.0);
     m.col(i).fill(0.0);
     r(i) = 0.0;
   }
 
-  void VisitNode(uint i) {
+  inline void VisitNode(uint i) {
     using namespace arma;
     using namespace std;
 
@@ -363,7 +401,7 @@ public:
     }
   }
 
-  void PruneNode(uint i, uint i_parent) {
+  inline void PruneNode(uint i, uint i_parent) {
     L.slice(i_parent) += L.slice(i);
     m.col(i_parent) += m.col(i);
     r(i_parent) += r(i);

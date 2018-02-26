@@ -78,7 +78,6 @@ public:
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   arma::cx_cube Lambda_ij;
 
-  arma::cube e_Ht;
   arma::mat I;
 
   JOU(TreeType const& tree, DataType const& input_data):
@@ -119,8 +118,6 @@ public:
     this->lambda = cx_mat(k, R);
     this->Lambda_ij = cx_cube(k, k, R);
 
-    this->e_Ht = cube(k, k, this->ref_tree_.num_nodes());
-
     for(uword r = 0; r < R; ++r) {
       using namespace std;
 
@@ -158,12 +155,11 @@ public:
       uword ri = this->ref_tree_.LengthOfBranch(i).regime_;
       u8 xi = this->ref_tree_.LengthOfBranch(i).jump_;
 
-      uvec kj = BaseType::pc[j];
       uvec ki = BaseType::pc[i];
 
       arma::cx_mat fLambda_ij(k, k);
 
-      for(uword w = 0; w < k; ++w)
+      for(uword w = 0; w < k; ++w) {
         for(uword j = w; j < k; ++j) {
           if(abs(Lambda_ij.slice(ri)(w,j)) <= threshold_Lambda_ij_) {
             fLambda_ij(w,j) = fLambda_ij(j,w) = ti;
@@ -172,31 +168,21 @@ public:
               (1.0 - exp(-Lambda_ij.slice(ri)(w,j) * ti)) / Lambda_ij.slice(ri)(w,j);
           }
         }
-
-      //e_Ht.slice(i) = expmat(-ti*H.slice(ri));
-      e_Ht.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
+      }
+      
+      Phi.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
+      omega.col(i) = xi * Phi.slice(i) * mj.col(ri) + (I - Phi.slice(i)) * Theta.col(ri);
       
       V.slice(i) = 
         real(P.slice(ri)* (fLambda_ij%P_1SigmaP_1_t.slice(ri)) * P.slice(ri).t() +
-        xi * e_Ht.slice(i) * Sigmaj.slice(ri) * e_Ht.slice(i).t() );
+        xi * Phi.slice(i) * Sigmaj.slice(ri) * Phi.slice(i).t() );
 
       if(i < this->ref_tree_.num_tips()) {
         V.slice(i) += Sigmae.slice(ri);
       }
-
       V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
-
-      arma::uvec ui(1);
-      ui(0) = i;
       
-      A.slice(i)(ki,ki) = -0.5*V_1.slice(i)(ki,ki);
-      b(ki,ui) = V_1.slice(i)(ki,ki) * ((I.rows(ki) - e_Ht.slice(i).rows(ki)) * Theta.col(ri) + xi * (e_Ht.slice(i).rows(ki) * mj.col(ri)));
-      C.slice(i)(kj,kj) = -0.5*e_Ht.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * e_Ht.slice(i)(ki,kj);
-      d(kj,ui) = -e_Ht.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki) * ((I.rows(ki)-e_Ht.slice(i).rows(ki)) * Theta.col(ri) + xi * (e_Ht.slice(i).rows(ki) * mj.col(ri)));
-      E.slice(i)(kj,ki) = e_Ht.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
-      f(i) =
-        -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
-        (Theta.col(ri).t() * (I.rows(ki)-e_Ht.slice(i).rows(ki)).t() + xi*mj.col(ri).t()*e_Ht.slice(i).rows(ki).t()) * V_1.slice(i)(ki,ki) * ((I.rows(ki)-e_Ht.slice(i).rows(ki)) * Theta.col(ri) + xi*e_Ht.slice(i).rows(ki)*mj.col(ri))).at(0,0);
+      CalculateAbCdEf(i);
     }
   }
 };
