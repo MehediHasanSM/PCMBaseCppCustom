@@ -31,6 +31,7 @@
 #include <unordered_map>
 #include <vector>
 #include <sstream>
+#include <cmath>
 
 namespace PCMBaseCpp {
 
@@ -48,13 +49,30 @@ struct NumericTraitData {
   // of traits.
   arma::imat const& Pc_;
   bool internal_pc_full_;
-
+  
+  uint k_;
+  uint R_;
+  
+  std::vector<std::string> regime_models_;
+  double threshold_SV_;
+  double threshold_Lambda_ij_;
+  bool singular_skip_;
   
   NumericTraitData(
     std::vector<NameType> const& names,
     arma::mat const& X,
     arma::imat const& Pc, 
-    bool internal_pc_full): names_(names), X_(X), Pc_(Pc), internal_pc_full_(internal_pc_full) {}
+    bool internal_pc_full,
+    uint R,
+    std::vector<std::string> regime_models,
+    double threshold_SV,
+    double threshold_Lambda_ij,
+    bool singular_skip): names_(names), X_(X), Pc_(Pc), 
+      internal_pc_full_(internal_pc_full), k_(X.n_rows), 
+      R_(R), regime_models_(regime_models),
+      threshold_SV_(threshold_SV), 
+      threshold_Lambda_ij_(threshold_Lambda_ij),
+      singular_skip_(singular_skip) {}
 };
 
 struct LengthAndRegime {
@@ -189,6 +207,17 @@ public:
   }
 };
 
+// Conditional Gaussian distribution of trait vector at a daughter 
+// node, Xi, given trait vector at its parent, Xj, assuming that the conditional mean
+// depends linearly in Xj, i.e. Mean(Xi) = omega + Phi %*% Xj, and the variance does
+// not depend on Xj. This is an abstract class implemented by specific models
+class CondGaussianOmegaPhiV {
+public:
+  virtual arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) = 0;
+  virtual void CalculateOmegaPhiV(uint i, arma::uword ri, arma::mat& omega, arma::cube& Phi, arma::cube& V) = 0;
+  virtual ~CondGaussianOmegaPhiV() {}
+};
+
 template<class Tree>
 class QuadraticPolynomial: public splittree::TraversalSpecification<Tree> {
 public:
@@ -201,6 +230,13 @@ public:
   
   // singularity threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;
+  // denotes branches for which V is singular
+  // the treatment of these branches depends on the option PCMBase.Singular.Skip
+  // If this option is set to TRUE (default), then these branches are treated as
+  // 0-length and the L,m,r values accumulated from their children are added 
+  // up to their parent branches without modification.
+  std::vector<bool> singular_branch_;
+  bool singular_skip_;
   
   //
   // Input data consists of multiple trait values for each tip. Each
@@ -246,12 +282,18 @@ public:
   // number of traits
   arma::uword k;
 
+  std::vector<CondGaussianOmegaPhiV*> ptr_cond_dist_;
+  
   QuadraticPolynomial(
     TreeType const& tree,
     NumericTraitData<typename TreeType::NodeType> const& input_data):
 
     BaseType(tree),
 
+    threshold_SV_(input_data.threshold_SV_),
+    singular_branch_(tree.num_nodes(), false),
+    singular_skip_(input_data.singular_skip_),
+    
     X(input_data.X_),
 
     // all these fields have to be initialized with 0 during SetParameter.
@@ -329,75 +371,99 @@ public:
     ui(0) = i;
     
     A.slice(i)(ki,ki) = -0.5 * V_1.slice(i)(ki,ki);
-    //A[ki,ki,i] <- (-0.5*V_1[ki,ki,i])
     E.slice(i)(kj,ki) = Phi.slice(i)(ki,kj).t() * V_1.slice(i)(ki,ki);
-    //E[kj,ki,i] <- t(Phi[ki,kj,i]) %op% V_1[ki,ki,i]
     b(ki,ui) = V_1.slice(i)(ki,ki) * omega(ki,ui);
-    //b[ki,i] <- V_1[ki,ki,i] %*% omega[ki,i]
     C.slice(i)(kj,kj) = -0.5 * E.slice(i)(kj,ki) * Phi.slice(i)(ki,kj);
-    //C[kj,kj,i] <- -0.5 * matrix(E[kj,ki,i], sum(kj), sum(ki)) %*% matrix(Phi[ki,kj,i], sum(ki), sum(kj))
     d(kj,ui) = -E.slice(i)(kj,ki) * omega(ki,ui);
-    //d[kj,i] <- -E[kj,ki,i] %op% omega[ki,i]
     f(i) = -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
       omega(ki,ui).t() * V_1.slice(i)(ki,ki) * omega(ki,ui) ).at(0,0);
-    //  (Theta.col(ri).t() * (I.rows(ki)-e_Ht.slice(i).rows(ki)).t() + xi*mj.col(ri).t()*e_Ht.slice(i).rows(ki).t()) * V_1.slice(i)(ki,ki) * ((I.rows(ki)-e_Ht.slice(i).rows(ki)) * Theta.col(ri) + xi*e_Ht.slice(i).rows(ki)*mj.col(ri))).at(0,0);
-    //f[i] <- -0.5 * (t(omega[ki,i]) %*% V_1[ki,ki,i] %*% omega[ki,i] + sum(ki)*log(2*pi) + log(det(as.matrix(V[ki,ki,i])))) 
   }
   
-  inline void InitNode(uint i) {
+  inline void InitLmr(uint i) {
     L.slice(i).fill(0.0);
     m.col(i).fill(0.0);
     r(i) = 0.0;
+  }
+  
+  inline void InitNode(uint i) {
+    using namespace arma;
+    using namespace std;
+    InitLmr(i);
+    
+    if(i < this->ref_tree_.num_nodes() - 1) {
+      
+      auto ri = this->ref_tree_.LengthOfBranch(i).regime_;
+      
+      if(ptr_cond_dist_.size() == 1) {
+        ptr_cond_dist_[0]->CalculateOmegaPhiV(i, ri, omega, Phi, V);
+      } else {
+        ptr_cond_dist_[ri]->CalculateOmegaPhiV(i, 0, omega, Phi, V);
+      }
+      
+      arma::uvec ki = pc[i];
+      
+      // check that V.slice(i)(ki,ki) is non-singular
+      vec svd_V = svd(V.slice(i)(ki,ki));
+      double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
+      if(!isfinite(ratio_SV) || ratio_SV < threshold_SV_) {
+        singular_branch_[i] = true;
+        
+        if(!singular_skip_) {
+          ostringstream oss;
+          oss<<"ERR:03131:PCMBaseCpp:QuadraticPolynomial.h:InitNode:: The matrix V for node "<<
+            this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: min(svd_V)/max(svd_V)="<<
+              ratio_SV<<", det(V)="<<det(V.slice(i)(ki,ki))<<
+                ". Check the model parameters and the length of the branch"<<
+                  " leading to the node. For details on this error, read the User Guide.";
+          throw logic_error(oss.str());  
+        }
+      }
+      
+      if(!singular_branch_[i]) {
+        V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
+        CalculateAbCdEf(i);  
+      }
+    }  
+    
   }
 
   inline void VisitNode(uint i) {
     using namespace arma;
     using namespace std;
 
-    splittree::uint j = this->ref_tree_.FindIdOfParent(i);
-
-    uvec kj = pc[j], ki = pc[i];
-
-    // check that V.slice(i)(ki,ki) is non-singular
-    vec svd_V = svd(V.slice(i)(ki,ki));
-    double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
-    if(ratio_SV < threshold_SV_) {
-      ostringstream oss;
-      oss<<"ERR:03131:PCMBaseCpp:QuadraticPolynomial.h:VisitNode:: The matrix V for node "<<
-        this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: min(svd_V)/max(svd_V)="<<
-          ratio_SV<<", det(V)="<<det(V.slice(i)(ki,ki))<<
-            ". Check the model parameters and the length of the branch"<<
-              " leading to the node. For details on this error, read the User Guide.";
-      throw logic_error(oss.str());
-    }
-    
-    if(i < this->ref_tree_.num_tips()) {
-      arma::uvec ui(1);
-      ui(0) = i;
-
-      // ensure symmetry of L.slice(i)
-      L.slice(i) = 0.5 * (C.slice(i) + C.slice(i).t());
-      r(i) = (X(ki,ui).t() * A.slice(i)(ki,ki) * X(ki,ui) +
-        X(ki,ui).t() * b(ki,ui) + f(i)).at(0,0);
-      m(kj, ui) = d(kj, ui) + E.slice(i)(kj,ki) * X(ki,ui);
-    } else {
-      uvec ui(1);
-      ui(0) = i;
-
-      mat AplusL = A.slice(i)(ki,ki) + L.slice(i)(ki,ki);
-      // Ensure symmetry of AplusL:
-      AplusL = 0.5 * (AplusL + AplusL.t());
-
-      mat AplusL_1 = inv(AplusL);
-      mat EAplusL_1 = E.slice(i)(kj,ki) * AplusL_1;
-      double logDetVNode = log(det(-2*AplusL));
-
-      r(i) = (f(i) + r(i) + 0.5 * ki.n_elem * M_LN_2PI - 0.5 * logDetVNode -
-        0.25 * (b(ki,ui) + m(ki,ui)).t() * AplusL_1 * (b(ki,ui) + m(ki,ui))).at(0,0);
-      m(kj,ui) = d(kj,ui) - 0.5*EAplusL_1 * (b(ki,ui) + m(ki,ui));
-      L.slice(i)(kj,kj) = C.slice(i)(kj,kj) - 0.25 * EAplusL_1 * E.slice(i)(kj,ki).t();
-      // Ensure symmetry of L.slice(i)
-      L.slice(i)(kj,kj) = 0.5 * (L.slice(i)(kj,kj) + L.slice(i)(kj,kj).t());
+    if(!singular_branch_[i]) {
+      splittree::uint j = this->ref_tree_.FindIdOfParent(i);
+  
+      uvec kj = pc[j], ki = pc[i];
+  
+      if(i < this->ref_tree_.num_tips()) {
+        arma::uvec ui(1);
+        ui(0) = i;
+  
+        // ensure symmetry of L.slice(i)
+        L.slice(i) = 0.5 * (C.slice(i) + C.slice(i).t());
+        r(i) = (X(ki,ui).t() * A.slice(i)(ki,ki) * X(ki,ui) +
+          X(ki,ui).t() * b(ki,ui) + f(i)).at(0,0);
+        m(kj, ui) = d(kj, ui) + E.slice(i)(kj,ki) * X(ki,ui);
+      } else {
+        uvec ui(1);
+        ui(0) = i;
+  
+        mat AplusL = A.slice(i)(ki,ki) + L.slice(i)(ki,ki);
+        // Ensure symmetry of AplusL:
+        AplusL = 0.5 * (AplusL + AplusL.t());
+  
+        mat AplusL_1 = inv(AplusL);
+        mat EAplusL_1 = E.slice(i)(kj,ki) * AplusL_1;
+        double logDetVNode = log(det(-2*AplusL));
+  
+        r(i) = (f(i) + r(i) + 0.5 * ki.n_elem * M_LN_2PI - 0.5 * logDetVNode -
+          0.25 * (b(ki,ui) + m(ki,ui)).t() * AplusL_1 * (b(ki,ui) + m(ki,ui))).at(0,0);
+        m(kj,ui) = d(kj,ui) - 0.5*EAplusL_1 * (b(ki,ui) + m(ki,ui));
+        L.slice(i)(kj,kj) = C.slice(i)(kj,kj) - 0.25 * EAplusL_1 * E.slice(i)(kj,ki).t();
+        // Ensure symmetry of L.slice(i)
+        L.slice(i)(kj,kj) = 0.5 * (L.slice(i)(kj,kj) + L.slice(i)(kj,kj).t());
+      }
     }
   }
 
@@ -408,4 +474,5 @@ public:
   }
 };
 }
+
 #endif // PCMBase_QuadraticPolynomial_H_

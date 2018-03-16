@@ -30,40 +30,39 @@
 
 namespace PCMBaseCpp {
 
-
 typedef splittree::OrderedTree<splittree::uint, LengthAndRegime> OUTreeType;
 
-class TwoSpeedOU: public QuadraticPolynomial<OUTreeType> {
-public:
-  typedef OUTreeType TreeType;
-  typedef QuadraticPolynomial<TreeType> BaseType;
-  typedef TwoSpeedOU MyType;
-  typedef arma::vec StateType;
-  typedef NumericTraitData<TreeType::NodeType> DataType;
-  typedef std::vector<double> ParameterType;
-  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
-
-
+template<class TreeType, class DataType>
+struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
+  
+  TreeType const& ref_tree_;
+  
   // a 0-threshold for abs(Lambda_i + Lambda_j), where Lambda_i and Lambda_j are
   //  eigenvalues of the parameter matrix H. This threshold-values is used as a condition to
   // take the limit time of the expression `(1-exp(-Lambda_ij*time))/Lambda_ij` as
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
   
+  // number of traits
+  uint k_;
+  
+  // number of regimes;
+  uint R_;
+  
   //
   // model parameters
   //
+ 
   
-  // number of regimes;
-  uint R; 
-
   // Each slice or column of the following cubes or matrices correponds to one regime
+  arma::mat X0;
+  
   arma::cube H1;
   arma::cube H2;
   arma::mat Theta;
   arma::cube Sigma;
   arma::cube Sigmae;
-
+  
   // for H1 defining the attraction to Theta
   arma::cx_cube P1;
   arma::cx_cube P1_1;
@@ -74,60 +73,70 @@ public:
   arma::cx_cube P2;
   arma::cx_cube P2_1;
   arma::cx_cube P2_1SigmaP2_1_t;
-
+  
   // k-vectors of eigenvalues for each regime
   arma::cx_mat lambda2;
-
+  
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   arma::cx_cube Lambda2_ij;
-
+  
   arma::cube e_H1t;
   arma::mat I;
-
-  TwoSpeedOU(TreeType const& tree, DataType const& input_data):
-    BaseType(tree, input_data) {
-
-    arma::uword k = BaseType::k;
-    this->I = arma::eye(k, k);
+  
+  CondGaussianTwoSpeedOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
+    this->k_ = ref_data.k_;
+    this->R_ = R;
+    
+    this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
+    
+    this->I = arma::eye(k_, k_);
   }
-
-  void SetParameter(ParameterType const& par) {
-    // The number of regimes R is deduced from the length of the par vector and
-    // the number of traits, BaseType::k.
+  
+  
+  CondGaussianTwoSpeedOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
+    this->k_ = ref_data.k_;
+    this->R_ = ref_data.R_;
+    
+    this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
+    
+    this->I = arma::eye(k_, k_);
+  }
+  
+  
+  arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
     using namespace arma;
-    uword k = BaseType::k;
-
-    if(par.size() % (2*k*k + k + k*k + k*k) != 0) {
+    
+    uint npar = R_*(4*k_*k_ + 2*k_);
+    if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03501:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:SetParameter:: The length of the parameter vector ("<<par.size()<<
-        ") should be a multiple of 4k^2+k, where k="<<k<<
-          " is the number of traits.";
+      os<<"ERR:03401:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+        ") should be at least of R*(4k^2+2k), where k="<<k_<<" is the number of traits and "<<
+          " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
     }
-
-    this->R = par.size() / (2*k*k + k + k*k + k*k);
-
-    this->H1 = cube(&par[0], k, k, R);
-    this->H2 = cube(&par[k*k*R], k, k, R);
-    this->Theta = mat(&par[2*k*k*R], k, R);
-    this->Sigma = cube(&par[2*k*k*R + k*R], k, k, R);
-    this->Sigmae = cube(&par[2*k*k*R + k*R + k*k*R], k, k, R);
-
-    this->P1 = cx_cube(k, k, R);
-    this->P1_1 = cx_cube(k, k, R);
-    this->lambda1 = cx_mat(k, R);
     
-    this->P2 = cx_cube(k, k, R);
-    this->P2_1 = cx_cube(k, k, R);
-    this->P2_1SigmaP2_1_t = cx_cube(k, k, R);
-    this->lambda2 = cx_mat(k, R);
-    this->Lambda2_ij = cx_cube(k, k, R);
-
-    this->e_H1t = cube(k, k, this->ref_tree_.num_nodes());
-
-    for(uword r = 0; r < R; ++r) {
+    this->X0 = mat(&par[offset], k_, R_);
+    this->H1 = cube(&par[offset + k_*R_], k_, k_, R_);
+    this->H2 = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
+    this->Theta = mat(&par[offset + (k_ + k_*k_ + k_*k_)*R_], k_, R_);
+    this->Sigma = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    this->Sigmae = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
+    
+    this->P1 = cx_cube(k_, k_, R_);
+    this->P1_1 = cx_cube(k_, k_, R_);
+    this->lambda1 = cx_mat(k_, R_);
+    
+    this->P2 = cx_cube(k_, k_, R_);
+    this->P2_1 = cx_cube(k_, k_, R_);
+    this->P2_1SigmaP2_1_t = cx_cube(k_, k_, R_);
+    this->lambda2 = cx_mat(k_, R_);
+    this->Lambda2_ij = cx_cube(k_, k_, R_);
+    
+    this->e_H1t = cube(k_, k_, this->ref_tree_.num_nodes());
+    
+    for(uword r = 0; r < R_; ++r) {
       using namespace std;
-
+      
       cx_vec eigval1;
       cx_mat eigvec1;
       eig_gen(eigval1, eigvec1, H1.slice(r));
@@ -142,53 +151,63 @@ public:
       P2.slice(r) = eigvec2;
       P2_1.slice(r) = inv(P2.slice(r));
       P2_1SigmaP2_1_t.slice(r) = P2_1.slice(r) * Sigma.slice(r) * P2_1.slice(r).t();
-
-      for(uword i = 0; i < k; ++i)
-        for(uword j = i; j < k; ++j) {
+      
+      for(uword i = 0; i < k_; ++i)
+        for(uword j = i; j < k_; ++j) {
           Lambda2_ij.slice(r)(i,j) = Lambda2_ij.slice(r)(j,i) =
             lambda2.col(r)(i) + lambda2.col(r)(j);
         }
     }
+    return npar;
   }
-
-  inline void InitNode(splittree::uint i) {
-    BaseType::InitNode(i);
-
+  
+  void CalculateOmegaPhiV(uint i, arma::uword ri, arma::mat& omega, arma::cube& Phi, arma::cube& V) {
     using namespace arma;
-
-    if(i < this->ref_tree_.num_nodes() - 1) {
-      uword k = BaseType::k;
-
-      splittree::uint j = this->ref_tree_.FindIdOfParent(i);
-
-      double ti = this->ref_tree_.LengthOfBranch(i).length_;
-      uword ri = this->ref_tree_.LengthOfBranch(i).regime_;
-
-      uvec ki = BaseType::pc[i];
-
-      arma::cx_mat fLambda2_ij(k, k);
-
-      for(uword w = 0; w < k; ++w)
-        for(uword j = w; j < k; ++j) {
-          if(abs(Lambda2_ij.slice(ri)(w,j)) <= threshold_Lambda_ij_) {
-            fLambda2_ij(w,j) = fLambda2_ij(j,w) = ti;
-          } else {
-            fLambda2_ij(w,j) = fLambda2_ij(j,w) =
-              (1.0 - exp(-Lambda2_ij.slice(ri)(w,j) * ti)) / Lambda2_ij.slice(ri)(w,j);
-          }
+    
+    double ti = this->ref_tree_.LengthOfBranch(i).length_;
+    
+    arma::cx_mat fLambda2_ij(k_, k_);
+    
+    for(uword w = 0; w < k_; ++w)
+      for(uword j = w; j < k_; ++j) {
+        if(abs(Lambda2_ij.slice(ri)(w,j)) <= threshold_Lambda_ij_) {
+          fLambda2_ij(w,j) = fLambda2_ij(j,w) = ti;
+        } else {
+          fLambda2_ij(w,j) = fLambda2_ij(j,w) =
+            (1.0 - exp(-Lambda2_ij.slice(ri)(w,j) * ti)) / Lambda2_ij.slice(ri)(w,j);
         }
-
-      Phi.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
-      omega.col(i) = (I - Phi.slice(i)) * Theta.col(ri);
-      
-      V.slice(i) = real(P2.slice(ri) * (fLambda2_ij % P2_1SigmaP2_1_t.slice(ri)) * P2.slice(ri).t());
-      if(i < this->ref_tree_.num_tips()) {
-        V.slice(i) += Sigmae.slice(ri);
       }
-      V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
       
-      CalculateAbCdEf(i);
+      Phi.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
+    omega.col(i) = (I - Phi.slice(i)) * Theta.col(ri);
+    
+    V.slice(i) = real(P2.slice(ri) * (fLambda2_ij % P2_1SigmaP2_1_t.slice(ri)) * P2.slice(ri).t());
+    if(i < this->ref_tree_.num_tips()) {
+      V.slice(i) += Sigmae.slice(ri);
     }
+  }
+};
+
+class TwoSpeedOU: public QuadraticPolynomial<OUTreeType> {
+public:
+  typedef OUTreeType TreeType;
+  typedef QuadraticPolynomial<TreeType> BaseType;
+  typedef TwoSpeedOU MyType;
+  typedef arma::vec StateType;
+  typedef NumericTraitData<TreeType::NodeType> DataType;
+  typedef std::vector<double> ParameterType;
+  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
+
+  CondGaussianTwoSpeedOU<TreeType, DataType> cond_dist_;
+  
+  TwoSpeedOU(TreeType const& tree, DataType const& input_data):
+    BaseType(tree, input_data), cond_dist_(tree, input_data) {
+    
+    BaseType::ptr_cond_dist_.push_back(&cond_dist_);
+  }
+  
+  void SetParameter(ParameterType const& par) {
+    cond_dist_.SetParameter(par, 0);
   }
 };
 

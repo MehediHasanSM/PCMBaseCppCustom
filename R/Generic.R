@@ -1,19 +1,19 @@
 #' A generic method for creating C++ backend objects given a model, data and 
 #' a tree.
 #' @useDynLib PCMBaseCpp
-#' @importFrom PCMBase PCMValidate
+#' @importFrom PCMBase PCMInfo
 #' @export
-PCMCppPruningObject <- function(X, tree, model, metaInfo = PCMValidate(tree, model), ...) {
-  UseMethod("PCMCppPruningObject", model)
+PCMInfoCpp <- function(X, tree, model, metaI = PCMInfo(X, tree, model, verbose), verbose = FALSE, ...) {
+  UseMethod("PCMInfoCpp", model)
 }
 
-PCMExtractAbCdEfLmr <- function(pruneI) {
-  tr <- pruneI$tree
+PCMExtractAbCdEfLmr <- function(metaI) {
+  tr <- metaI$cppObject$tree
   M <- tr$num_nodes
   # internal node ids from 1 to M
   nodeIds <- sapply(1:M, function(n) tr$FindIdOfNode(n) + 1)
   
-  spec <- pruneI$spec
+  spec <- metaI$cppObject$spec
   specList <- list(
     A = spec$A, b = spec$b, C = spec$C, d = spec$d, E = spec$E, f = spec$f, 
     L = spec$L, m = spec$m, r = spec$r, V = spec$V, V_1 = spec$V_1
@@ -33,8 +33,29 @@ PCMExtractAbCdEfLmr <- function(pruneI) {
             ))
 }
 
-# loading the C++ modules
-loadModule( "QuadraticPolynomialBM", TRUE )
-loadModule( "QuadraticPolynomialOU", TRUE )
-loadModule( "QuadraticPolynomialJOU", TRUE )
-loadModule( "QuadraticPolynomialTwoSpeedOU", TRUE )
+#' @importFrom PCMBase PCMLmr
+#' @importFrom PCMBase PCMInfo
+#'
+#' @export
+PCMLmr.PCMInfoCpp <- function(
+  X, tree, model, 
+  metaI = PCMInfo(X, tree, model), 
+  root.only = FALSE, verbose = FALSE
+) {
+  
+  par <- PCMGetVecParamsFull(model)
+  
+  PCMLmr_vec <- metaI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
+  
+  if(root.only) {
+    # number of traits (variables)
+    k <- metaI$k
+    
+    list(L = matrix(PCMLmr_vec[1:(k*k)], k, k),
+         m = PCMLmr_vec[k*k+(1:k)],
+         r = PCMLmr_vec[k*k+k+1]
+    )  
+  } else {
+    PCMExtractAbCdEfLmr(metaI)
+  }
+}

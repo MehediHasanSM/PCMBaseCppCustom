@@ -30,10 +30,12 @@
 #include<sstream>
 #include<iostream>
 
+#include "QuadraticPolynomialWhite.h"
 #include "QuadraticPolynomialBM.h"
 #include "QuadraticPolynomialOU.h"
 #include "QuadraticPolynomialJOU.h"
 #include "QuadraticPolynomialTwoSpeedOU.h"
+#include "QuadraticPolynomialMRG.h"
 
 // [[Rcpp::plugins("cpp11")]]
 // [[Rcpp::plugins(openmp)]]
@@ -60,12 +62,136 @@ void R_unload_PCMBaseCpp(DllInfo *info) {
 using namespace PCMBaseCpp;
 using namespace std;
 
+QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
+    arma::mat const&X, 
+    Rcpp::List const& tree, 
+    Rcpp::List const& metaInfo) { 
+  
+  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  
+  
+  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  
+  for(arma::uword i = 0; i < X.n_rows; ++i)
+    for(arma::uword j = 0; j < X.n_cols; ++j) {
+      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+    }
+    
+    arma::umat branches = tree["edge"];
+  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
+  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
+  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  
+  using namespace std;
+  
+  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
+  
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
+  
+  if(regimes.size() != branches.n_rows) {
+    ostringstream os;
+    os<<"ERR:03801:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialWhite:: The slot r in metaInfo has different length ("<<regimes.size()<<
+      ") than the number of edges ("<<branches.n_rows<<").";
+    throw logic_error(os.str());
+  }
+  
+  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  
+  vector<typename QuadraticPolynomialWhite::LengthType> lengths(branches.n_rows);
+  
+  for(arma::uword i = 0; i < branches.n_rows; ++i) {
+    lengths[i].length_ = t[i];
+    lengths[i].regime_ = regimes[i] - 1;
+  }
+  
+  
+  if(threshold_SV <= 0) {
+    ostringstream os;
+    os<<"ERR:03802:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialWhite:: The argument threshold_SV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
+  
+  typename QuadraticPolynomialWhite::DataType data(
+      node_names, X, Pc, internal_pc_full, RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_Lambda_ij, singular_skip);
+  
+  return new QuadraticPolynomialWhite(br_0, br_1, lengths, data);
+}
+
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialWhite::TreeType)
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialWhite::TraversalSpecificationType)
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialWhite::AlgorithmType)
+  
+  RCPP_MODULE(QuadraticPolynomialWhite) {
+    Rcpp::class_<QuadraticPolynomialWhite::TreeType::Tree> ( "QuadraticPolynomialWhite_Tree" )
+    .property("num_nodes", &QuadraticPolynomialWhite::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolynomialWhite::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolynomialWhite::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolynomialWhite::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolynomialWhite::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolynomialWhite::TreeType::Tree::OrderNodes )
+    ;
+    Rcpp::class_<QuadraticPolynomialWhite::TreeType>( "QuadraticPolynomialWhite_OrderedTree" )
+      .derives<QuadraticPolynomialWhite::TreeType::Tree> ( "QuadraticPolynomialWhite_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolynomialWhite::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolynomialWhite::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolynomialWhite::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolynomialWhite::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolynomialWhite::TreeType::ranges_id_prune )
+    ;
+    Rcpp::class_<QuadraticPolynomialWhite::AlgorithmType::ParentType>( "QuadraticPolynomialWhite_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolynomialWhite::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "num_threads", &QuadraticPolynomialWhite::AlgorithmType::num_threads )
+    ;
+    Rcpp::class_<QuadraticPolynomialWhite::AlgorithmType> ( "QuadraticPolynomialWhite_ParallelPruning" )
+      .derives<QuadraticPolynomialWhite::AlgorithmType::ParentType>( "QuadraticPolynomialWhite_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolynomialWhite::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolynomialWhite::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolynomialWhite::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolynomialWhite::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolynomialWhite::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolynomialWhite::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolynomialWhite::AlgorithmType::fastest_step_tuning )
+    ;
+    Rcpp::class_<QuadraticPolynomialWhite::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+      .field( "A", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::A)
+      .field( "b", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::b )
+      .field( "C", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::C )
+      .field( "d", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::d )
+      .field( "E", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::E )
+      .field( "f", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::f )
+      .field( "L", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::L )
+      .field( "m", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::m )
+      .field( "r", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::r )
+      .field( "V", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::V )
+      .field( "V_1", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::V_1 )
+    ;
+    Rcpp::class_<QuadraticPolynomialWhite::TraversalSpecificationType> ( "QuadraticPolynomialWhite_PruningSpec" )
+      .derives<QuadraticPolynomialWhite::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+    ;
+    Rcpp::class_<QuadraticPolynomialWhite>( "QuadraticPolynomialWhite" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialWhite)
+      .method( "TraverseTree", &QuadraticPolynomialWhite::TraverseTree )
+      .property( "tree", &QuadraticPolynomialWhite::tree )
+      .property( "spec", &QuadraticPolynomialWhite::spec )
+      .property( "algorithm", &QuadraticPolynomialWhite::algorithm )
+    ;
+  }
+
 QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     arma::mat const&X, 
     Rcpp::List const& tree, 
-    Rcpp::List const& metaInfo, 
-    double threshold_SV,
-    bool internal_pc_full) {
+    Rcpp::List const& metaInfo) { 
+    
+  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -81,11 +207,13 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
   
   using namespace std;
   
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["regimes"]);
+  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
+  
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03601:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialBM:: The slot regimes in metaInfo has different length ("<<regimes.size()<<
+    os<<"ERR:03801:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialBM:: The slot r in metaInfo has different length ("<<regimes.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
@@ -100,20 +228,21 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialBM::DataType data(node_names, X, Pc, internal_pc_full);
-  auto pObj = new QuadraticPolynomialBM(br_0, br_1, lengths, data);
   
   if(threshold_SV <= 0) {
     ostringstream os;
-    os<<"ERR:03602:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialBM:: The argument threshold_SV should be positive real number.";
+    os<<"ERR:03802:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialBM:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_SV_ = threshold_SV;
   
-  return pObj;
+  typename QuadraticPolynomialBM::DataType data(
+      node_names, X, Pc, internal_pc_full, RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_Lambda_ij, singular_skip);
+  
+  return new QuadraticPolynomialBM(br_0, br_1, lengths, data);
 }
 
-RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialBM::TreeType)
+//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialBM::TreeType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialBM::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialBM::AlgorithmType)
   
@@ -176,10 +305,12 @@ RCPP_MODULE(QuadraticPolynomialBM) {
 QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
-    Rcpp::List const& metaInfo, 
-    double threshold_SV,
-    double threshold_Lambda_ij,
-    bool internal_pc_full) {
+    Rcpp::List const& metaInfo) {
+  
+  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -194,16 +325,19 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
   
   using namespace std;
+
+  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
   
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["regimes"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
   
+
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03611:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The slot regimes in metaInfo has different length ("<<regimes.size()<<
+    os<<"ERR:03811:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
-  
+
   splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
   splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
   
@@ -214,26 +348,26 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialOU::DataType data(node_names, X, Pc, internal_pc_full);
-  
-  auto pObj = new QuadraticPolynomialOU(br_0, br_1, lengths, data);
-  
   if(threshold_SV <= 0) {
     ostringstream os;
-    os<<"ERR:03612:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The argument threshold_SV should be positive real number.";
+    os<<"ERR:03812:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_SV_ = threshold_SV;
   
   
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
-    os<<"ERR:03613:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The argument threshold_Lambda_ij should be non-negative double.";
+    os<<"ERR:03813:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The argument threshold_Lambda_ij should be non-negative double.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_Lambda_ij_ = threshold_Lambda_ij;
   
-  return pObj;
+  typename QuadraticPolynomialOU::DataType data(
+      node_names, X, Pc, internal_pc_full, 
+      RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_Lambda_ij,
+      singular_skip);
+  
+  return new QuadraticPolynomialOU(br_0, br_1, lengths, data);
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialOU::TraversalSpecificationType)
@@ -298,10 +432,12 @@ RCPP_MODULE(QuadraticPolynomialOU) {
 QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
-    Rcpp::List const& metaInfo,
-    double threshold_SV,
-    double threshold_Lambda_ij,
-    bool internal_pc_full) {
+    Rcpp::List const& metaInfo) {
+  
+  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -317,19 +453,20 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   
   using namespace std;
   
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["regimes"]);
+  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
   vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(tree["edge.jump"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03621:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The slot regimes in metaInfo has different length ("<<regimes.size()<<
+    os<<"ERR:03821:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
   
   if(jumps.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03622:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The slot jumps in trees has different length ("<<jumps.size()<<
+    os<<"ERR:03822:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The slot jumps in trees has different length ("<<jumps.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
@@ -345,24 +482,25 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     lengths[i].jump_ = jumps[i];
   }
   
-  typename QuadraticPolynomialJOU::DataType data(node_names, X, Pc, internal_pc_full);
-  auto pObj = new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
-  
   if(threshold_SV <= 0) {
     ostringstream os;
-    os<<"ERR:03623:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_SV should be positive real number.";
+    os<<"ERR:03823:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_SV_ = threshold_SV;
   
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
-    os<<"ERR:03624:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_Lambda_ij should be non-negative double.";
+    os<<"ERR:03824:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_Lambda_ij should be non-negative double.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_Lambda_ij_ = threshold_Lambda_ij;
   
-  return pObj;
+  typename QuadraticPolynomialJOU::DataType data(
+      node_names, X, Pc, internal_pc_full, 
+      RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_Lambda_ij, 
+      singular_skip);
+  
+  return new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialJOU::TreeType)
@@ -425,14 +563,15 @@ RCPP_MODULE(QuadraticPolynomialJOU) {
   ;
 }
 
-
 QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     arma::mat const& X,
     Rcpp::List const& tree,
-    Rcpp::List const& metaInfo,
-    double threshold_SV,
-    double threshold_Lambda_ij,
-    bool internal_pc_full) {
+    Rcpp::List const& metaInfo) {
+  
+  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -447,12 +586,12 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
   splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
   
   using namespace std;
-  
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["regimes"]);
+  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03631:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The slot regimes in metaInfo has different length ("<<regimes.size()<<
+    os<<"ERR:03831:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
@@ -467,25 +606,25 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     lengths[i].regime_ = regimes[i] - 1;
   }
   
-  typename QuadraticPolynomialTwoSpeedOU::DataType data(node_names, X, Pc, internal_pc_full);
-  
-  auto pObj = new QuadraticPolynomialTwoSpeedOU(br_0, br_1, lengths, data);
-  
   if(threshold_SV <= 0) {
     ostringstream os;
-    os<<"ERR:03632:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The argument threshold_SV should be positive real number.";
+    os<<"ERR:03832:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_SV_ = threshold_SV;
   
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
-    os<<"ERR:03633:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The argument threshold_Lambda_ij should be non-negative double.";
+    os<<"ERR:03833:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The argument threshold_Lambda_ij should be non-negative double.";
     throw invalid_argument(os.str());
   }
-  pObj->spec().threshold_Lambda_ij_ = threshold_Lambda_ij;
   
-  return pObj;
+  typename QuadraticPolynomialTwoSpeedOU::DataType data(
+      node_names, X, Pc, internal_pc_full, 
+      RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_Lambda_ij,
+      singular_skip);
+  
+  return new QuadraticPolynomialTwoSpeedOU(br_0, br_1, lengths, data);;
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType)
@@ -546,3 +685,140 @@ RCPP_MODULE(QuadraticPolynomialTwoSpeedOU) {
     .property( "algorithm", &QuadraticPolynomialTwoSpeedOU::algorithm )
   ;
 }
+
+
+QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
+    arma::mat const& X,
+    Rcpp::List const& tree,
+    Rcpp::List const& metaInfo,
+    std::vector<std::string> const& regimeModels) {
+  
+  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  
+  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  
+  for(arma::uword i = 0; i < X.n_rows; ++i)
+    for(arma::uword j = 0; j < X.n_cols; ++j) {
+      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+    }
+    
+  arma::umat branches = tree["edge"];
+  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
+  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
+  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  
+  using namespace std;
+  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
+  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(tree["edge.jump"]);
+  
+  if(regimes.size() != branches.n_rows) {
+    ostringstream os;
+    os<<"ERR:03841:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMRG:: The slot r in metaInfo has different length ("<<regimes.size()<<
+      ") than the number of edges ("<<branches.n_rows<<").";
+    throw logic_error(os.str());
+  }
+  
+  if(jumps.size() != branches.n_rows) {
+    ostringstream os;
+    os<<"ERR:03842:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The slot jumps in trees has different length ("<<jumps.size()<<
+      ") than the number of edges ("<<branches.n_rows<<").";
+    throw logic_error(os.str());
+  }
+  
+  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  
+  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  
+  vector<typename QuadraticPolynomialMRG::LengthType> lengths(branches.n_rows);
+  
+  for(arma::uword i = 0; i < branches.n_rows; ++i) {
+    lengths[i].length_ = t[i];
+    lengths[i].regime_ = regimes[i] - 1;
+    lengths[i].jump_ = jumps[i];
+  }
+  
+  
+  if(threshold_SV <= 0) {
+    ostringstream os;
+    os<<"ERR:03843:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMRG:: The argument threshold_SV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
+  
+  if(threshold_Lambda_ij < 0) {
+    ostringstream os;
+    os<<"ERR:03844:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMRG:: The argument threshold_Lambda_ij should be non-negative double.";
+    throw invalid_argument(os.str());
+  }
+  
+  typename QuadraticPolynomialMRG::DataType data(
+      node_names, X, Pc, internal_pc_full, 
+      RModel, 
+      regimeModels,
+      threshold_SV, threshold_Lambda_ij, 
+      singular_skip);
+  
+  return new QuadraticPolynomialMRG(br_0, br_1, lengths, data);
+}
+
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMRG::TraversalSpecificationType)
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMRG::AlgorithmType)
+  
+  RCPP_MODULE(QuadraticPolynomialMRG) {
+    Rcpp::class_<QuadraticPolynomialMRG::TreeType::Tree> ( "QuadraticPolynomialMRG_Tree" )
+    .property("num_nodes", &QuadraticPolynomialMRG::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolynomialMRG::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolynomialMRG::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolynomialMRG::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolynomialMRG::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolynomialMRG::TreeType::Tree::OrderNodes )
+    ;
+    Rcpp::class_<QuadraticPolynomialMRG::TreeType>( "QuadraticPolynomialMRG_OrderedTree" )
+      .derives<QuadraticPolynomialMRG::TreeType::Tree> ( "QuadraticPolynomialMRG_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolynomialMRG::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolynomialMRG::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolynomialMRG::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolynomialMRG::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolynomialMRG::TreeType::ranges_id_prune )
+    ;
+    Rcpp::class_<QuadraticPolynomialMRG::AlgorithmType::ParentType>( "QuadraticPolynomialMRG_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolynomialMRG::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "num_threads", &QuadraticPolynomialMRG::AlgorithmType::num_threads )
+    ;
+    Rcpp::class_<QuadraticPolynomialMRG::AlgorithmType> ( "QuadraticPolynomialMRG_ParallelPruning" )
+      .derives<QuadraticPolynomialMRG::AlgorithmType::ParentType>( "QuadraticPolynomialMRG_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolynomialMRG::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolynomialMRG::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolynomialMRG::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolynomialMRG::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolynomialMRG::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolynomialMRG::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolynomialMRG::AlgorithmType::fastest_step_tuning )
+    ;
+    Rcpp::class_<QuadraticPolynomialMRG::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+      .field( "A", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::A)
+      .field( "b", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::b )
+      .field( "C", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::C )
+      .field( "d", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::d )
+      .field( "E", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::E )
+      .field( "f", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::f )
+      .field( "L", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::L )
+      .field( "m", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::m )
+      .field( "r", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::r )
+      .field( "V", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::V )
+      .field( "V_1", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::V_1 )
+    ;
+    Rcpp::class_<QuadraticPolynomialMRG::TraversalSpecificationType> ( "QuadraticPolynomialMRG_PruningSpec" )
+      .derives<QuadraticPolynomialMRG::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+    ;
+    Rcpp::class_<QuadraticPolynomialMRG>( "QuadraticPolynomialMRG" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialMRG)
+      .method( "TraverseTree", &QuadraticPolynomialMRG::TraverseTree )
+      .property( "tree", &QuadraticPolynomialMRG::tree )
+      .property( "spec", &QuadraticPolynomialMRG::spec )
+      .property( "algorithm", &QuadraticPolynomialMRG::algorithm )
+    ;
+  }

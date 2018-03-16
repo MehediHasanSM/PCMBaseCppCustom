@@ -22,8 +22,8 @@
  *
  * @author Venelin Mitov
  */
-#ifndef QuadraticPolynomial_BM_H_
-#define QuadraticPolynomial_BM_H_
+#ifndef QuadraticPolynomial_WHITE_H_
+#define QuadraticPolynomial_WHITE_H_
 
 #include "QuadraticPolynomial.h"
 #include <armadillo>
@@ -31,11 +31,10 @@
 
 namespace PCMBaseCpp {
 
-
-typedef splittree::OrderedTree<splittree::uint, LengthAndRegime> BMTreeType;
+typedef splittree::OrderedTree<splittree::uint, LengthAndRegime> WhiteTreeType;
 
 template<class TreeType, class DataType>
-struct CondGaussianBM: public CondGaussianOmegaPhiV {
+struct CondGaussianWhite: public CondGaussianOmegaPhiV {
   
   TreeType const& ref_tree_;
   
@@ -52,21 +51,19 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
   // Each slice or column of the following cubes or matrices correponds to one regime
   arma::mat X0;
   
-  // Each slice or column of the following cubes or matrices correponds to one regime
-  arma::cube Sigma;
   arma::cube Sigmae;
   
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   
   arma::mat I;
   
-  CondGaussianBM(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
+  CondGaussianWhite(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = R;
     this->I = arma::eye(k_, k_);
   }
   
-  CondGaussianBM(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
+  CondGaussianWhite(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
     this->I = arma::eye(k_, k_);
@@ -75,19 +72,18 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
   arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
     using namespace arma;
     
-    uint npar = R_*(2*k_*k_ + k_);
+    uint npar = R_*(k_*k_ + k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03201:PCMBaseCpp:QuadraticPolynomialBM.h:CondBM.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
-        ") should be at least of R*(2k^2+k), where k="<<k_<<" is the number of traits and "<<
+      os<<"ERR:03601:PCMBaseCpp:QuadraticPolynomialWhite.h:CondGaussianWhite.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+        ") should be at least of R*(k^2+k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
     }
     
     this->X0 = mat(&par[offset], k_, R_);
-    this->Sigma = cube(&par[offset + k_*R_], k_, k_, R_);
-    this->Sigmae = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
-  
+    this->Sigmae = cube(&par[offset + k_*R_], k_, k_, R_);
+    
     return npar;
   }
   
@@ -99,7 +95,8 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
     omega.col(i).fill(0);
     Phi.slice(i) = I;
     
-    V.slice(i) = ti * Sigma.slice(ri); 
+    V.slice(i).fill(0);
+    
     if(i < this->ref_tree_.num_tips()) {
       V.slice(i) += Sigmae.slice(ri);
     }
@@ -107,19 +104,19 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
 };
 
 
-class BM: public QuadraticPolynomial<BMTreeType> {
+class White: public QuadraticPolynomial<WhiteTreeType> {
 public:
-  typedef BMTreeType TreeType;
+  typedef WhiteTreeType TreeType;
   typedef QuadraticPolynomial<TreeType> BaseType;
-  typedef BM MyType;
+  typedef White MyType;
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
   typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
 
-  CondGaussianBM<TreeType, DataType> cond_dist_;
+  CondGaussianWhite<TreeType, DataType> cond_dist_;
   
-  BM(TreeType const& tree, DataType const& input_data):
+  White(TreeType const& tree, DataType const& input_data):
     BaseType(tree, input_data), cond_dist_(tree, input_data) {
     
     BaseType::ptr_cond_dist_.push_back(&cond_dist_);
@@ -131,7 +128,7 @@ public:
 };
 
 
-typedef splittree::TraversalTask<BM> QuadraticPolynomialBM;
+typedef splittree::TraversalTask<White> QuadraticPolynomialWhite;
 }
 
-#endif // QuadraticPolynomial_BM_H_
+#endif // QuadraticPolynomial_WHITE_H_
