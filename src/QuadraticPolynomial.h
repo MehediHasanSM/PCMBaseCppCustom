@@ -48,26 +48,6 @@ inline bool IsSingular(arma::mat const& X, double threshold_SV) {
   double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
   return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
 }
-// 
-// // returns:
-// // 1. a positive value if X is positive definite and non-singular
-// // 2. 0 if X is singular
-// // 3. a negative value if X is not positive definite
-// inline int TestPosDef(arma::cx_mat const& X, double threshold_SV) {
-//   using namespace arma;
-//   
-//   vec svd_V = svd(X);
-//   double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
-//   
-//   return (isfinite(ratio_SV) && ratio_SV >= threshold_SV && *(svd_V.cend()-1) > 0);
-// }
-// 
-// inline int TestPosDef(arma::mat const& X, double threshold_SV) {
-//   using namespace arma;
-//   vec svd_V = svd(X);
-//   double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
-//   return (isfinite(ratio_SV) && ratio_SV >= threshold_SV && *(svd_V.cend()-1) > 0);
-// }
 
 template<class NameType>
 struct NumericTraitData {
@@ -443,10 +423,6 @@ public:
       
       arma::uvec ki = pc[i];
       
-      // check that V.slice(i)(ki,ki) is non-singular
-      //  vec svd_V = svd(V.slice(i)(ki,ki));
-      //  double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
-      // if(!isfinite(ratio_SV) || ratio_SV < threshold_SV_) {
       if( IsSingular(V.slice(i)(ki,ki), threshold_SV_) ) {
         singular_branch_[i] = 1;
         
@@ -459,15 +435,6 @@ public:
           throw logic_error(oss.str());  
         }
       } 
-      
-      // if(i >= this->ref_tree_.num_nodes() - 2) {
-      //   cout<<"InitLmr("<<i<<"): singular_branch_:";
-      //   for(auto const& sbi: singular_branch_) {
-      //     cout<<sbi<<", ";
-      //   }
-      //   cout<<"\n";
-      // }
-      // 
       
       if(!singular_branch_[i]) {
         // Check V is positive definite: all eigen-values must be strictly positive
@@ -499,16 +466,6 @@ public:
           X(ki,ui).t() * b(ki,ui) + f(i)).at(0,0);
         m(kj, ui) = d(kj, ui) + E.slice(i)(kj,ki) * X(ki,ui);
       } else {
-        // cout<<".!."<<i<<".!.";
-        // cout<<V.slice(i)<<"\n";
-        // cout<<V_1.slice(i)<<"\n";
-        // cout<<IsSingular(V.slice(i), threshold_SV_)<<"\n";
-        // cout<<"singular_branch_:";
-        // for(auto const& sbi: singular_branch_) {
-        //   cout<<sbi<<", ";
-        // }
-        // cout<<"\n";
-        
         uvec ui(1);
         ui(0) = i;
   
