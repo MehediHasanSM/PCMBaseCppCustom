@@ -65,6 +65,7 @@ using namespace std;
 QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     arma::mat const&X, 
     Rcpp::List const& tree, 
+    Rcpp::List const& model,
     Rcpp::List const& metaInfo) { 
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
@@ -185,6 +186,7 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
 QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     arma::mat const&X, 
     Rcpp::List const& tree, 
+    Rcpp::List const& model,
     Rcpp::List const& metaInfo) { 
     
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
@@ -305,6 +307,7 @@ RCPP_MODULE(QuadraticPolynomialBM) {
 QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
+    Rcpp::List const& model,
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
@@ -432,6 +435,7 @@ RCPP_MODULE(QuadraticPolynomialOU) {
 QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
+    Rcpp::List const& model,
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
@@ -566,6 +570,7 @@ RCPP_MODULE(QuadraticPolynomialJOU) {
 QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     arma::mat const& X,
     Rcpp::List const& tree,
+    Rcpp::List const& model,
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
@@ -690,6 +695,7 @@ RCPP_MODULE(QuadraticPolynomialTwoSpeedOU) {
 QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
     arma::mat const& X,
     Rcpp::List const& tree,
+    Rcpp::List const& model,
     Rcpp::List const& metaInfo,
     std::vector<std::string> const& regimeModels) {
   

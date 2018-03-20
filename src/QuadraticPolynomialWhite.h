@@ -90,8 +90,6 @@ struct CondGaussianWhite: public CondGaussianOmegaPhiV {
   void CalculateOmegaPhiV(uint i, arma::uword ri, arma::mat& omega, arma::cube& Phi, arma::cube& V) {
     using namespace arma;
     
-    double ti = this->ref_tree_.LengthOfBranch(i).length_;
-    
     omega.col(i).fill(0);
     Phi.slice(i) = I;
     
@@ -99,6 +97,7 @@ struct CondGaussianWhite: public CondGaussianOmegaPhiV {
     
     if(i < this->ref_tree_.num_tips()) {
       V.slice(i) += Sigmae.slice(ri);
+      //std::cout<<V.slice(i)<<"\n";
     }
   }
 };

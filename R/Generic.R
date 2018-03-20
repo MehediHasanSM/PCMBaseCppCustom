@@ -45,7 +45,7 @@ PCMLmr.PCMInfoCpp <- function(
   
   par <- PCMGetVecParamsFull(model)
   
-  PCMLmr_vec <- metaI$TraverseTree(par, mode=getOption("splittree.postorder.mode", as.integer(0)))
+  PCMLmr_vec <- metaI$TraverseTree(par, mode=getOption("PCMBase.PCMLmr.mode", as.integer(11)))
   
   if(root.only) {
     # number of traits (variables)

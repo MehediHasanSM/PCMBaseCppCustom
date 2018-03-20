@@ -43,6 +43,8 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
   
+  double threshold_SV_ = 1e-6;
+  
   // number of traits
   uint k_;
   
@@ -86,22 +88,33 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
   CondGaussianTwoSpeedOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = R;
-    
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
-    
-    this->I = arma::eye(k_, k_);
+    this->threshold_SV_ = ref_data.threshold_SV_;
+    InitInternal();
   }
   
   
   CondGaussianTwoSpeedOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
-    
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
-    
-    this->I = arma::eye(k_, k_);
+    this->threshold_SV_ = ref_data.threshold_SV_;
+    InitInternal();
   }
   
+  void InitInternal() {
+    using namespace arma;
+    this->I = eye(k_, k_);
+    this->P1 = cx_cube(k_, k_, R_);
+    this->P1_1 = cx_cube(k_, k_, R_);
+    this->lambda1 = cx_mat(k_, R_);
+    this->P2 = cx_cube(k_, k_, R_);
+    this->P2_1 = cx_cube(k_, k_, R_);
+    this->P2_1SigmaP2_1_t = cx_cube(k_, k_, R_);
+    this->lambda2 = cx_mat(k_, R_);
+    this->Lambda2_ij = cx_cube(k_, k_, R_);
+    this->e_H1t = cube(k_, k_, this->ref_tree_.num_nodes());
+  }
   
   arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
     using namespace arma;
@@ -109,7 +122,7 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
     uint npar = R_*(4*k_*k_ + 2*k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03401:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"ERR:03501:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(4k^2+2k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
@@ -122,18 +135,6 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
     this->Sigma = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_)*R_], k_, k_, R_);
     this->Sigmae = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
-    this->P1 = cx_cube(k_, k_, R_);
-    this->P1_1 = cx_cube(k_, k_, R_);
-    this->lambda1 = cx_mat(k_, R_);
-    
-    this->P2 = cx_cube(k_, k_, R_);
-    this->P2_1 = cx_cube(k_, k_, R_);
-    this->P2_1SigmaP2_1_t = cx_cube(k_, k_, R_);
-    this->lambda2 = cx_mat(k_, R_);
-    this->Lambda2_ij = cx_cube(k_, k_, R_);
-    
-    this->e_H1t = cube(k_, k_, this->ref_tree_.num_nodes());
-    
     for(uword r = 0; r < R_; ++r) {
       using namespace std;
       
@@ -141,15 +142,31 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
       cx_mat eigvec1;
       eig_gen(eigval1, eigvec1, H1.slice(r));
       lambda1.col(r) = eigval1;
+      
       P1.slice(r) = eigvec1;
+      
+      if(IsSingular(P1.slice(r), threshold_SV_)) {
+        std::ostringstream os;
+        os<<"ERR:03502:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: Defective H1 matrix:"<<
+          H1.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
+        throw std::logic_error(os.str());
+      }
       P1_1.slice(r) = inv(P1.slice(r));
       
       cx_vec eigval2;
       cx_mat eigvec2;
       eig_gen(eigval2, eigvec2, H2.slice(r));
       lambda2.col(r) = eigval2;
+      
       P2.slice(r) = eigvec2;
+      if(IsSingular(P2.slice(r), threshold_SV_)) {
+        std::ostringstream os;
+        os<<"ERR:03503:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: Defective H2 matrix:"<<
+          H1.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
+        throw std::logic_error(os.str());
+      }
       P2_1.slice(r) = inv(P2.slice(r));
+      
       P2_1SigmaP2_1_t.slice(r) = P2_1.slice(r) * Sigma.slice(r) * P2_1.slice(r).t();
       
       for(uword i = 0; i < k_; ++i)

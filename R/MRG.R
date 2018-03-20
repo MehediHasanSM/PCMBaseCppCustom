@@ -21,7 +21,7 @@ PCMInfoCpp.MRG <- function(X, tree, model, metaI = PCMInfo(X, tree, model, verbo
   
   res <- c(metaI, 
            cppObject = QuadraticPolynomialMRG$new(
-             X, tree, metaI, 
+             X, tree, model, metaI, 
              regimeModel))
   
   res$TraverseTree = res$cppObject$TraverseTree

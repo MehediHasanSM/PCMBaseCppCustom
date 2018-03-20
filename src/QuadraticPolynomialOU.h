@@ -42,8 +42,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
   // take the limit time of the expression `(1-exp(-Lambda_ij*time))/Lambda_ij` as
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
-  
-  
+  double threshold_SV_ = 1e-6;
   
   //
   // model parameters
@@ -79,45 +78,55 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
   CondGaussianOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = R;
-    
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
-    
-    this->I = arma::eye(k_, k_);
+    this->threshold_SV_ = ref_data.threshold_SV_;
+    InitInternal();
   }
   
   CondGaussianOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
-    
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
-      
-    this->I = arma::eye(k_, k_);
+    this->threshold_SV_ = ref_data.threshold_SV_;
+    InitInternal();
+  }
+  
+  void InitInternal() {
+    using namespace arma;
+    this->I = eye(k_, k_);
+    this->P = cx_cube(k_, k_, R_);
+    this->P_1 = cx_cube(k_, k_, R_);
+    this->P_1SigmaP_1_t = cx_cube(k_, k_, R_);
+    this->lambda = cx_mat(k_, R_);
+    this->Lambda_ij = cx_cube(k_, k_, R_);
   }
   
   arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
     using namespace arma;
 
+    // for (const auto& i: par)
+    //   std::cout << i << ' ';
+    // std::cout<<"; "<<offset<<";"<<R_<<"; "<<k_<<"\n";
+    
     uint npar = R_*(3*k_*k_ + 2*k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03301:PCMBaseCpp:QuadraticPolynomialOU.h:CondOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"ERR:03401:PCMBaseCpp:QuadraticPolynomialOU.h:CondOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(3k^2+2k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
     }
     
     this->X0 = mat(&par[offset], k_, R_);
+    
     this->H = cube(&par[offset + k_*R_], k_, k_, R_);
     this->Theta = mat(&par[offset + (k_ + k_*k_)*R_], k_, R_);
     this->Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    
     this->Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
-    this->P = cx_cube(k_, k_, R_);
-    this->P_1 = cx_cube(k_, k_, R_);
-    this->P_1SigmaP_1_t = cx_cube(k_, k_, R_);
-    this->lambda = cx_mat(k_, R_);
-    this->Lambda_ij = cx_cube(k_, k_, R_);
-    
+    InitInternal();
+      
     for(uword r = 0; r < R_; ++r) {
       using namespace std;
       
@@ -127,8 +136,16 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
       eig_gen(eigval, eigvec, H.slice(r));
       
       lambda.col(r) = eigval;
+      
       P.slice(r) = eigvec;
+      if(IsSingular(P.slice(r), threshold_SV_)) {
+        std::ostringstream os;
+        os<<"ERR:03402:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: Defective H matrix:"<<
+          H.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
+        throw std::logic_error(os.str());
+      }
       P_1.slice(r) = inv(P.slice(r));
+      
       P_1SigmaP_1_t.slice(r) = P_1.slice(r) * Sigma.slice(r) * P_1.slice(r).t();
       
       for(uword i = 0; i < k_; ++i)
