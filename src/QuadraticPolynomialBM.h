@@ -84,10 +84,15 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
       throw std::logic_error(os.str());
     }
     
-    this->X0 = mat(&par[offset], k_, R_);
-    this->Sigma = cube(&par[offset + k_*R_], k_, k_, R_);
-    this->Sigmae = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
-  
+    X0 = mat(&par[offset], k_, R_);
+    Sigma = cube(&par[offset + k_*R_], k_, k_, R_);
+    Sigmae = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
+    
+    for(uword r = 0; r < R_; r++) {
+      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    }
+    
     return npar;
   }
   

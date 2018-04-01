@@ -69,9 +69,10 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     Rcpp::List const& metaInfo) { 
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
-  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
@@ -118,7 +119,8 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
   
   typename QuadraticPolynomialWhite::DataType data(
       node_names, X, Pc, internal_pc_full, RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_Lambda_ij, singular_skip);
+      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_Lambda_ij);
   
   return new QuadraticPolynomialWhite(br_0, br_1, lengths, data);
 }
@@ -190,9 +192,10 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     Rcpp::List const& metaInfo) { 
     
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
-  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
@@ -239,7 +242,8 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
   
   typename QuadraticPolynomialBM::DataType data(
       node_names, X, Pc, internal_pc_full, RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_Lambda_ij, singular_skip);
+      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_Lambda_ij);
   
   return new QuadraticPolynomialBM(br_0, br_1, lengths, data);
 }
@@ -311,9 +315,10 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
-  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -367,8 +372,8 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   typename QuadraticPolynomialOU::DataType data(
       node_names, X, Pc, internal_pc_full, 
       RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_Lambda_ij,
-      singular_skip);
+      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_Lambda_ij);
   
   return new QuadraticPolynomialOU(br_0, br_1, lengths, data);
 }
@@ -439,9 +444,10 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
-  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -459,7 +465,7 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
   vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
-  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(tree["edge.jump"]);
+  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(metaInfo["xi"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -501,8 +507,8 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   typename QuadraticPolynomialJOU::DataType data(
       node_names, X, Pc, internal_pc_full, 
       RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_Lambda_ij, 
-      singular_skip);
+      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_Lambda_ij);
   
   return new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
 }
@@ -574,9 +580,10 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
-  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
@@ -626,8 +633,8 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
   typename QuadraticPolynomialTwoSpeedOU::DataType data(
       node_names, X, Pc, internal_pc_full, 
       RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_Lambda_ij,
-      singular_skip);
+      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_Lambda_ij);
   
   return new QuadraticPolynomialTwoSpeedOU(br_0, br_1, lengths, data);;
 }
@@ -700,10 +707,15 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
     std::vector<std::string> const& regimeModels) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<bool>(metaInfo["PCMBase.Internal.PC.Full"]);
-  bool singular_skip = static_cast<bool>(metaInfo["PCMBase.Singular.Skip"]);
+  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
+  // std::cout<<"skip_singular(1)"<<static_cast<bool>(metaInfo["PCMBase.Skip.Singular"])<<"\n";
+  // std::cout<<"skip_singular(2)"<<static_cast<int>(metaInfo["PCMBase.Skip.Singular"])<<"\n";
+  // std::cout<<"skip_singular(3)"<<skip_singular<<"\n";
+  // 
   arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   
   for(arma::uword i = 0; i < X.n_rows; ++i)
@@ -719,7 +731,7 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
   using namespace std;
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
   vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
-  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(tree["edge.jump"]);
+  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(metaInfo["xi"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -764,8 +776,9 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
       node_names, X, Pc, internal_pc_full, 
       RModel, 
       regimeModels,
-      threshold_SV, threshold_Lambda_ij, 
-      singular_skip);
+      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_Lambda_ij
+      );
   
   return new QuadraticPolynomialMRG(br_0, br_1, lengths, data);
 }

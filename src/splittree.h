@@ -1121,6 +1121,44 @@ this->num_threads_ = 1;
 template<class TraversalSpecification>
 class PostOrderTraversal: public TraversalAlgorithm<TraversalSpecification> {
   
+  // un internal class for rethrowing exception caught within parallel sections.
+  // This is inspired from the following stackoverflow discussion:
+  // https://stackoverflow.com/questions/11828539/elegant-exceptionhandling-in-openmp
+  class ThreadExceptionHandler {
+    std::exception_ptr ptr_;
+    std::mutex         lock_;
+  public:
+    ThreadExceptionHandler(): ptr_(nullptr) {}
+    // Copy initialization (non-thread-safe)
+    ThreadExceptionHandler(const ThreadExceptionHandler& other): ptr_(other.ptr_) {}
+      
+    // If there is an exception it gets rethrowed and the ptr_ is set to nullptr.
+    void Rethrow() {
+      if(this->ptr_) {
+        std::exception_ptr ptr = this->ptr_;
+        // reset ptr_ to nullptr so the handler object is cleaned and reusable
+        // after the call to Rethrow().
+        this->ptr_ = nullptr;
+        std::rethrow_exception(ptr);
+      }
+    }
+    void CaptureException() { 
+      std::unique_lock<std::mutex> guard(this->lock_);
+      this->ptr_ = std::current_exception(); 
+    }
+    
+    template <typename Function, typename... Parameters>
+    void Run(Function f, Parameters... params) {
+      try {
+        f(params...);
+      }
+      catch (...) {
+        CaptureException();
+      }
+    }
+  };
+  ThreadExceptionHandler exception_handler_;  
+  
 public:
   typedef TraversalAlgorithm<TraversalSpecification> ParentType;
 
@@ -1143,6 +1181,7 @@ public:
     case ModeType::HYBRID_LOOP_VISITS: TraverseTreeHybridLoopVisits(); break;
     default: TraverseTreeAuto();
     }
+    exception_handler_.Rethrow();
   }
 protected:
   uint current_step_tuning_ = 0;
@@ -1322,7 +1361,9 @@ protected:
 {
   _PRAGMA_OMP_FOR_SIMD
   for(uint i = 0; i < ParentType::ref_tree_.num_nodes(); i++) {
-    ParentType::ref_spec_.InitNode(i);
+    exception_handler_.Run([=]{
+      ParentType::ref_spec_.InitNode(i);  
+    });
   }
 
   uint i_prune = 0;
@@ -1333,7 +1374,9 @@ protected:
     auto range_visit = ParentType::ref_tree_.RangeIdVisitNode(i_level);
     _PRAGMA_OMP_FOR_SIMD
       for(uint i = range_visit[0]; i <= range_visit[1]; i++) {
-        ParentType::ref_spec_.VisitNode(i);
+        exception_handler_.Run([=]{
+          ParentType::ref_spec_.VisitNode(i);
+        });
       }
 
       uint num_branches_done = 0;
@@ -1344,7 +1387,9 @@ protected:
 
       _PRAGMA_OMP_FOR_SIMD
         for(uint i = range_prune[0]; i <= range_prune[1]; i++) {
-          ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+          exception_handler_.Run([=]{
+            ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+          });
         }
 
         num_branches_done +=  range_prune[1] - range_prune[0] + 1;
@@ -1366,23 +1411,27 @@ protected:
 
   _PRAGMA_OMP_FOR_SIMD
     for(uint i = 0; i < ParentType::ref_tree_.num_nodes(); i++) {
-      ParentType::ref_spec_.InitNode(i);
+      exception_handler_.Run([=]{
+        ParentType::ref_spec_.InitNode(i);
+      });
     }
 
     for(uint i_level = 0; i_level < ParentType::ref_tree_.num_levels(); i_level++) {
       auto range_visit = ParentType::ref_tree_.RangeIdVisitNode(i_level);
     _PRAGMA_OMP_FOR_SIMD
       for(uint i = range_visit[0]; i <= range_visit[1]; i++) {
-        if(i < ParentType::ref_tree_.num_tips()) {
-          // i is a tip (only Visit)
-          ParentType::ref_spec_.VisitNode(i);
-        } else {
-          // i is internal
-          for(uint j: ParentType::ref_tree_.FindChildren(i)) {
-            ParentType::ref_spec_.PruneNode(j, i);
+        exception_handler_.Run([=]{
+          if(i < ParentType::ref_tree_.num_tips()) {
+            // i is a tip (only Visit)
+            ParentType::ref_spec_.VisitNode(i);
+          } else {
+            // i is internal
+            for(uint j: ParentType::ref_tree_.FindChildren(i)) {
+              ParentType::ref_spec_.PruneNode(j, i);
+            }
+            ParentType::ref_spec_.VisitNode(i);
           }
-          ParentType::ref_spec_.VisitNode(i);
-        }
+        });
       }
     }
 }
@@ -1396,38 +1445,40 @@ protected:
     ParentType::visit_queue_.Init(ParentType::num_children_);
 #pragma omp parallel
 {
-  while(true) {
-    uint i = ParentType::visit_queue_.NextInQueue();
-    if(i == NA_UINT) {
-      continue;
-    } else if(i == ParentType::ref_tree_.num_nodes()) {
-      break;
-    } else if(i < ParentType::ref_tree_.num_tips()) {
-      // i is a tip (only Visit)
-      ParentType::ref_spec_.InitNode(i);
-      ParentType::ref_spec_.VisitNode(i);
-      ParentType::visit_queue_.RemoveVisitedNode(i);
-    } else if(i < ParentType::ref_tree_.num_nodes() - 1){
-      // i is internal
-      ParentType::ref_spec_.InitNode(i);
-      uvec const& children = ParentType::ref_tree_.FindChildren(i);
-      for(uint j: children) {
-        ParentType::ref_spec_.PruneNode(j, i);
+  exception_handler_.Run([=]{
+    while(true) {
+      uint i = ParentType::visit_queue_.NextInQueue();
+      if(i == NA_UINT) {
+        continue;
+      } else if(i == ParentType::ref_tree_.num_nodes()) {
+        break;
+      } else if(i < ParentType::ref_tree_.num_tips()) {
+        // i is a tip (only Visit)
+        ParentType::ref_spec_.InitNode(i);
+        ParentType::ref_spec_.VisitNode(i);
+        ParentType::visit_queue_.RemoveVisitedNode(i);
+      } else if(i < ParentType::ref_tree_.num_nodes() - 1){
+        // i is internal
+        ParentType::ref_spec_.InitNode(i);
+        uvec const& children = ParentType::ref_tree_.FindChildren(i);
+        for(uint j: children) {
+          ParentType::ref_spec_.PruneNode(j, i);
+        }
+        ParentType::ref_spec_.VisitNode(i);
+        ParentType::visit_queue_.RemoveVisitedNode(i);
+      } else {
+        // i is the root
+        ParentType::ref_spec_.InitNode(i);
+        uvec const& children = ParentType::ref_tree_.FindChildren(i);
+        for(uint j: children) {
+          ParentType::ref_spec_.PruneNode(j, i);
+        }
+        // don't visit the root
       }
-      ParentType::ref_spec_.VisitNode(i);
-      ParentType::visit_queue_.RemoveVisitedNode(i);
-    } else {
-      // i is the root
-      ParentType::ref_spec_.InitNode(i);
-      uvec const& children = ParentType::ref_tree_.FindChildren(i);
-      for(uint j: children) {
-        ParentType::ref_spec_.PruneNode(j, i);
-      }
-      // don't visit the root
     }
-  }
+  });
 }
-  }
+}
 
   void TraverseTreeMultiThreadLoopPrunes() {
 
@@ -1435,7 +1486,9 @@ protected:
 {
   _PRAGMA_OMP_FOR_SIMD
   for(uint i = 0; i < ParentType::ref_tree_.num_nodes(); i++) {
-    ParentType::ref_spec_.InitNode(i);
+    exception_handler_.Run([=]{
+      ParentType::ref_spec_.InitNode(i);
+    });
   }
 
   for(uint i_prune = 0; i_prune < ParentType::ref_tree_.num_parallel_ranges_prune(); i_prune++) {
@@ -1443,8 +1496,10 @@ protected:
 
     _PRAGMA_OMP_FOR_SIMD
       for(uint i = range_prune[0]; i <= range_prune[1]; i++) {
-        ParentType::ref_spec_.VisitNode(i);
-        ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+        exception_handler_.Run([=]{
+          ParentType::ref_spec_.VisitNode(i);
+          ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+        });
       }
   }
 }
@@ -1463,7 +1518,9 @@ protected:
 
   _PRAGMA_OMP_FOR_SIMD
     for(uint i = 0; i < ParentType::ref_tree_.num_nodes(); i++) {
-      ParentType::ref_spec_.InitNode(i);
+      exception_handler_.Run([=]{
+        ParentType::ref_spec_.InitNode(i);
+      });
     }
 
     uint i_prune = 0;
@@ -1474,13 +1531,17 @@ protected:
          ParentType::num_threads_ * min_size_chunk_visit) {
       _PRAGMA_OMP_FOR_SIMD
         for(uint i = range_visit[0]; i <= range_visit[1]; i++) {
-          ParentType::ref_spec_.VisitNode(i);
+          exception_handler_.Run([=]{
+            ParentType::ref_spec_.VisitNode(i);
+          });
         }
     } else if(tid == 0) {
       // only the master thread executes this
       _PRAGMA_OMP_SIMD
       for(uint i = range_visit[0]; i <= range_visit[1]; i++) {
-        ParentType::ref_spec_.VisitNode(i);
+        exception_handler_.Run([=]{
+          ParentType::ref_spec_.VisitNode(i);
+        });
       }
     }
 
@@ -1491,7 +1552,9 @@ protected:
         auto range_prune = ParentType::ref_tree_.RangeIdPruneNode(i_prune);
         _PRAGMA_OMP_SIMD
           for(uint i = range_prune[0]; i <= range_prune[1]; i++) {
-            ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+            exception_handler_.Run([=]{
+              ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+            });
           }
 
           num_branches_done +=  range_prune[1] - range_prune[0] + 1;
@@ -1515,7 +1578,9 @@ protected:
 
   _PRAGMA_OMP_FOR_SIMD
     for(uint i = 0; i < ParentType::ref_tree_.num_nodes(); i++) {
-      ParentType::ref_spec_.InitNode(i);
+      exception_handler_.Run([=]{
+        ParentType::ref_spec_.InitNode(i);
+      });
     }
 
 
@@ -1526,15 +1591,19 @@ protected:
             ParentType::num_threads_ * min_size_chunk_prune) {
         _PRAGMA_OMP_FOR_SIMD
         for(uint i = range_prune[0]; i <= range_prune[1]; i++) {
-          ParentType::ref_spec_.VisitNode(i);
-          ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+          exception_handler_.Run([=]{
+            ParentType::ref_spec_.VisitNode(i);
+            ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+          });
         }
       } else if (tid == 0) {
         // only one (master) thread executes this
         _PRAGMA_OMP_SIMD
         for(uint i = range_prune[0]; i <= range_prune[1]; i++) {
-          ParentType::ref_spec_.VisitNode(i);
-          ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+          exception_handler_.Run([=]{
+            ParentType::ref_spec_.VisitNode(i);
+            ParentType::ref_spec_.PruneNode(i, ParentType::ref_tree_.FindIdOfParent(i));
+          });
         }
       }
     }
@@ -1554,7 +1623,9 @@ protected:
 
   _PRAGMA_OMP_FOR_SIMD
     for(uint i = 0; i < ParentType::ref_tree_.num_nodes(); i++) {
-      ParentType::ref_spec_.InitNode(i);
+      exception_handler_.Run([=]{
+        ParentType::ref_spec_.InitNode(i);
+      });
     }
 
   for(uint i_level = 0; i_level < ParentType::ref_tree_.num_levels(); i_level++) {
@@ -1564,41 +1635,46 @@ protected:
          ParentType::num_threads_ * min_size_chunk_visit) {
       _PRAGMA_OMP_FOR_SIMD
       for(uint i = range_visit[0]; i <= range_visit[1]; i++) {
-        if(i < ParentType::ref_tree_.num_tips()) {
-          // i is a tip (only Visit)
-          ParentType::ref_spec_.VisitNode(i);
-        } else if(i < ParentType::ref_tree_.num_nodes() - 1){
-          // i is internal
-          for(uint j: ParentType::ref_tree_.FindChildren(i)) {
-            ParentType::ref_spec_.PruneNode(j, i);
+        exception_handler_.Run([=]{
+          if(i < ParentType::ref_tree_.num_tips()) {
+            // i is a tip (only Visit)
+            ParentType::ref_spec_.VisitNode(i);
+          } else if(i < ParentType::ref_tree_.num_nodes() - 1){
+            // i is internal
+            for(uint j: ParentType::ref_tree_.FindChildren(i)) {
+              ParentType::ref_spec_.PruneNode(j, i);
+            }
+            ParentType::ref_spec_.VisitNode(i);
           }
-          ParentType::ref_spec_.VisitNode(i);
-        }
+        });
       }
     } else if(tid == 0) {
       // only the master thread executes this
       _PRAGMA_OMP_SIMD
       for(uint i = range_visit[0]; i <= range_visit[1]; i++) {
-        if(i < ParentType::ref_tree_.num_tips()) {
-          // i is a tip (only Visit)
-          ParentType::ref_spec_.VisitNode(i);
-        } else if(i < ParentType::ref_tree_.num_nodes() - 1){
-          // i is internal
-          for(uint j: ParentType::ref_tree_.FindChildren(i)) {
-            ParentType::ref_spec_.PruneNode(j, i);
+        exception_handler_.Run([=]{
+          if(i < ParentType::ref_tree_.num_tips()) {
+            // i is a tip (only Visit)
+            ParentType::ref_spec_.VisitNode(i);
+          } else if(i < ParentType::ref_tree_.num_nodes() - 1){
+            // i is internal
+            for(uint j: ParentType::ref_tree_.FindChildren(i)) {
+              ParentType::ref_spec_.PruneNode(j, i);
+            }
+            ParentType::ref_spec_.VisitNode(i);
           }
-          ParentType::ref_spec_.VisitNode(i);
-        }
+        });
       }
     }
   }
 }
     // VisitNode not called on the root
     for(uint j: ParentType::ref_tree_.FindChildren(ParentType::ref_tree_.num_nodes() - 1)) {
-      ParentType::ref_spec_.PruneNode(j, ParentType::ref_tree_.num_nodes() - 1);
+      exception_handler_.Run([=]{
+        ParentType::ref_spec_.PruneNode(j, ParentType::ref_tree_.num_nodes() - 1);
+      });
     }
   }
-
 };
 
 

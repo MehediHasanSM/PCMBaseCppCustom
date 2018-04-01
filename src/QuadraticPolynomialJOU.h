@@ -120,42 +120,30 @@ struct CondGaussianJOU: public CondGaussianOmegaPhiV {
       throw std::logic_error(os.str());
     }
     
-    this->X0 = mat(&par[offset], k_, R_);
-    this->H = cube(&par[offset + k_*R_], k_, k_, R_);
-    this->Theta = mat(&par[offset + (k_ + k_*k_)*R_], k_, R_);
-    this->Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    X0 = mat(&par[offset], k_, R_);
+    H = cube(&par[offset + k_*R_], k_, k_, R_);
+    Theta = mat(&par[offset + (k_ + k_*k_)*R_], k_, R_);
+    Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
     
-    this->mj = mat(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, R_);
-    this->Sigmaj = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    mj = mat(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, R_);
+    Sigmaj = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
-    this->Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
-    
+    for(uword r = 0; r < R_; r++) {
+      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+      Sigmaj.slice(r) = Sigmaj.slice(r) * Sigmaj.slice(r).t();  
+      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    }
     
     for(uword r = 0; r < R_; ++r) {
       using namespace std;
       
-      cx_vec eigval;
-      cx_mat eigvec;
+      DecomposeH(lambda, P, P_1, H, r, threshold_SV_);
       
-      eig_gen(eigval, eigvec, H.slice(r));
+      // notice that we use st() instead of t() for P.slice(ri) to avoid conjugate (Hermitian) transpose.
+      P_1SigmaP_1_t.slice(r) = P_1.slice(r) * Sigma.slice(r) * P_1.slice(r).st();
       
-      lambda.col(r) = eigval;
-      P.slice(r) = eigvec;
-      if(IsSingular(P.slice(r), threshold_SV_)) {
-        std::ostringstream os;
-        os<<"ERR:03302:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondJOU.SetParameter:: Defective H matrix:"<<
-          H.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
-        throw std::logic_error(os.str());
-      }
-      P_1.slice(r) = inv(P.slice(r));
-      
-      P_1SigmaP_1_t.slice(r) = P_1.slice(r) * Sigma.slice(r) * P_1.slice(r).t();
-      
-      for(uword i = 0; i < k_; ++i)
-        for(uword j = i; j < k_; ++j) {
-          Lambda_ij.slice(r)(i,j) = Lambda_ij.slice(r)(j,i) =
-            lambda.col(r)(i) + lambda.col(r)(j);
-        }
+      PairSums(Lambda_ij.slice(r), lambda.col(r));
     }
     return npar;
   }
@@ -166,24 +154,15 @@ struct CondGaussianJOU: public CondGaussianOmegaPhiV {
     double ti = this->ref_tree_.LengthOfBranch(i).length_;
     u8 xi = this->ref_tree_.LengthOfBranch(i).jump_;
     
-    arma::cx_mat fLambda_ij(k_, k_);
-    
-    for(uword w = 0; w < k_; ++w) {
-      for(uword v = w; v < k_; ++v) {
-        if(abs(Lambda_ij.slice(ri)(w,v)) <= threshold_Lambda_ij_) {
-          fLambda_ij(w,v) = fLambda_ij(v,w) = ti;
-        } else {
-          fLambda_ij(w,v) = fLambda_ij(v,w) =
-            (1.0 - exp(-Lambda_ij.slice(ri)(w,v) * ti)) / Lambda_ij.slice(ri)(w,v);
-        }
-      }
-    }
-    
     Phi.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
     omega.col(i) = xi * Phi.slice(i) * mj.col(ri) + (I - Phi.slice(i)) * Theta.col(ri);
     
+    cx_mat fLambda_ij(k_, k_);
+    CDFExpDivLambda(fLambda_ij, Lambda_ij.slice(ri), ti, threshold_Lambda_ij_);
+    
+    // notice that we use st() instead of t() for P.slice(ri) to avoid conjugate transpose.
     V.slice(i) = 
-      real(P.slice(ri)* (fLambda_ij%P_1SigmaP_1_t.slice(ri)) * P.slice(ri).t() +
+      real(P.slice(ri)* (fLambda_ij%P_1SigmaP_1_t.slice(ri)) * P.slice(ri).st() +
       xi * Phi.slice(i) * Sigmaj.slice(ri) * Phi.slice(i).t() );
     
     if(i < this->ref_tree_.num_tips()) {

@@ -1,0 +1,130 @@
+/*
+ *  Rcpp.cpp
+ *  PCMBaseCpp
+ *
+ * Copyright 2017 Venelin Mitov
+ *
+ * This file is part of PCMBaseCpp: A C++ backend for calculating the likelihood of phylogenetic comparative models.
+ *
+ * PCMBaseCpp is free software: you can redistribute it and/or modify
+ * it under the terms of version 3 of the GNU General Public License as
+ * published by the Free Software Foundation.
+ *
+ * PCMBaseCpp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public
+ * License along with PCMBaseCpp.  If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Venelin Mitov
+ */
+#include <RcppArmadillo.h>
+#include <iostream>
+#include "QuadraticPolynomial.h"
+
+
+// [[Rcpp::plugins("cpp11")]]
+// [[Rcpp::plugins(openmp)]]
+// [[Rcpp::depends(RcppArmadillo)]]
+
+using namespace arma;
+using namespace std;
+
+// [[Rcpp::export]]
+bool IsSingular(arma::mat const& X, double threshold_SV) {
+  return PCMBaseCpp::IsSingular(X, threshold_SV);
+}
+
+// [[Rcpp::export]]
+arma::cx_mat PairSums(arma::cx_vec const& elems) {
+  using namespace arma;
+  uword k = elems.n_elem;
+  cx_mat pairSums(k, k);
+  
+  for(uword i = 0; i < k; ++i)
+    for(uword j = i; j < k; ++j)
+      pairSums(i,j) = pairSums(j,i) = elems(i) + elems(j);
+  
+  return pairSums;
+}
+
+// [[Rcpp::export]]
+Rcpp::List DecomposeH(arma::mat const& H, double threshold_SV) {
+  
+  using namespace arma;
+  uword k = H.n_cols;
+  
+  cx_mat lambda(k, 1);
+  cx_cube P(k, k, 1);
+  cx_cube P_1(k, k, 1); 
+  
+  PCMBaseCpp::DecomposeH(lambda, P, P_1, cube(H.colptr(0), k, k, 1), 0, threshold_SV);
+  
+  return Rcpp::List::create( 
+    Rcpp::Named("lambda")  = real(lambda.col(0)), 
+    Rcpp::Named("P") = real(P.slice(0)), 
+    Rcpp::Named("P_1") = real(P_1.slice(0))
+  ) ;
+}
+
+// [[Rcpp::export]]
+arma::cx_mat CDFExpDivLambda(arma::cx_mat const& Lambda_ij, double time, double threshold_Lambda_ij) {
+  using namespace arma;
+  uword k = Lambda_ij.n_cols;
+  cx_mat fLambda_ij(k, k);
+  
+  PCMBaseCpp::CDFExpDivLambda(fLambda_ij, Lambda_ij, time, threshold_Lambda_ij);
+  
+  return fLambda_ij;
+}
+
+// [[Rcpp::export]]
+Rcpp::List VOU(arma::mat H, arma::mat Sigma, double time, double threshold_SV, double threshold_Lambda_ij) {
+  using namespace arma;
+  uword k = H.n_cols;
+  
+  cx_mat lambda(k, 1);
+  cx_cube P(k, k, 1);
+  cx_cube P_1(k, k, 1); 
+  
+  PCMBaseCpp::DecomposeH(lambda, P, P_1, cube(H.colptr(0), k, k, 1), 0, threshold_SV);
+  
+  cx_mat Lambda_ij = PairSums(lambda);
+  cx_mat fLambda_ij(k, k);
+  
+  PCMBaseCpp::CDFExpDivLambda(fLambda_ij, Lambda_ij, time, threshold_Lambda_ij);
+  
+  cout<<"P_1Sigma=\n"<<P_1.slice(0) * Sigma<<"\n";
+  cout<<"P_1_st=\n"<<P_1.slice(0).st()<<"\n";
+  cout<<"P_1SigmaP_1_st=\n"<<(P_1.slice(0) * Sigma) * P_1.slice(0).st()<<"\n";
+  
+  cx_mat P_1SigmaP_1_st = P_1.slice(0) * Sigma * P_1.slice(0).st();
+  
+  cx_mat V = P.slice(0) * (fLambda_ij % P_1SigmaP_1_st) * P.slice(0).st();
+  
+  return Rcpp::List::create( 
+    Rcpp::Named("H") = H, 
+    Rcpp::Named("Sigma") = Sigma,
+    Rcpp::Named("time") = time, 
+    Rcpp::Named("lambda_imag")  = imag(lambda.col(0)),
+    Rcpp::Named("lambda_real") = real(lambda.col(0)),
+    Rcpp::Named("P_imag") = imag(P.slice(0)), 
+    Rcpp::Named("P_real") = real(P.slice(0)),
+    Rcpp::Named("P_1_imag") = imag(P_1.slice(0)),
+    Rcpp::Named("P_1_real") = real(P_1.slice(0)),
+    Rcpp::Named("Lambda_ij_imag") = imag(Lambda_ij),
+    Rcpp::Named("Lambda_ij_real") = real(Lambda_ij),
+    Rcpp::Named("fLambda_ij_imag") = imag(fLambda_ij),
+    Rcpp::Named("fLambda_ij_real") = real(fLambda_ij),
+    Rcpp::Named("P_1SigmaP_1_st_imag") = imag(P_1SigmaP_1_st),
+    Rcpp::Named("P_1SigmaP_1_st_real") = real(P_1SigmaP_1_st),
+    Rcpp::Named("V_imag") = imag(V),
+    Rcpp::Named("V_real") = real(V)
+  ) ;
+}
+
+
+

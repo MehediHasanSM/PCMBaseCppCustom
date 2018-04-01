@@ -128,52 +128,28 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
       throw std::logic_error(os.str());
     }
     
-    this->X0 = mat(&par[offset], k_, R_);
-    this->H1 = cube(&par[offset + k_*R_], k_, k_, R_);
-    this->H2 = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
-    this->Theta = mat(&par[offset + (k_ + k_*k_ + k_*k_)*R_], k_, R_);
-    this->Sigma = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_)*R_], k_, k_, R_);
-    this->Sigmae = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
+    X0 = mat(&par[offset], k_, R_);
+    H1 = cube(&par[offset + k_*R_], k_, k_, R_);
+    H2 = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
+    Theta = mat(&par[offset + (k_ + k_*k_ + k_*k_)*R_], k_, R_);
+    Sigma = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    Sigmae = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
+    
+    for(uword r = 0; r < R_; r++) {
+      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    }
     
     for(uword r = 0; r < R_; ++r) {
       using namespace std;
       
-      cx_vec eigval1;
-      cx_mat eigvec1;
-      eig_gen(eigval1, eigvec1, H1.slice(r));
-      lambda1.col(r) = eigval1;
+      DecomposeH(lambda1, P1, P1_1, H1, r, threshold_SV_);
+      DecomposeH(lambda2, P2, P2_1, H2, r, threshold_SV_);
       
-      P1.slice(r) = eigvec1;
+      // notice that we use st() instead of t() for P.slice(ri) to avoid conjugate (Hermitian) transpose.
+      P2_1SigmaP2_1_t.slice(r) = P2_1.slice(r) * Sigma.slice(r) * P2_1.slice(r).st();
       
-      if(IsSingular(P1.slice(r), threshold_SV_)) {
-        std::ostringstream os;
-        os<<"ERR:03502:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: Defective H1 matrix:"<<
-          H1.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
-        throw std::logic_error(os.str());
-      }
-      P1_1.slice(r) = inv(P1.slice(r));
-      
-      cx_vec eigval2;
-      cx_mat eigvec2;
-      eig_gen(eigval2, eigvec2, H2.slice(r));
-      lambda2.col(r) = eigval2;
-      
-      P2.slice(r) = eigvec2;
-      if(IsSingular(P2.slice(r), threshold_SV_)) {
-        std::ostringstream os;
-        os<<"ERR:03503:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: Defective H2 matrix:"<<
-          H1.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
-        throw std::logic_error(os.str());
-      }
-      P2_1.slice(r) = inv(P2.slice(r));
-      
-      P2_1SigmaP2_1_t.slice(r) = P2_1.slice(r) * Sigma.slice(r) * P2_1.slice(r).t();
-      
-      for(uword i = 0; i < k_; ++i)
-        for(uword j = i; j < k_; ++j) {
-          Lambda2_ij.slice(r)(i,j) = Lambda2_ij.slice(r)(j,i) =
-            lambda2.col(r)(i) + lambda2.col(r)(j);
-        }
+      PairSums(Lambda2_ij.slice(r), lambda2.col(r));
     }
     return npar;
   }
@@ -183,22 +159,14 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
     
     double ti = this->ref_tree_.LengthOfBranch(i).length_;
     
-    arma::cx_mat fLambda2_ij(k_, k_);
-    
-    for(uword w = 0; w < k_; ++w)
-      for(uword j = w; j < k_; ++j) {
-        if(abs(Lambda2_ij.slice(ri)(w,j)) <= threshold_Lambda_ij_) {
-          fLambda2_ij(w,j) = fLambda2_ij(j,w) = ti;
-        } else {
-          fLambda2_ij(w,j) = fLambda2_ij(j,w) =
-            (1.0 - exp(-Lambda2_ij.slice(ri)(w,j) * ti)) / Lambda2_ij.slice(ri)(w,j);
-        }
-      }
-      
-      Phi.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
+    Phi.slice(i) = real(P1.slice(ri) * diagmat(exp(-ti * lambda1.col(ri))) * P1_1.slice(ri));
     omega.col(i) = (I - Phi.slice(i)) * Theta.col(ri);
     
-    V.slice(i) = real(P2.slice(ri) * (fLambda2_ij % P2_1SigmaP2_1_t.slice(ri)) * P2.slice(ri).t());
+    cx_mat fLambda2_ij(k_, k_);
+    CDFExpDivLambda(fLambda2_ij, Lambda2_ij.slice(ri), ti, threshold_Lambda_ij_);
+    
+    // notice that we use st() instead of t() for P2.slice(ri) to avoid conjugate (Hermitian) transpose.
+    V.slice(i) = real(P2.slice(ri) * (fLambda2_ij % P2_1SigmaP2_1_t.slice(ri)) * P2.slice(ri).st());
     if(i < this->ref_tree_.num_tips()) {
       V.slice(i) += Sigmae.slice(ri);
     }

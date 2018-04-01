@@ -35,18 +35,64 @@
 
 namespace PCMBaseCpp {
 
-inline bool IsSingular(arma::cx_mat const& X, double threshold_SV) {
+template<class MatType>
+inline bool IsSingular(MatType const& X, double threshold_SV) {
   using namespace arma;
   vec svd_V = svd(X);
   double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
   return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
 }
+// 
+// inline bool IsSingular(arma::mat const& X, double threshold_SV) {
+//   using namespace arma;
+//   vec svd_V = svd(X);
+//   double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
+//   return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
+// }
 
-inline bool IsSingular(arma::mat const& X, double threshold_SV) {
+template<class MatType, class VecType>
+inline void PairSums(MatType& pairSums, VecType const& elems) {
   using namespace arma;
-  vec svd_V = svd(X);
-  double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
-  return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
+  uword k = elems.n_elem;
+  for(uword i = 0; i < k; ++i)
+    for(uword j = i; j < k; ++j) 
+      pairSums(i,j) = pairSums(j,i) = elems(i) + elems(j);
+}
+
+template<class MatEigvalType, class CubeEigvecType, class CubeHType>
+inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType& P_1, CubeHType const& H, 
+                       arma::uword r, double threshold_SV) {
+  using namespace arma;
+  cx_vec eigval;
+  cx_mat eigvec;
+  
+  eig_gen(eigval, eigvec, H.slice(r));
+  
+  lambda.col(r) = eigval;
+  P.slice(r) = eigvec;
+  if(IsSingular(P.slice(r), threshold_SV)) {
+    std::ostringstream os;
+    os<<"ERR:03402:PCMBaseCpp:QuadraticPolynomial.h:DecomposeH:: Defective H matrix:"<<
+      H.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
+    throw std::logic_error(os.str());
+  }
+  P_1.slice(r) = inv(P.slice(r));
+}
+
+
+template<class MatType>
+inline void CDFExpDivLambda(MatType& fLambda_ij, MatType const& Lambda_ij, double time, double threshold_Lambda_ij) {
+  using namespace arma;
+  for(uword w = 0; w < Lambda_ij.n_cols; ++w) {
+    for(uword v = w; v < Lambda_ij.n_cols; ++v) {
+      if(abs(Lambda_ij(w,v)) < threshold_Lambda_ij) {
+        fLambda_ij(w,v) = fLambda_ij(v,w) = time;
+      } else {
+        fLambda_ij(w,v) = fLambda_ij(v,w) =
+          (1.0 - exp(-Lambda_ij(w,v) * time)) / Lambda_ij(w,v);
+      }
+    }
+  }  
 }
 
 template<class NameType>
@@ -69,8 +115,9 @@ struct NumericTraitData {
   
   std::vector<std::string> regime_models_;
   double threshold_SV_;
+  double threshold_skip_singular_;
   double threshold_Lambda_ij_;
-  bool singular_skip_;
+  bool skip_singular_;
   
   NumericTraitData(
     std::vector<NameType> const& names,
@@ -80,13 +127,15 @@ struct NumericTraitData {
     uint R,
     std::vector<std::string> regime_models,
     double threshold_SV,
-    double threshold_Lambda_ij,
-    bool singular_skip): names_(names), X_(X), Pc_(Pc), 
+    double threshold_skip_singular,
+    bool skip_singular,
+    double threshold_Lambda_ij): names_(names), X_(X), Pc_(Pc), 
       internal_pc_full_(internal_pc_full), k_(X.n_rows), 
       R_(R), regime_models_(regime_models),
       threshold_SV_(threshold_SV), 
-      threshold_Lambda_ij_(threshold_Lambda_ij),
-      singular_skip_(singular_skip) {}
+      threshold_skip_singular_(threshold_skip_singular),
+      skip_singular_(skip_singular),
+      threshold_Lambda_ij_(threshold_Lambda_ij) {}
 };
 
 struct LengthAndRegime {
@@ -244,6 +293,12 @@ public:
   
   // singularity threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;
+  
+  // threshold specifying the maximum allowed branch length for skipping the branch
+  // if the corresponding matrix V is singular. This option matters only if
+  // skip_singular_ is true.
+  double threshold_skip_singular_ = 1e-4;
+  
   // denotes branches for which V is singular
   // the treatment of these branches depends on the option PCMBase.Singular.Skip
   // If this option is set to TRUE (default), then these branches are treated as
@@ -256,7 +311,9 @@ public:
   // icpc -I/Library/Frameworks/R.framework/Resources/include -DNDEBUG  -I/usr/local/include -I/usr/local/include/freetype2 -I/opt/X11/include -I"/Users/vmitov/Library/R/3.3/library/Rcpp/include" -I"/Users/vmitov/Library/R/3.3/library/RcppArmadillo/include"   -fPIC  -Wall -mtune=core2 -g -O2  -std=c++11 -fopenmp -Wall -O2 -march=native -c Rcpp.cpp -o Rcpp.o
   // the problem appears to be solved when using std::vector<int>.
   std::vector<int> singular_branch_;
-  bool singular_skip_;
+  
+  bool skip_singular_;
+  
   
   //
   // Input data consists of multiple trait values for each tip. Each
@@ -311,8 +368,9 @@ public:
     BaseType(tree),
 
     threshold_SV_(input_data.threshold_SV_),
+    threshold_skip_singular_(input_data.threshold_skip_singular_),
     singular_branch_(tree.num_nodes(), false),
-    singular_skip_(input_data.singular_skip_),
+    skip_singular_(input_data.skip_singular_),
     
     X(input_data.X_),
 
@@ -414,6 +472,7 @@ public:
     if(i < this->ref_tree_.num_nodes() - 1) {
       
       auto ri = this->ref_tree_.LengthOfBranch(i).regime_;
+      auto ti = this->ref_tree_.LengthOfBranch(i).length_;
       
       if(ptr_cond_dist_.size() == 1) {
         ptr_cond_dist_[0]->CalculateOmegaPhiV(i, ri, omega, Phi, V);
@@ -425,22 +484,37 @@ public:
       
       if( IsSingular(V.slice(i)(ki,ki), threshold_SV_) ) {
         singular_branch_[i] = 1;
-        
-        if(!singular_skip_) {
+        if(!skip_singular_ || ti > threshold_skip_singular_) {
           ostringstream oss;
           oss<<"ERR:03131:PCMBaseCpp:QuadraticPolynomial.h:InitNode:: The matrix V for node "<<
             this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: "<<V.slice(i)(ki,ki)<<
                 ". Check the model parameters and the length of the branch"<<
                   " leading to the node. For details on this error, read the User Guide.";
           throw logic_error(oss.str());  
-        }
+        } 
       } 
       
       if(!singular_branch_[i]) {
         // Check V is positive definite: all eigen-values must be strictly positive
+        cx_vec eigval;
+        cx_mat eigvec;
         
-        V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
-//        V_1.slice(i)(ki, ki) = inv_sympd(V.slice(i)(ki,ki));
+        eig_gen(eigval, eigvec, V.slice(i)(ki,ki));
+        vec re_eigval = real(eigval);
+        
+        for(double eigv: re_eigval) {
+          if(eigv <= 0) {
+            ostringstream oss;
+            oss<<"ERR:03132:PCMBaseCpp:QuadraticPolynomial.h:InitNode:: The matrix V for node "<<
+              this->ref_tree_.FindNodeWithId(i)<<" is not positive definite: "<<V.slice(i)(ki,ki)<<
+                ". Check the model parameters.";
+            throw logic_error(oss.str());
+          }
+        }
+        
+        V_1.slice(i)(ki, ki) = real(eigvec * diagmat(1/eigval) * eigvec.t());
+        //V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
+        //V_1.slice(i)(ki, ki) = inv_sympd(V.slice(i)(ki,ki));
         CalculateAbCdEf(i);  
       }
     }  

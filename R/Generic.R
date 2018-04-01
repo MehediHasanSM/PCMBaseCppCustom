@@ -1,7 +1,8 @@
 #' A generic method for creating C++ backend objects given a model, data and 
 #' a tree.
 #' @useDynLib PCMBaseCpp
-#' @importFrom PCMBase PCMInfo
+#' @importFrom PCMBase PCMInfo PCMTreeJumps
+#' 
 #' @export
 PCMInfoCpp <- function(X, tree, model, metaI = PCMInfo(X, tree, model, verbose), verbose = FALSE, ...) {
   UseMethod("PCMInfoCpp", model)
@@ -45,7 +46,7 @@ PCMLmr.PCMInfoCpp <- function(
   
   par <- PCMGetVecParamsFull(model)
   
-  PCMLmr_vec <- metaI$TraverseTree(par, mode=getOption("PCMBase.PCMLmr.mode", as.integer(11)))
+  PCMLmr_vec <- metaI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", as.integer(11)))
   
   if(root.only) {
     # number of traits (variables)

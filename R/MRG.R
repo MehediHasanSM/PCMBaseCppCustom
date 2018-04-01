@@ -17,7 +17,7 @@ PCMInfoCpp.MRG <- function(X, tree, model, metaI = PCMInfo(X, tree, model, verbo
       NULL
     }
   }))
-  retimeModel <- regimeModel[!sapply(regimeModel, is.null)]
+  regimeModel <- regimeModel[!sapply(regimeModel, is.null)]
   
   res <- c(metaI, 
            cppObject = QuadraticPolynomialMRG$new(
