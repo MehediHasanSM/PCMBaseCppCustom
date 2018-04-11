@@ -34,7 +34,7 @@
 #include "QuadraticPolynomialBM.h"
 #include "QuadraticPolynomialOU.h"
 #include "QuadraticPolynomialJOU.h"
-#include "QuadraticPolynomialTwoSpeedOU.h"
+#include "QuadraticPolynomialDOU.h"
 #include "QuadraticPolynomialMRG.h"
 
 // [[Rcpp::plugins("cpp11")]]
@@ -83,9 +83,9 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     }
     
     arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
   
   using namespace std;
   
@@ -100,8 +100,8 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     throw logic_error(os.str());
   }
   
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialWhite::LengthType> lengths(branches.n_rows);
   
@@ -206,9 +206,9 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     }
     
   arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
   
   using namespace std;
   
@@ -223,8 +223,8 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     throw logic_error(os.str());
   }
   
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialBM::LengthType> lengths(branches.n_rows);
   
@@ -328,9 +328,9 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     }
     
   arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
   
   using namespace std;
 
@@ -346,8 +346,8 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     throw logic_error(os.str());
   }
 
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialOU::LengthType> lengths(branches.n_rows);
   
@@ -457,9 +457,9 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     }
     
     arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
   
   using namespace std;
   
@@ -481,8 +481,8 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     throw logic_error(os.str());
   }
   
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialJOU::LengthType> lengths(branches.n_rows);
   
@@ -573,7 +573,7 @@ RCPP_MODULE(QuadraticPolynomialJOU) {
   ;
 }
 
-QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
+QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
     arma::mat const& X,
     Rcpp::List const& tree,
     Rcpp::List const& model,
@@ -593,9 +593,9 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
     }
     
   arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
   
   using namespace std;
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
@@ -603,15 +603,15 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03831:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
+    os<<"ERR:03831:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialDOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
   
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
-  vector<typename QuadraticPolynomialTwoSpeedOU::LengthType> lengths(branches.n_rows);
+  vector<typename QuadraticPolynomialDOU::LengthType> lengths(branches.n_rows);
   
   for(arma::uword i = 0; i < branches.n_rows; ++i) {
     lengths[i].length_ = t[i];
@@ -620,81 +620,81 @@ QuadraticPolynomialTwoSpeedOU* CreateQuadraticPolynomialTwoSpeedOU(
   
   if(threshold_SV <= 0) {
     ostringstream os;
-    os<<"ERR:03832:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The argument threshold_SV should be positive real number.";
+    os<<"ERR:03832:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialDOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
   
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
-    os<<"ERR:03833:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialTwoSpeedOU:: The argument threshold_Lambda_ij should be non-negative double.";
+    os<<"ERR:03833:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialDOU:: The argument threshold_Lambda_ij should be non-negative double.";
     throw invalid_argument(os.str());
   }
   
-  typename QuadraticPolynomialTwoSpeedOU::DataType data(
+  typename QuadraticPolynomialDOU::DataType data(
       node_names, X, Pc, internal_pc_full, 
       RModel, std::vector<std::string>(), 
       threshold_SV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
-  return new QuadraticPolynomialTwoSpeedOU(br_0, br_1, lengths, data);;
+  return new QuadraticPolynomialDOU(br_0, br_1, lengths, data);;
 }
 
-RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType)
-RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialTwoSpeedOU::AlgorithmType)
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialDOU::TraversalSpecificationType)
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialDOU::AlgorithmType)
   
-RCPP_MODULE(QuadraticPolynomialTwoSpeedOU) {
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU::TreeType::Tree> ( "QuadraticPolynomialTwoSpeedOU_Tree" )
-  .property("num_nodes", &QuadraticPolynomialTwoSpeedOU::TreeType::Tree::num_nodes )
-  .property("num_tips", &QuadraticPolynomialTwoSpeedOU::TreeType::Tree::num_tips )
-  .method("FindNodeWithId", &QuadraticPolynomialTwoSpeedOU::TreeType::Tree::FindNodeWithId )
-  .method("FindIdOfNode", &QuadraticPolynomialTwoSpeedOU::TreeType::Tree::FindIdOfNode )
-  .method("FindIdOfParent", &QuadraticPolynomialTwoSpeedOU::TreeType::Tree::FindIdOfParent )
-  .method("OrderNodes", &QuadraticPolynomialTwoSpeedOU::TreeType::Tree::OrderNodes )
+RCPP_MODULE(QuadraticPolynomialDOU) {
+  Rcpp::class_<QuadraticPolynomialDOU::TreeType::Tree> ( "QuadraticPolynomialDOU_Tree" )
+  .property("num_nodes", &QuadraticPolynomialDOU::TreeType::Tree::num_nodes )
+  .property("num_tips", &QuadraticPolynomialDOU::TreeType::Tree::num_tips )
+  .method("FindNodeWithId", &QuadraticPolynomialDOU::TreeType::Tree::FindNodeWithId )
+  .method("FindIdOfNode", &QuadraticPolynomialDOU::TreeType::Tree::FindIdOfNode )
+  .method("FindIdOfParent", &QuadraticPolynomialDOU::TreeType::Tree::FindIdOfParent )
+  .method("OrderNodes", &QuadraticPolynomialDOU::TreeType::Tree::OrderNodes )
   ;
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU::TreeType>( "QuadraticPolynomialTwoSpeedOU_OrderedTree" )
-    .derives<QuadraticPolynomialTwoSpeedOU::TreeType::Tree> ( "QuadraticPolynomialTwoSpeedOU_Tree" )
-    .method("RangeIdPruneNode", &QuadraticPolynomialTwoSpeedOU::TreeType::RangeIdPruneNode )
-    .method("RangeIdVisitNode", &QuadraticPolynomialTwoSpeedOU::TreeType::RangeIdVisitNode )
-    .property("num_levels", &QuadraticPolynomialTwoSpeedOU::TreeType::num_levels )
-    .property("ranges_id_visit", &QuadraticPolynomialTwoSpeedOU::TreeType::ranges_id_visit )
-    .property("ranges_id_prune", &QuadraticPolynomialTwoSpeedOU::TreeType::ranges_id_prune )
+  Rcpp::class_<QuadraticPolynomialDOU::TreeType>( "QuadraticPolynomialDOU_OrderedTree" )
+    .derives<QuadraticPolynomialDOU::TreeType::Tree> ( "QuadraticPolynomialDOU_Tree" )
+    .method("RangeIdPruneNode", &QuadraticPolynomialDOU::TreeType::RangeIdPruneNode )
+    .method("RangeIdVisitNode", &QuadraticPolynomialDOU::TreeType::RangeIdVisitNode )
+    .property("num_levels", &QuadraticPolynomialDOU::TreeType::num_levels )
+    .property("ranges_id_visit", &QuadraticPolynomialDOU::TreeType::ranges_id_visit )
+    .property("ranges_id_prune", &QuadraticPolynomialDOU::TreeType::ranges_id_prune )
   ;
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU::AlgorithmType::ParentType>( "QuadraticPolynomialTwoSpeedOU_TraversalAlgorithm" )
-    .property( "VersionOPENMP", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::ParentType::VersionOPENMP )
-    .property( "num_threads", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::num_threads )
+  Rcpp::class_<QuadraticPolynomialDOU::AlgorithmType::ParentType>( "QuadraticPolynomialDOU_TraversalAlgorithm" )
+    .property( "VersionOPENMP", &QuadraticPolynomialDOU::AlgorithmType::ParentType::VersionOPENMP )
+    .property( "num_threads", &QuadraticPolynomialDOU::AlgorithmType::num_threads )
   ;
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU::AlgorithmType> ( "QuadraticPolynomialTwoSpeedOU_ParallelPruning" )
-    .derives<QuadraticPolynomialTwoSpeedOU::AlgorithmType::ParentType>( "QuadraticPolynomialTwoSpeedOU_TraversalAlgorithm" )
-    .method( "ModeAutoStep", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::ModeAutoStep )
-    .property( "ModeAutoCurrent", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::ModeAutoCurrent )
-    .property( "IsTuning", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::IsTuning )
-    .property( "min_size_chunk_visit", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::min_size_chunk_visit )
-    .property( "min_size_chunk_prune", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::min_size_chunk_prune )
-    .property( "durations_tuning", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::durations_tuning )
-    .property( "fastest_step_tuning", &QuadraticPolynomialTwoSpeedOU::AlgorithmType::fastest_step_tuning )
+  Rcpp::class_<QuadraticPolynomialDOU::AlgorithmType> ( "QuadraticPolynomialDOU_ParallelPruning" )
+    .derives<QuadraticPolynomialDOU::AlgorithmType::ParentType>( "QuadraticPolynomialDOU_TraversalAlgorithm" )
+    .method( "ModeAutoStep", &QuadraticPolynomialDOU::AlgorithmType::ModeAutoStep )
+    .property( "ModeAutoCurrent", &QuadraticPolynomialDOU::AlgorithmType::ModeAutoCurrent )
+    .property( "IsTuning", &QuadraticPolynomialDOU::AlgorithmType::IsTuning )
+    .property( "min_size_chunk_visit", &QuadraticPolynomialDOU::AlgorithmType::min_size_chunk_visit )
+    .property( "min_size_chunk_prune", &QuadraticPolynomialDOU::AlgorithmType::min_size_chunk_prune )
+    .property( "durations_tuning", &QuadraticPolynomialDOU::AlgorithmType::durations_tuning )
+    .property( "fastest_step_tuning", &QuadraticPolynomialDOU::AlgorithmType::fastest_step_tuning )
   ;
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
-    .field( "A", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::A)
-    .field( "b", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::b )
-    .field( "C", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::C )
-    .field( "d", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::d )
-    .field( "E", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::E )
-    .field( "f", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::f )
-    .field( "L", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::L )
-    .field( "m", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::m )
-    .field( "r", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::r )
-    .field( "V", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::V )
-    .field( "V_1", &QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType::V_1 )
+  Rcpp::class_<QuadraticPolynomialDOU::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+    .field( "A", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::A)
+    .field( "b", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::b )
+    .field( "C", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::C )
+    .field( "d", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::d )
+    .field( "E", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::E )
+    .field( "f", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::f )
+    .field( "L", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::L )
+    .field( "m", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::m )
+    .field( "r", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::r )
+    .field( "V", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::V )
+    .field( "V_1", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::V_1 )
   ;
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType> ( "QuadraticPolynomialTwoSpeedOU_PruningSpec" )
-    .derives<QuadraticPolynomialTwoSpeedOU::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialDOU::TraversalSpecificationType> ( "QuadraticPolynomialDOU_PruningSpec" )
+    .derives<QuadraticPolynomialDOU::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
   ;
-  Rcpp::class_<QuadraticPolynomialTwoSpeedOU>( "QuadraticPolynomialTwoSpeedOU" )
-    .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialTwoSpeedOU)
-    .method( "TraverseTree", &QuadraticPolynomialTwoSpeedOU::TraverseTree )
-    .property( "tree", &QuadraticPolynomialTwoSpeedOU::tree )
-    .property( "spec", &QuadraticPolynomialTwoSpeedOU::spec )
-    .property( "algorithm", &QuadraticPolynomialTwoSpeedOU::algorithm )
+  Rcpp::class_<QuadraticPolynomialDOU>( "QuadraticPolynomialDOU" )
+    .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialDOU)
+    .method( "TraverseTree", &QuadraticPolynomialDOU::TraverseTree )
+    .property( "tree", &QuadraticPolynomialDOU::tree )
+    .property( "spec", &QuadraticPolynomialDOU::spec )
+    .property( "algorithm", &QuadraticPolynomialDOU::algorithm )
   ;
 }
 
@@ -724,9 +724,9 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
     }
     
   arma::umat branches = tree["edge"];
-  splittree::uvec br_0 = arma::conv_to<splittree::uvec>::from(branches.col(0));
-  splittree::uvec br_1 = arma::conv_to<splittree::uvec>::from(branches.col(1));
-  splittree::vec t = Rcpp::as<splittree::vec>(tree["edge.length"]);
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
   
   using namespace std;
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
@@ -747,9 +747,9 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
     throw logic_error(os.str());
   }
   
-  splittree::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
+  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
   
-  splittree::uvec node_names = splittree::Seq(static_cast<splittree::uint>(1), num_tips);
+  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialMRG::LengthType> lengths(branches.n_rows);
   

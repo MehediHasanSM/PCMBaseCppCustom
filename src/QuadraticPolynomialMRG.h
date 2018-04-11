@@ -29,14 +29,14 @@
 #include "QuadraticPolynomialBM.h"
 #include "QuadraticPolynomialJOU.h"
 #include "QuadraticPolynomialOU.h"
-#include "QuadraticPolynomialTwoSpeedOU.h"
+#include "QuadraticPolynomialDOU.h"
 #include <armadillo>
 #include <sstream>
 
 namespace PCMBaseCpp {
 
 
-typedef splittree::OrderedTree<splittree::uint, LengthRegimeAndJump> MRGTreeType;
+typedef SPLITT::OrderedTree<SPLITT::uint, LengthRegimeAndJump> MRGTreeType;
 
 class MRG: public QuadraticPolynomial<MRGTreeType> {
 public:
@@ -46,7 +46,7 @@ public:
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
-  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
+  typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
   
   MRG(TreeType const& tree, DataType const& input_data):
     BaseType(tree, input_data) {
@@ -59,8 +59,8 @@ public:
         BaseType::ptr_cond_dist_.push_back(new CondGaussianOU<TreeType, DataType>(tree, input_data, 1));  
       } else if(modelName == "JOU") {
         BaseType::ptr_cond_dist_.push_back(new CondGaussianJOU<TreeType, DataType>(tree, input_data, 1));  
-      } else if(modelName == "TwoSpeedOU") {
-        BaseType::ptr_cond_dist_.push_back(new CondGaussianTwoSpeedOU<TreeType, DataType>(tree, input_data, 1));  
+      } else if(modelName == "DOU") {
+        BaseType::ptr_cond_dist_.push_back(new CondGaussianDOU<TreeType, DataType>(tree, input_data, 1));  
       } 
     }
     
@@ -81,7 +81,7 @@ public:
 };
 
 
-typedef splittree::TraversalTask<MRG> QuadraticPolynomialMRG;
+typedef SPLITT::TraversalTask<MRG> QuadraticPolynomialMRG;
 }
 
 #endif // QuadraticPolynomial_MRG_H_

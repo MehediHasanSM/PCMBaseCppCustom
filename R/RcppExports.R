@@ -21,10 +21,10 @@ VOU <- function(H, Sigma, time, threshold_SV, threshold_Lambda_ij) {
     .Call('_PCMBaseCpp_VOU', PACKAGE = 'PCMBaseCpp', H, Sigma, time, threshold_SV, threshold_Lambda_ij)
 }
 
-#' @name splittree
-#' @title namespace splittree;
+#' @name SPLITT
+#' @title namespace SPLITT;
 #' 
-#' @description All functions and classes defined in the namespace splittree.
+#' @description All functions and classes defined in the namespace SPLITT.
 #' 
 #' [[Rcpp::export]]
 NULL

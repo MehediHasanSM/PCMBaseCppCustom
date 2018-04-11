@@ -7,8 +7,8 @@ PCMInfoCpp.MRG <- function(X, tree, model, metaI = PCMInfo(X, tree, model, verbo
         "BM"
       } else if(startsWith(class(param$default)[1], "JOU")) {
         "JOU"
-      } else if(startsWith(class(param$default)[1], "TwoSpeedOU")) {
-        "TwoSpeedOU"
+      } else if(startsWith(class(param$default)[1], "DOU")) {
+        "DOU"
       } else if(startsWith(class(param$default)[1], "OU")) {
         "OU"
       } else 

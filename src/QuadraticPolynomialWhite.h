@@ -31,7 +31,7 @@
 
 namespace PCMBaseCpp {
 
-typedef splittree::OrderedTree<splittree::uint, LengthAndRegime> WhiteTreeType;
+typedef SPLITT::OrderedTree<SPLITT::uint, LengthAndRegime> WhiteTreeType;
 
 template<class TreeType, class DataType>
 struct CondGaussianWhite: public CondGaussianOmegaPhiV {
@@ -115,7 +115,7 @@ public:
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
-  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
+  typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
 
   CondGaussianWhite<TreeType, DataType> cond_dist_;
   
@@ -131,7 +131,7 @@ public:
 };
 
 
-typedef splittree::TraversalTask<White> QuadraticPolynomialWhite;
+typedef SPLITT::TraversalTask<White> QuadraticPolynomialWhite;
 }
 
 #endif // QuadraticPolynomial_WHITE_H_

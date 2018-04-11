@@ -32,7 +32,7 @@
 namespace PCMBaseCpp {
 
 
-typedef splittree::OrderedTree<splittree::uint, LengthRegimeAndJump> JOUTreeType;
+typedef SPLITT::OrderedTree<SPLITT::uint, LengthRegimeAndJump> JOUTreeType;
 
 template<class TreeType, class DataType>
 struct CondGaussianJOU: public CondGaussianOmegaPhiV {
@@ -180,7 +180,7 @@ public:
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
-  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
+  typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
 
   CondGaussianJOU<TreeType, DataType> cond_dist_;
   
@@ -196,7 +196,7 @@ public:
 };
 
 
-typedef splittree::TraversalTask<JOU> QuadraticPolynomialJOU;
+typedef SPLITT::TraversalTask<JOU> QuadraticPolynomialJOU;
 }
 
 #endif // QuadraticPolynomial_JOU_H_

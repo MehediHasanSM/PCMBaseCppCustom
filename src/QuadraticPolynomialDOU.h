@@ -1,5 +1,5 @@
 /*
- *  QuadraticPolynomialTwoSpeedOU.h
+ *  QuadraticPolynomialDOU.h
  *  PCMBaseCpp
  *
  * Copyright 2017 Venelin Mitov
@@ -21,8 +21,8 @@
  *
  * @author Venelin Mitov
  */
-#ifndef QuadraticPolynomial_TwoSpeedOU_H_
-#define QuadraticPolynomial_TwoSpeedOU_H_
+#ifndef QuadraticPolynomial_DOU_H_
+#define QuadraticPolynomial_DOU_H_
 
 #include "QuadraticPolynomial.h"
 #include <armadillo>
@@ -30,10 +30,10 @@
 
 namespace PCMBaseCpp {
 
-typedef splittree::OrderedTree<splittree::uint, LengthAndRegime> OUTreeType;
+typedef SPLITT::OrderedTree<SPLITT::uint, LengthAndRegime> OUTreeType;
 
 template<class TreeType, class DataType>
-struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
+struct CondGaussianDOU: public CondGaussianOmegaPhiV {
   
   TreeType const& ref_tree_;
   
@@ -85,7 +85,7 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
   arma::cube e_H1t;
   arma::mat I;
   
-  CondGaussianTwoSpeedOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
+  CondGaussianDOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = R;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
@@ -94,7 +94,7 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
   }
   
   
-  CondGaussianTwoSpeedOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
+  CondGaussianDOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
@@ -122,7 +122,7 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
     uint npar = R_*(4*k_*k_ + 2*k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03501:PCMBaseCpp:QuadraticPolynomialTwoSpeedOU.h:CondTwoSpeedOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"ERR:03501:PCMBaseCpp:QuadraticPolynomialDOU.h:CondDOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(4k^2+2k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
@@ -173,19 +173,19 @@ struct CondGaussianTwoSpeedOU: public CondGaussianOmegaPhiV {
   }
 };
 
-class TwoSpeedOU: public QuadraticPolynomial<OUTreeType> {
+class DOU: public QuadraticPolynomial<OUTreeType> {
 public:
   typedef OUTreeType TreeType;
   typedef QuadraticPolynomial<TreeType> BaseType;
-  typedef TwoSpeedOU MyType;
+  typedef DOU MyType;
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
-  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
+  typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
 
-  CondGaussianTwoSpeedOU<TreeType, DataType> cond_dist_;
+  CondGaussianDOU<TreeType, DataType> cond_dist_;
   
-  TwoSpeedOU(TreeType const& tree, DataType const& input_data):
+  DOU(TreeType const& tree, DataType const& input_data):
     BaseType(tree, input_data), cond_dist_(tree, input_data) {
     
     BaseType::ptr_cond_dist_.push_back(&cond_dist_);
@@ -197,7 +197,7 @@ public:
 };
 
 
-typedef splittree::TraversalTask<TwoSpeedOU> QuadraticPolynomialTwoSpeedOU;
+typedef SPLITT::TraversalTask<DOU> QuadraticPolynomialDOU;
 }
 
 #endif // QuadraticPolynomial_OU_H_

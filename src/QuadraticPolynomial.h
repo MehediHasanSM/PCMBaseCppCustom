@@ -24,7 +24,7 @@
 #ifndef PCMBase_QuadraticPolynomial_H_
 #define PCMBase_QuadraticPolynomial_H_
 
-#include "splittree.h"
+#include "SPLITT.h"
 #include <armadillo>
 #include <algorithm>
 #include <sstream>
@@ -194,12 +194,12 @@ std::vector<arma::uword> mapRegimesToIndices(
 }
 
 template<class Tree>
-class PresentCoordinates: public splittree::TraversalSpecification<Tree> {
+class PresentCoordinates: public SPLITT::TraversalSpecification<Tree> {
 public:
   typedef PresentCoordinates<Tree> MyType;
-  typedef splittree::TraversalSpecification<Tree> BaseType;
+  typedef SPLITT::TraversalSpecification<Tree> BaseType;
   typedef Tree TreeType;
-  typedef splittree::PostOrderTraversal<MyType> AlgorithmType;
+  typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
   typedef int ParameterType; // dummy ParameterType
   typedef NumericTraitData<typename TreeType::NodeType> DataType;
   typedef arma::uvec StateType;
@@ -213,7 +213,7 @@ public:
       throw std::invalid_argument(
           "ERR:03111:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits and as many columns as the number of tips.");
     } else {
-      // We need to be careful with the typedefs splittree::uvec and arma::uvec.
+      // We need to be careful with the typedefs SPLITT::uvec and arma::uvec.
       using namespace arma;
 
       // number of tips
@@ -238,7 +238,7 @@ public:
 
       uvec ordNodes(
           this->ref_tree_.OrderNodesPosType(
-              input_data.names_, static_cast<uword>(splittree::NA_UINT)));
+              input_data.names_, static_cast<uword>(SPLITT::NA_UINT)));
 
       Pc_.cols(0, N - 1) = input_data.Pc_.cols(ordNodes);
     }
@@ -282,13 +282,13 @@ public:
 };
 
 template<class Tree>
-class QuadraticPolynomial: public splittree::TraversalSpecification<Tree> {
+class QuadraticPolynomial: public SPLITT::TraversalSpecification<Tree> {
 public:
-  typedef splittree::TraversalSpecification<Tree> BaseType;
+  typedef SPLITT::TraversalSpecification<Tree> BaseType;
   typedef Tree TreeType;
   typedef std::vector<double> StateType;
 
-  typedef splittree::TraversalTaskLightweight<
+  typedef SPLITT::TraversalTaskLightweight<
     PresentCoordinates<TreeType> > PresentCoordinatesTask;
   
   // singularity threshold for the determinant of V_i
@@ -396,7 +396,7 @@ public:
 
     arma::uvec ordNodes(
         this->ref_tree_.OrderNodesPosType(
-            input_data.names_, static_cast<arma::uword>(splittree::NA_UINT)));
+            input_data.names_, static_cast<arma::uword>(SPLITT::NA_UINT)));
 
     this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordNodes);
 
@@ -443,7 +443,7 @@ public:
   // initialized omega, Phi and V
   inline void CalculateAbCdEf(uint i) {
     using namespace arma;
-    splittree::uint j = this->ref_tree_.FindIdOfParent(i);
+    SPLITT::uint j = this->ref_tree_.FindIdOfParent(i);
     uvec kj = pc[j], ki = pc[i];
     uvec ui(1);
     ui(0) = i;
@@ -526,7 +526,7 @@ public:
     using namespace std;
 
     if(!singular_branch_[i]) {
-      splittree::uint j = this->ref_tree_.FindIdOfParent(i);
+      SPLITT::uint j = this->ref_tree_.FindIdOfParent(i);
   
       uvec kj = pc[j], ki = pc[i];
   
