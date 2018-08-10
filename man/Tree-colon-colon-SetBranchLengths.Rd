@@ -13,6 +13,9 @@ number of nodes in the tree.}
 \value{
 \code{void}
 }
+\description{
+Set a new internally stored vector of branch lenthts.
+}
 \section{Signature}{
 
 \code{void \link{Tree}::SetBranchLengths(\href{http://en.cppreference.com/w/cpp/container/vector}{std::vector}<\link{LengthType}> const& lengths);}

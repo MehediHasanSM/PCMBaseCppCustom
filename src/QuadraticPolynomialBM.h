@@ -28,6 +28,7 @@
 #include "QuadraticPolynomial.h"
 #include <armadillo>
 #include <sstream>
+#include <iostream>
 
 namespace PCMBaseCpp {
 
@@ -88,6 +89,10 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
     Sigma = cube(&par[offset + k_*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
     
+    // std::cout<<"X0:\n"<<X0<<"\n";
+    // std::cout<<"Sigma:\n"<<Sigma<<"\n";
+    // std::cout<<"Sigmae:\n"<<Sigmae<<"\n";
+    // 
     for(uword r = 0; r < R_; r++) {
       Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
       Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  

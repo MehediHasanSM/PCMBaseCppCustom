@@ -21,6 +21,11 @@ dedcued from the type of NA.
 \item{PosType}{an integer type for the positions in the returned vector.}}
 }
 
+\section{Signature}{
+
+\code{template<class PosType> \href{http://en.cppreference.com/w/cpp/container/vector}{std::vector}<PosType> \link{Tree}::OrderNodesPosType(\href{http://en.cppreference.com/w/cpp/container/vector}{std::vector}<\link{NodeType}> const& nodes, PosType const& NA) const;}
+}
+
 \seealso{
 \code{\link{Tree}} \code{\link{OrderedTree}}
 

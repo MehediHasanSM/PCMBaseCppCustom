@@ -27,6 +27,7 @@
 #include "QuadraticPolynomial.h"
 #include <armadillo>
 #include <sstream>
+//#include <iostream>
 
 namespace PCMBaseCpp {
 
@@ -122,7 +123,13 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     Theta = mat(&par[offset + (k_ + k_*k_)*R_], k_, R_);
     Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
-    
+    // 
+    // std::cout<<"X0:\n"<<X0<<"\n";
+    // std::cout<<"H:\n"<<H<<"\n";
+    // std::cout<<"Theta:\n"<<Theta<<"\n";
+    // std::cout<<"Sigma:\n"<<Sigma<<"\n";
+    // std::cout<<"Sigmae:\n"<<Sigmae<<"\n";
+
     for(uword r = 0; r < R_; r++) {
       Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
       Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
@@ -143,7 +150,8 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     
     return npar;
   }
-  
+ 
+ 
   void CalculateOmegaPhiV(uint i, arma::uword ri, arma::mat& omega, arma::cube& Phi, arma::cube& V) {
     using namespace arma;
       
@@ -162,6 +170,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
       }
   }
 };
+
 
 class OU: public QuadraticPolynomial<OUTreeType> {
 public:

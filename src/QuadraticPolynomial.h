@@ -31,15 +31,33 @@
 #include <unordered_map>
 #include <vector>
 #include <sstream>
+#include <complex>
 #include <cmath>
+#include <iostream>
+
 
 namespace PCMBaseCpp {
+
+// Check if a square matrix is diagonal
+template<class MatType>
+inline bool IsDiagonal(MatType const& X) {
+  using namespace arma;
+  
+  for(int i = 0; i < X.n_rows; ++i) {
+    for(int j = i + 1; j < X.n_cols; ++j) {
+      if( X(i, j) != 0.0 || X(j, i) != 0.0 ) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
 
 template<class MatType>
 inline bool IsSingular(MatType const& X, double threshold_SV) {
   using namespace arma;
   vec svd_V = svd(X);
-  double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
+  double ratio_SV = (*(svd_V.cend()-1)) / (*svd_V.cbegin());
   return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
 }
 // 
@@ -63,11 +81,23 @@ template<class MatEigvalType, class CubeEigvecType, class CubeHType>
 inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType& P_1, CubeHType const& H, 
                        arma::uword r, double threshold_SV) {
   using namespace arma;
-  cx_vec eigval;
-  cx_mat eigvec;
+  cx_vec eigval(H.slice(r).n_rows);
+  eigval.fill(std::complex<double>(0.0, 0.0));
+  cx_mat eigvec(H.slice(r).n_rows, H.slice(r).n_rows);
   
-  eig_gen(eigval, eigvec, H.slice(r));
-  
+  if(IsDiagonal(H.slice(r))) {
+    // This is a workaround that was needed specifically for scalar-diagonal matrices H and Sigma_x
+    eigval.set_real(real(H.slice(r).diag()));
+    eigvec = eye<cx_mat>(H.slice(r).n_rows, H.slice(r).n_rows);
+  } else {
+    eig_gen(eigval, eigvec, H.slice(r));
+  }
+  // std::cout<<"eig_gen: X:\n";
+  // std::cout<<H.slice(r)<<"\n";
+  // std::cout<<"eigval:"<<eigval<<"\n";
+  // std::cout<<"eigvec:"<<eigvec <<"\n";
+  // std::cout<<"eigvec.t:"<<eigvec.t() <<"\n";
+  // 
   lambda.col(r) = eigval;
   P.slice(r) = eigvec;
   if(IsSingular(P.slice(r), threshold_SV)) {
@@ -77,6 +107,8 @@ inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType&
     throw std::logic_error(os.str());
   }
   P_1.slice(r) = inv(P.slice(r));
+  
+  // std::cout<<"P_1.slice(r): \n"<<P_1.slice(r)<<"\n";
 }
 
 
@@ -105,16 +137,15 @@ struct NumericTraitData {
   arma::mat const& X_;
 
   // column vectors of present coordinates (0: missing, !=0: present) for each
-  // tip in the tree. The number of rows in the matrix corresponds to the number
-  // of traits.
-  arma::imat const& Pc_;
-  bool internal_pc_full_;
+  // node in the tree. 
+  std::vector<arma::uvec> const& Pc_;
   
   uint k_;
   uint R_;
   
   std::vector<std::string> regime_models_;
   double threshold_SV_;
+  double threshold_EV_;
   double threshold_skip_singular_;
   double threshold_Lambda_ij_;
   bool skip_singular_;
@@ -122,20 +153,20 @@ struct NumericTraitData {
   NumericTraitData(
     std::vector<NameType> const& names,
     arma::mat const& X,
-    arma::imat const& Pc, 
-    bool internal_pc_full,
+    std::vector<arma::uvec> const& Pc, 
     uint R,
     std::vector<std::string> regime_models,
     double threshold_SV,
+    double threshold_EV,
     double threshold_skip_singular,
     bool skip_singular,
-    double threshold_Lambda_ij): names_(names), X_(X), Pc_(Pc), 
-      internal_pc_full_(internal_pc_full), k_(X.n_rows), 
+    double threshold_Lambda_ij): names_(names), X_(X), Pc_(Pc), k_(X.n_rows), 
       R_(R), regime_models_(regime_models),
       threshold_SV_(threshold_SV), 
+      threshold_EV_(threshold_EV), 
       threshold_skip_singular_(threshold_skip_singular),
-      skip_singular_(skip_singular),
-      threshold_Lambda_ij_(threshold_Lambda_ij) {}
+      threshold_Lambda_ij_(threshold_Lambda_ij),
+      skip_singular_(skip_singular) {}
 };
 
 struct LengthAndRegime {
@@ -193,82 +224,84 @@ std::vector<arma::uword> mapRegimesToIndices(
   return regimeIndices;
 }
 
-template<class Tree>
-class PresentCoordinates: public SPLITT::TraversalSpecification<Tree> {
-public:
-  typedef PresentCoordinates<Tree> MyType;
-  typedef SPLITT::TraversalSpecification<Tree> BaseType;
-  typedef Tree TreeType;
-  typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
-  typedef int ParameterType; // dummy ParameterType
-  typedef NumericTraitData<typename TreeType::NodeType> DataType;
-  typedef arma::uvec StateType;
-
-  arma::imat Pc_;
-  bool internal_pc_full_;
-
-  PresentCoordinates(TreeType const& tree, DataType const& input_data):
-    BaseType(tree) {
-    if(input_data.Pc_.n_cols != this->ref_tree_.num_tips()) {
-      throw std::invalid_argument(
-          "ERR:03111:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits and as many columns as the number of tips.");
-    } else {
-      // We need to be careful with the typedefs SPLITT::uvec and arma::uvec.
-      using namespace arma;
-
-      // number of tips
-      uword M = this->ref_tree_.num_nodes();
-      uword N = this->ref_tree_.num_tips();
-
-      // number of traits
-      uword k = input_data.Pc_.n_rows;
-
-      if(k == 0) {
-        throw std::invalid_argument(
-            "ERR:03112:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
-      }
-
-      this->internal_pc_full_ = input_data.internal_pc_full_;
-      
-      if(internal_pc_full_) {
-        this->Pc_ = imat(k, M, fill::ones);
-      } else {
-        this->Pc_ = imat(k, M, fill::zeros);
-      }
-
-      uvec ordNodes(
-          this->ref_tree_.OrderNodesPosType(
-              input_data.names_, static_cast<uword>(SPLITT::NA_UINT)));
-
-      Pc_.cols(0, N - 1) = input_data.Pc_.cols(ordNodes);
-    }
-  }
-
-  void SetParameter(ParameterType const& par) {}
-
-  void PruneNode(uint i, uint i_parent) {
-    if(!internal_pc_full_) {
-      using namespace arma;
-      Pc_.col(i_parent) += Pc_.col(i);  
-    }
-  }
-
-  // Present coordinates for a node (to be called after tree traversal)
-  arma::uvec PcForNodeId(uint i) {
-    using namespace arma;
-    std::vector<arma::uword> pc;
-    for(uword u = 0; u < Pc_.n_rows; ++u) {
-      if(Pc_(u, i) > 0) {
-        pc.push_back(u);
-      }
-    }
-    return arma::uvec(&pc[0], pc.size());
-  }
-
-  StateType StateAtRoot() {
-    return PcForNodeId(this->ref_tree_.num_nodes() - 1);
-  }
-};
+// not used anymore, since we pass the vectos of present coordinates from the 
+// user interface
+// template<class Tree>
+// class PresentCoordinates: public SPLITT::TraversalSpecification<Tree> {
+// public:
+//   typedef PresentCoordinates<Tree> MyType;
+//   typedef SPLITT::TraversalSpecification<Tree> BaseType;
+//   typedef Tree TreeType;
+//   typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
+//   typedef int ParameterType; // dummy ParameterType
+//   typedef NumericTraitData<typename TreeType::NodeType> DataType;
+//   typedef arma::uvec StateType;
+// 
+//   arma::imat Pc_;
+//   bool internal_pc_full_;
+// 
+//   PresentCoordinates(TreeType const& tree, DataType const& input_data):
+//     BaseType(tree) {
+//     if(input_data.Pc_.n_cols != this->ref_tree_.num_tips()) {
+//       throw std::invalid_argument(
+//           "ERR:03111:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits and as many columns as the number of tips.");
+//     } else {
+//       // We need to be careful with the typedefs SPLITT::uvec and arma::uvec.
+//       using namespace arma;
+// 
+//       // number of tips
+//       uword M = this->ref_tree_.num_nodes();
+//       uword N = this->ref_tree_.num_tips();
+// 
+//       // number of traits
+//       uword k = input_data.Pc_.n_rows;
+// 
+//       if(k == 0) {
+//         throw std::invalid_argument(
+//             "ERR:03112:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
+//       }
+// 
+//       this->internal_pc_full_ = input_data.internal_pc_full_;
+//       
+//       if(internal_pc_full_) {
+//         this->Pc_ = imat(k, M, fill::ones);
+//       } else {
+//         this->Pc_ = imat(k, M, fill::zeros);
+//       }
+// 
+//       uvec ordNodes(
+//           this->ref_tree_.OrderNodesPosType(
+//               input_data.names_, static_cast<uword>(SPLITT::NA_UINT)));
+// 
+//       Pc_.cols(0, N - 1) = input_data.Pc_.cols(ordNodes);
+//     }
+//   }
+// 
+//   void SetParameter(ParameterType const& par) {}
+// 
+//   void PruneNode(uint i, uint i_parent) {
+//     if(!internal_pc_full_) {
+//       using namespace arma;
+//       Pc_.col(i_parent) += Pc_.col(i);  
+//     }
+//   }
+// 
+//   // Present coordinates for a node (to be called after tree traversal)
+//   arma::uvec PcForNodeId(uint i) {
+//     using namespace arma;
+//     std::vector<arma::uword> pc;
+//     for(uword u = 0; u < Pc_.n_rows; ++u) {
+//       if(Pc_(u, i) > 0) {
+//         pc.push_back(u);
+//       }
+//     }
+//     return arma::uvec(&pc[0], pc.size());
+//   }
+// 
+//   StateType StateAtRoot() {
+//     return PcForNodeId(this->ref_tree_.num_nodes() - 1);
+//   }
+// };
 
 // Conditional Gaussian distribution of trait vector at a daughter 
 // node, Xi, given trait vector at its parent, Xj, assuming that the conditional mean
@@ -288,11 +321,14 @@ public:
   typedef Tree TreeType;
   typedef std::vector<double> StateType;
 
-  typedef SPLITT::TraversalTaskLightweight<
-    PresentCoordinates<TreeType> > PresentCoordinatesTask;
+  // not used anymore since we pass the vectors of present coordinates from a higher level
+  // typedef SPLITT::TraversalTaskLightweight<
+  //   PresentCoordinates<TreeType> > PresentCoordinatesTask;
   
-  // singularity threshold for the determinant of V_i
+  // singular value threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;
+  // positive eigenvalue threshold for V_i. 
+  double threshold_EV_ = 1e-4;
   
   // threshold specifying the maximum allowed branch length for skipping the branch
   // if the corresponding matrix V is singular. This option matters only if
@@ -368,6 +404,7 @@ public:
     BaseType(tree),
 
     threshold_SV_(input_data.threshold_SV_),
+    threshold_EV_(input_data.threshold_EV_),
     threshold_skip_singular_(input_data.threshold_skip_singular_),
     singular_branch_(tree.num_nodes(), false),
     skip_singular_(input_data.skip_singular_),
@@ -394,17 +431,23 @@ public:
 
     k(X.n_rows) {
 
-    arma::uvec ordNodes(
+    arma::uvec ordTips(
         this->ref_tree_.OrderNodesPosType(
             input_data.names_, static_cast<arma::uword>(SPLITT::NA_UINT)));
 
-    this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordNodes);
+    this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordTips);
 
-    PresentCoordinatesTask pc_task(tree, input_data);
-    pc_task.TraverseTree(0, 1);
+    //PresentCoordinatesTask pc_task(tree, input_data);
+    //pc_task.TraverseTree(0, 1);
 
+    SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), tree.num_nodes());
+    arma::uvec ordNodes(
+        this->ref_tree_.OrderNodesPosType(
+            node_names, static_cast<arma::uword>(SPLITT::NA_UINT)));
+    
     for(size_t i = 0; i < tree.num_nodes(); ++i) {
-      pc.push_back(pc_task.spec().PcForNodeId(i));
+      //pc.push_back(pc_task.spec().PcForNodeId(i));
+      pc.push_back(input_data.Pc_[ordNodes(i)]);
       if(pc[i].n_elem == 0) {
         std::ostringstream oss;
         oss<<"ERR:03121:PCMBaseCpp:QuadraticPolynomial.h:QuadraticPolynomial:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
@@ -482,6 +525,9 @@ public:
       
       arma::uvec ki = pc[i];
       
+      // force symmetry of V, which could be lost due to numerical inprecision
+      V.slice(i)(ki,ki) = 0.5 * (V.slice(i)(ki,ki) + V.slice(i)(ki,ki).t());
+      
       if( IsSingular(V.slice(i)(ki,ki), threshold_SV_) ) {
         singular_branch_[i] = 1;
         if(!skip_singular_ || ti > threshold_skip_singular_) {
@@ -496,18 +542,32 @@ public:
       
       if(!singular_branch_[i]) {
         // Check V is positive definite: all eigen-values must be strictly positive
-        cx_vec eigval;
-        cx_mat eigvec;
+        cx_vec eigval(ki.n_elem);
+        eigval.fill(std::complex<double>(0.0, 0.0));
+        cx_mat eigvec(ki.n_elem, ki.n_elem);
         
-        eig_gen(eigval, eigvec, V.slice(i)(ki,ki));
+        arma::mat VSliceIki = V.slice(i)(ki,ki);
+        if(IsDiagonal(VSliceIki)) {
+          // this is a workaround needed apparently only for diagonal matrices
+          // with duplicated elements on the diagonal, but should work fine 
+          // with any diagonal matrix
+          eigval.set_real(VSliceIki.diag());
+          eigvec = eye<cx_mat>(ki.n_elem, ki.n_elem);
+        } else {
+          eig_gen(eigval, eigvec, VSliceIki);
+        }
+
+        
+        // eig_gen(eigval, eigvec, V.slice(i)(ki,ki));
         vec re_eigval = real(eigval);
         
         for(double eigv: re_eigval) {
-          if(eigv <= 0) {
+          if(eigv < threshold_EV_) {
             ostringstream oss;
             oss<<"ERR:03132:PCMBaseCpp:QuadraticPolynomial.h:InitNode:: The matrix V for node "<<
-              this->ref_tree_.FindNodeWithId(i)<<" is not positive definite: "<<V.slice(i)(ki,ki)<<
-                ". Check the model parameters.";
+              this->ref_tree_.FindNodeWithId(i)<<
+                " is nearly singular or not positive definite; near-0 or negative eigenvalue found: "<<eigv<<
+                "V.slice(i)(ki,ki): "<<V.slice(i)(ki,ki)<<". Check the model parameters.";
             throw logic_error(oss.str());
           }
         }

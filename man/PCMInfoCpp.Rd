@@ -5,8 +5,8 @@
 \title{A generic method for creating C++ backend objects given a model, data and 
 a tree.}
 \usage{
-PCMInfoCpp(X, tree, model, metaI = PCMInfo(X, tree, model, verbose),
-  verbose = FALSE, ...)
+PCMInfoCpp(X, tree, model, metaI = PCMInfo(X, tree, model, verbose, preorder =
+  PCMTreePreorderCpp(tree)), verbose = FALSE, ...)
 }
 \description{
 A generic method for creating C++ backend objects given a model, data and 

@@ -35,7 +35,7 @@
 #include "QuadraticPolynomialOU.h"
 #include "QuadraticPolynomialJOU.h"
 #include "QuadraticPolynomialDOU.h"
-#include "QuadraticPolynomialMRG.h"
+#include "QuadraticPolynomialMixedGaussian.h"
 
 // [[Rcpp::plugins("cpp11")]]
 // [[Rcpp::plugins(openmp)]]
@@ -62,6 +62,59 @@ void R_unload_PCMBaseCpp(DllInfo *info) {
 using namespace PCMBaseCpp;
 using namespace std;
 
+SPLITT::Tree<uint, double>* CreatePCMBaseCppTree(Rcpp::List const& tree) {
+  arma::umat branches = tree["edge"];
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
+  return new SPLITT::Tree<uint, double>(br_0, br_1, t);
+}
+
+RCPP_MODULE(PCMBaseCppTree) {
+  Rcpp::class_<SPLITT::Tree<uint, double>> ( "PCMBaseCppTree" )
+  .factory<Rcpp::List const&>( &CreatePCMBaseCppTree )
+  .property("num_nodes", &SPLITT::Tree<uint, double>::num_nodes )
+  .property("num_tips", &SPLITT::Tree<uint, double>::num_tips )
+  .method("LengthOfBranch", &SPLITT::Tree<uint, double>::LengthOfBranch )
+  .method("FindNodeWithId", &SPLITT::Tree<uint, double>::FindNodeWithId )
+  .method("FindIdOfNode", &SPLITT::Tree<uint, double>::FindIdOfNode )
+  .method("FindIdOfParent", &SPLITT::Tree<uint, double>::FindIdOfParent )
+  .method( "FindChildren", &SPLITT::Tree<uint, double>::FindChildren )
+  .method("OrderNodes", &SPLITT::Tree<uint, double>::OrderNodes )
+  ;
+}
+
+SPLITT::OrderedTree<uint, double>* CreatePCMBaseCppOrderedTree(Rcpp::List const& tree) {
+  arma::umat branches = tree["edge"];
+  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
+  return new SPLITT::OrderedTree<uint, double>(br_0, br_1, t);
+}
+
+
+RCPP_MODULE(PCMBaseCppOrderedTree) {
+  Rcpp::class_<SPLITT::Tree<uint, double>> ( "PCMBaseCppTree" )
+  .factory<Rcpp::List const&>( &CreatePCMBaseCppTree )
+  .property("num_nodes", &SPLITT::Tree<uint, double>::num_nodes )
+  .property("num_tips", &SPLITT::Tree<uint, double>::num_tips )
+  .method("LengthOfBranch", &SPLITT::Tree<uint, double>::LengthOfBranch )
+  .method("FindNodeWithId", &SPLITT::Tree<uint, double>::FindNodeWithId )
+  .method("FindIdOfNode", &SPLITT::Tree<uint, double>::FindIdOfNode )
+  .method("FindIdOfParent", &SPLITT::Tree<uint, double>::FindIdOfParent )
+  .method( "FindChildren", &SPLITT::Tree<uint, double>::FindChildren )
+  .method("OrderNodes", &SPLITT::Tree<uint, double>::OrderNodes )
+  ;
+  Rcpp::class_<SPLITT::OrderedTree<uint, double>>( "PCMBaseCppOrderedTree" )
+    .derives<SPLITT::Tree<uint, double>> ( "PCMBaseCppTree" )
+    .factory<Rcpp::List const&>( &CreatePCMBaseCppOrderedTree )
+    .property("num_levels", &SPLITT::OrderedTree<uint, double>::num_levels )
+    .property("num_parallel_ranges_prune", &SPLITT::OrderedTree<uint, double>::num_parallel_ranges_prune )
+    .property("ranges_id_visit", &SPLITT::OrderedTree<uint, double>::ranges_id_visit )
+    .property("ranges_id_prune", &SPLITT::OrderedTree<uint, double>::ranges_id_prune )
+  ;
+}
+
 QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     arma::mat const&X, 
     Rcpp::List const& tree, 
@@ -69,20 +122,25 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     Rcpp::List const& metaInfo) { 
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
   double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   
-  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < X.n_rows; ++i)
-    for(arma::uword j = 0; j < X.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-    }
+  //arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+  for(arma::uword i = 0; i < Pc.size(); ++i) {
+    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+  }
+  // for(arma::uword i = 0; i < X.n_rows; ++i)
+  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
+  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+  //   }
     
-    arma::umat branches = tree["edge"];
+  arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
   SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
@@ -101,7 +159,7 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
   }
   
   SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
+  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialWhite::LengthType> lengths(branches.n_rows);
   
@@ -116,10 +174,14 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     os<<"ERR:03802:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialWhite:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  
+  if(threshold_EV <= 0) {
+    ostringstream os;
+    os<<"ERR:03803:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_EV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
   typename QuadraticPolynomialWhite::DataType data(
-      node_names, X, Pc, internal_pc_full, RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_skip_singular, skip_singular,
+      tip_names, X, Pc, RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
   return new QuadraticPolynomialWhite(br_0, br_1, lengths, data);
@@ -192,18 +254,25 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     Rcpp::List const& metaInfo) { 
     
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
   double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   
-  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < X.n_rows; ++i)
-    for(arma::uword j = 0; j < X.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-    }
+  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+  for(arma::uword i = 0; i < Pc.size(); ++i) {
+    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+  }
+  // 
+  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  // 
+  // for(arma::uword i = 0; i < X.n_rows; ++i)
+  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
+  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+  //   }
     
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
@@ -224,7 +293,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
   }
   
   SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
+  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialBM::LengthType> lengths(branches.n_rows);
   
@@ -239,10 +308,14 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     os<<"ERR:03802:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialBM:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  
+  if(threshold_EV <= 0) {
+    ostringstream os;
+    os<<"ERR:03803:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_EV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
   typename QuadraticPolynomialBM::DataType data(
-      node_names, X, Pc, internal_pc_full, RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_skip_singular, skip_singular,
+      tip_names, X, Pc, RModel, std::vector<std::string>(), 
+      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
   return new QuadraticPolynomialBM(br_0, br_1, lengths, data);
@@ -315,18 +388,25 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
   double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
-  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < X.n_rows; ++i)
-    for(arma::uword j = 0; j < X.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-    }
-    
+  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+  for(arma::uword i = 0; i < Pc.size(); ++i) {
+    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+  }
+  // 
+  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  // 
+  // for(arma::uword i = 0; i < X.n_rows; ++i)
+  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
+  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+  //   }
+  //   
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
@@ -347,7 +427,7 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   }
 
   SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
+  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialOU::LengthType> lengths(branches.n_rows);
   
@@ -361,7 +441,11 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
     os<<"ERR:03812:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  
+  if(threshold_EV <= 0) {
+    ostringstream os;
+    os<<"ERR:03814:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_EV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
   
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
@@ -370,9 +454,9 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   }
   
   typename QuadraticPolynomialOU::DataType data(
-      node_names, X, Pc, internal_pc_full, 
+      tip_names, X, Pc, 
       RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
   return new QuadraticPolynomialOU(br_0, br_1, lengths, data);
@@ -437,6 +521,7 @@ RCPP_MODULE(QuadraticPolynomialOU) {
   ;
 }
 
+
 QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     arma::mat const&X, 
     Rcpp::List const& tree, 
@@ -444,18 +529,25 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
   double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
-  
-  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < X.n_rows; ++i)
-    for(arma::uword j = 0; j < X.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-    }
-    
+ 
+ Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+ std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+ for(arma::uword i = 0; i < Pc.size(); ++i) {
+   Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+ }
+ 
+  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  // 
+  // for(arma::uword i = 0; i < X.n_rows; ++i)
+  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
+  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+  //   }
+  //   
     arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
@@ -482,7 +574,7 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   }
   
   SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
+  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialJOU::LengthType> lengths(branches.n_rows);
   
@@ -497,17 +589,21 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
     os<<"ERR:03823:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  
+  if(threshold_EV <= 0) {
+    ostringstream os;
+    os<<"ERR:03824:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_EV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
-    os<<"ERR:03824:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_Lambda_ij should be non-negative double.";
+    os<<"ERR:03825:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialJOU:: The argument threshold_Lambda_ij should be non-negative double.";
     throw invalid_argument(os.str());
   }
   
   typename QuadraticPolynomialJOU::DataType data(
-      node_names, X, Pc, internal_pc_full, 
+      tip_names, X, Pc, 
       RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
   return new QuadraticPolynomialJOU(br_0, br_1, lengths, data);
@@ -580,18 +676,25 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
     Rcpp::List const& metaInfo) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
   double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
+
+  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+  for(arma::uword i = 0; i < Pc.size(); ++i) {
+    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+  }
   
-  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < X.n_rows; ++i)
-    for(arma::uword j = 0; j < X.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-    }
-    
+  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  // 
+  // for(arma::uword i = 0; i < X.n_rows; ++i)
+  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
+  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+  //   }
+  //   
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
@@ -609,7 +712,7 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
   }
   
   SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
+  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
   vector<typename QuadraticPolynomialDOU::LengthType> lengths(branches.n_rows);
   
@@ -623,7 +726,11 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
     os<<"ERR:03832:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialDOU:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  
+  if(threshold_EV <= 0) {
+    ostringstream os;
+    os<<"ERR:03834:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_EV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
     os<<"ERR:03833:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialDOU:: The argument threshold_Lambda_ij should be non-negative double.";
@@ -631,9 +738,9 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
   }
   
   typename QuadraticPolynomialDOU::DataType data(
-      node_names, X, Pc, internal_pc_full, 
+      tip_names, X, Pc, 
       RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
   return new QuadraticPolynomialDOU(br_0, br_1, lengths, data);;
@@ -699,7 +806,7 @@ RCPP_MODULE(QuadraticPolynomialDOU) {
 }
 
 
-QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
+QuadraticPolynomialMixedGaussian* CreateQuadraticPolynomialMixedGaussian(
     arma::mat const& X,
     Rcpp::List const& tree,
     Rcpp::List const& model,
@@ -707,21 +814,28 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
     std::vector<std::string> const& regimeModels) {
   
   double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
+  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
   double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
   double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
-  bool internal_pc_full = static_cast<int>(metaInfo["PCMBase.Internal.PC.Full"]);
+  
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   // std::cout<<"skip_singular(1)"<<static_cast<bool>(metaInfo["PCMBase.Skip.Singular"])<<"\n";
   // std::cout<<"skip_singular(2)"<<static_cast<int>(metaInfo["PCMBase.Skip.Singular"])<<"\n";
   // std::cout<<"skip_singular(3)"<<skip_singular<<"\n";
   // 
-  arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  
-  for(arma::uword i = 0; i < X.n_rows; ++i)
-    for(arma::uword j = 0; j < X.n_cols; ++j) {
-      Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-    }
+  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+  for(arma::uword i = 0; i < Pc.size(); ++i) {
+    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+  }
+  // 
+  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
+  // 
+  // for(arma::uword i = 0; i < X.n_rows; ++i)
+  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
+  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
+  //   }
     
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
@@ -735,7 +849,7 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
-    os<<"ERR:03841:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMRG:: The slot r in metaInfo has different length ("<<regimes.size()<<
+    os<<"ERR:03841:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The slot r in metaInfo has different length ("<<regimes.size()<<
       ") than the number of edges ("<<branches.n_rows<<").";
     throw logic_error(os.str());
   }
@@ -749,9 +863,9 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
   
   SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
   
-  SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
+  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
   
-  vector<typename QuadraticPolynomialMRG::LengthType> lengths(branches.n_rows);
+  vector<typename QuadraticPolynomialMixedGaussian::LengthType> lengths(branches.n_rows);
   
   for(arma::uword i = 0; i < branches.n_rows; ++i) {
     lengths[i].length_ = t[i];
@@ -762,82 +876,86 @@ QuadraticPolynomialMRG* CreateQuadraticPolynomialMRG(
   
   if(threshold_SV <= 0) {
     ostringstream os;
-    os<<"ERR:03843:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMRG:: The argument threshold_SV should be positive real number.";
+    os<<"ERR:03843:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_SV should be positive real number.";
     throw invalid_argument(os.str());
   }
-  
+  if(threshold_EV <= 0) {
+    ostringstream os;
+    os<<"ERR:03844:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_EV should be positive real number.";
+    throw invalid_argument(os.str());
+  }
   if(threshold_Lambda_ij < 0) {
     ostringstream os;
-    os<<"ERR:03844:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMRG:: The argument threshold_Lambda_ij should be non-negative double.";
+    os<<"ERR:03845:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolynomialMixedGaussian:: The argument threshold_Lambda_ij should be non-negative double.";
     throw invalid_argument(os.str());
   }
   
-  typename QuadraticPolynomialMRG::DataType data(
-      node_names, X, Pc, internal_pc_full, 
+  typename QuadraticPolynomialMixedGaussian::DataType data(
+      tip_names, X, Pc, 
       RModel, 
       regimeModels,
-      threshold_SV, threshold_skip_singular, skip_singular,
+      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij
       );
   
-  return new QuadraticPolynomialMRG(br_0, br_1, lengths, data);
+  return new QuadraticPolynomialMixedGaussian(br_0, br_1, lengths, data);
 }
 
-RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMRG::TraversalSpecificationType)
-  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMRG::AlgorithmType)
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::TraversalSpecificationType)
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::AlgorithmType)
   
-  RCPP_MODULE(QuadraticPolynomialMRG) {
-    Rcpp::class_<QuadraticPolynomialMRG::TreeType::Tree> ( "QuadraticPolynomialMRG_Tree" )
-    .property("num_nodes", &QuadraticPolynomialMRG::TreeType::Tree::num_nodes )
-    .property("num_tips", &QuadraticPolynomialMRG::TreeType::Tree::num_tips )
-    .method("FindNodeWithId", &QuadraticPolynomialMRG::TreeType::Tree::FindNodeWithId )
-    .method("FindIdOfNode", &QuadraticPolynomialMRG::TreeType::Tree::FindIdOfNode )
-    .method("FindIdOfParent", &QuadraticPolynomialMRG::TreeType::Tree::FindIdOfParent )
-    .method("OrderNodes", &QuadraticPolynomialMRG::TreeType::Tree::OrderNodes )
+  RCPP_MODULE(QuadraticPolynomialMixedGaussian) {
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TreeType::Tree> ( "QuadraticPolynomialMixedGaussian_Tree" )
+    .property("num_nodes", &QuadraticPolynomialMixedGaussian::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolynomialMixedGaussian::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolynomialMixedGaussian::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolynomialMixedGaussian::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolynomialMixedGaussian::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolynomialMixedGaussian::TreeType::Tree::OrderNodes )
     ;
-    Rcpp::class_<QuadraticPolynomialMRG::TreeType>( "QuadraticPolynomialMRG_OrderedTree" )
-      .derives<QuadraticPolynomialMRG::TreeType::Tree> ( "QuadraticPolynomialMRG_Tree" )
-      .method("RangeIdPruneNode", &QuadraticPolynomialMRG::TreeType::RangeIdPruneNode )
-      .method("RangeIdVisitNode", &QuadraticPolynomialMRG::TreeType::RangeIdVisitNode )
-      .property("num_levels", &QuadraticPolynomialMRG::TreeType::num_levels )
-      .property("ranges_id_visit", &QuadraticPolynomialMRG::TreeType::ranges_id_visit )
-      .property("ranges_id_prune", &QuadraticPolynomialMRG::TreeType::ranges_id_prune )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TreeType>( "QuadraticPolynomialMixedGaussian_OrderedTree" )
+      .derives<QuadraticPolynomialMixedGaussian::TreeType::Tree> ( "QuadraticPolynomialMixedGaussian_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolynomialMixedGaussian::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolynomialMixedGaussian::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolynomialMixedGaussian::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolynomialMixedGaussian::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolynomialMixedGaussian::TreeType::ranges_id_prune )
     ;
-    Rcpp::class_<QuadraticPolynomialMRG::AlgorithmType::ParentType>( "QuadraticPolynomialMRG_TraversalAlgorithm" )
-      .property( "VersionOPENMP", &QuadraticPolynomialMRG::AlgorithmType::ParentType::VersionOPENMP )
-      .property( "num_threads", &QuadraticPolynomialMRG::AlgorithmType::num_threads )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType>( "QuadraticPolynomialMixedGaussian_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "num_threads", &QuadraticPolynomialMixedGaussian::AlgorithmType::num_threads )
     ;
-    Rcpp::class_<QuadraticPolynomialMRG::AlgorithmType> ( "QuadraticPolynomialMRG_ParallelPruning" )
-      .derives<QuadraticPolynomialMRG::AlgorithmType::ParentType>( "QuadraticPolynomialMRG_TraversalAlgorithm" )
-      .method( "ModeAutoStep", &QuadraticPolynomialMRG::AlgorithmType::ModeAutoStep )
-      .property( "ModeAutoCurrent", &QuadraticPolynomialMRG::AlgorithmType::ModeAutoCurrent )
-      .property( "IsTuning", &QuadraticPolynomialMRG::AlgorithmType::IsTuning )
-      .property( "min_size_chunk_visit", &QuadraticPolynomialMRG::AlgorithmType::min_size_chunk_visit )
-      .property( "min_size_chunk_prune", &QuadraticPolynomialMRG::AlgorithmType::min_size_chunk_prune )
-      .property( "durations_tuning", &QuadraticPolynomialMRG::AlgorithmType::durations_tuning )
-      .property( "fastest_step_tuning", &QuadraticPolynomialMRG::AlgorithmType::fastest_step_tuning )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::AlgorithmType> ( "QuadraticPolynomialMixedGaussian_ParallelPruning" )
+      .derives<QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType>( "QuadraticPolynomialMixedGaussian_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolynomialMixedGaussian::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolynomialMixedGaussian::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolynomialMixedGaussian::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolynomialMixedGaussian::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolynomialMixedGaussian::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolynomialMixedGaussian::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolynomialMixedGaussian::AlgorithmType::fastest_step_tuning )
     ;
-    Rcpp::class_<QuadraticPolynomialMRG::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
-      .field( "A", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::A)
-      .field( "b", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::b )
-      .field( "C", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::C )
-      .field( "d", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::d )
-      .field( "E", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::E )
-      .field( "f", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::f )
-      .field( "L", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::L )
-      .field( "m", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::m )
-      .field( "r", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::r )
-      .field( "V", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::V )
-      .field( "V_1", &QuadraticPolynomialMRG::TraversalSpecificationType::BaseType::V_1 )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+      .field( "A", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::A)
+      .field( "b", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::b )
+      .field( "C", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::C )
+      .field( "d", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::d )
+      .field( "E", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::E )
+      .field( "f", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::f )
+      .field( "L", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::L )
+      .field( "m", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::m )
+      .field( "r", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::r )
+      .field( "V", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::V )
+      .field( "V_1", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::V_1 )
     ;
-    Rcpp::class_<QuadraticPolynomialMRG::TraversalSpecificationType> ( "QuadraticPolynomialMRG_PruningSpec" )
-      .derives<QuadraticPolynomialMRG::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TraversalSpecificationType> ( "QuadraticPolynomialMixedGaussian_PruningSpec" )
+      .derives<QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
     ;
-    Rcpp::class_<QuadraticPolynomialMRG>( "QuadraticPolynomialMRG" )
-      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialMRG)
-      .method( "TraverseTree", &QuadraticPolynomialMRG::TraverseTree )
-      .property( "tree", &QuadraticPolynomialMRG::tree )
-      .property( "spec", &QuadraticPolynomialMRG::spec )
-      .property( "algorithm", &QuadraticPolynomialMRG::algorithm )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian>( "QuadraticPolynomialMixedGaussian" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialMixedGaussian)
+      .method( "TraverseTree", &QuadraticPolynomialMixedGaussian::TraverseTree )
+      .property( "tree", &QuadraticPolynomialMixedGaussian::tree )
+      .property( "spec", &QuadraticPolynomialMixedGaussian::spec )
+      .property( "algorithm", &QuadraticPolynomialMixedGaussian::algorithm )
     ;
   }

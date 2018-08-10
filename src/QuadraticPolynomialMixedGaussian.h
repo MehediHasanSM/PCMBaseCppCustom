@@ -22,8 +22,8 @@
  *
  * @author Venelin Mitov
  */
-#ifndef QuadraticPolynomial_MRG_H_
-#define QuadraticPolynomial_MRG_H_
+#ifndef QuadraticPolynomial_MixedGaussian_H_
+#define QuadraticPolynomial_MixedGaussian_H_
 
 #include "QuadraticPolynomial.h"
 #include "QuadraticPolynomialBM.h"
@@ -36,19 +36,19 @@
 namespace PCMBaseCpp {
 
 
-typedef SPLITT::OrderedTree<SPLITT::uint, LengthRegimeAndJump> MRGTreeType;
+typedef SPLITT::OrderedTree<SPLITT::uint, LengthRegimeAndJump> MixedGaussianTreeType;
 
-class MRG: public QuadraticPolynomial<MRGTreeType> {
+class MixedGaussian: public QuadraticPolynomial<MixedGaussianTreeType> {
 public:
-  typedef MRGTreeType TreeType;
+  typedef MixedGaussianTreeType TreeType;
   typedef QuadraticPolynomial<TreeType> BaseType;
-  typedef MRG MyType;
+  typedef MixedGaussian MyType;
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
   typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
   
-  MRG(TreeType const& tree, DataType const& input_data):
+  MixedGaussian(TreeType const& tree, DataType const& input_data):
     BaseType(tree, input_data) {
     
     for(uint i = 0; i < input_data.regime_models_.size(); i++) {
@@ -73,7 +73,7 @@ public:
     }
   }
   
-  ~MRG() {
+  ~MixedGaussian() {
     for(uint i = 0; i < BaseType::ptr_cond_dist_.size(); i++) {
       delete BaseType::ptr_cond_dist_[i];
     }
@@ -81,7 +81,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<MRG> QuadraticPolynomialMRG;
+typedef SPLITT::TraversalTask<MixedGaussian> QuadraticPolynomialMixedGaussian;
 }
 
-#endif // QuadraticPolynomial_MRG_H_
+#endif // QuadraticPolynomial_MixedGaussian_H_
