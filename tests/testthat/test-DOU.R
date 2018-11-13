@@ -10,7 +10,6 @@ if(PCMBaseCppIsADevRelease(numVersionComponents = 3)) {
   
   test_that("Calling PCMGenerateParameterizations()", {
     expect_silent(tableParametrizationsDOU <- PCMTableParameterizations(structure(0.0, class="DOU")))
-    expect_true(is.data.table(tableParametrizationsDOU))
     expect_silent(
       PCMGenerateParameterizations(
         model = structure(0.0, class="DOU"),
