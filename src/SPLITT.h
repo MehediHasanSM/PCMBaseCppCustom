@@ -2,7 +2,7 @@
  *  SPLITT.h
  *  SPLITT
  *
- * Copyright 2017,2018 Venelin Mitov
+ * Copyright 2017 Venelin Mitov
  *
  * This file is part of SPLITT: a generic C++ library for Serial and Parallel
  * Lineage Traversal of Trees.
@@ -109,6 +109,8 @@
 //' \item{\link[=SPLITT::OrderedTree]{OrderedTree}}{}
 //' \item{\link[=SPLITT::ThreadExceptionHandler]{ThreadExceptionHandler}}{}
 //' }
+//' 
+//' [[Rcpp::export]]
 namespace SPLITT{
 
 
@@ -1767,7 +1769,8 @@ public:
 //' @seealso \link{SPLITT} 
 template<class TraversalSpecification>
 class TraversalAlgorithm {
-protected:
+  
+public:
   typedef typename TraversalSpecification::TreeType TreeType;
 
   TreeType const& ref_tree_;
