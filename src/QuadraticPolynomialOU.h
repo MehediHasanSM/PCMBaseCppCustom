@@ -2,7 +2,7 @@
  *  QuadraticPolynomialOU.h
  *  PCMBaseCpp
  *
- * Copyright 2017 Venelin Mitov
+ * Copyright 2017,2018 Venelin Mitov
  *
  * This file is part of PCMBaseCpp: A C++ backend for calculating the likelihood of phylogenetic comparative models.
  *
@@ -123,13 +123,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     Theta = mat(&par[offset + (k_ + k_*k_)*R_], k_, R_);
     Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
-    // 
-    // std::cout<<"X0:\n"<<X0<<"\n";
-    // std::cout<<"H:\n"<<H<<"\n";
-    // std::cout<<"Theta:\n"<<Theta<<"\n";
-    // std::cout<<"Sigma:\n"<<Sigma<<"\n";
-    // std::cout<<"Sigmae:\n"<<Sigmae<<"\n";
-
+    
     for(uword r = 0; r < R_; r++) {
       Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
       Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  

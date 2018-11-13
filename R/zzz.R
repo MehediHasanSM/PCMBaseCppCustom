@@ -15,21 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
 
-#'@export
-PCMInfoCpp.BM <- function(X, tree, model, 
-                          #metaI = PCMInfo(X, tree, model, verbose), 
-                          metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
-                          verbose = FALSE, ...) {
-  
-  if(is.Transformable(model)) {
-    model <- PCMApplyTransformation(model)
-  }
-  
-  metaI$pcListInt <- PCListInt(metaI$pc)
-  
-  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolynomialBM$new(X, tree, model, metaI))
-  res$TraverseTree = res$cppObject$TraverseTree
-  
-  class(res) <- c("PCMInfoCpp", class(metaI))
-  res
-}
+#' @import Rcpp
+#' @import methods
+#' @useDynLib PCMBaseCpp
+loadModule( "PCMBaseCpp__Tree", TRUE )
+loadModule( "PCMBaseCpp__OrderedTree", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolynomialBM", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolynomialDOU", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolynomialMixedGaussian", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolynomialOU", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolynomialWhite", TRUE )

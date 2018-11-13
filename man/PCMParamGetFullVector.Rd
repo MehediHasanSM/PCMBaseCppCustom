@@ -8,6 +8,8 @@ PCMParamGetFullVector(model, ...)
 }
 \arguments{
 \item{model}{a PCM model object}
+
+\item{...}{passed to methods}
 }
 \value{
 a numerical vector

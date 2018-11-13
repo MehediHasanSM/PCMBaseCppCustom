@@ -2,13 +2,38 @@
 % Please edit documentation in R/Generic.R
 \name{PCMInfoCpp}
 \alias{PCMInfoCpp}
-\title{A generic method for creating C++ backend objects given a model, data and 
+\title{A S3 generic for creating C++ backend objects given a model, data and 
 a tree.}
 \usage{
-PCMInfoCpp(X, tree, model, metaI = PCMInfo(X, tree, model, verbose, preorder =
-  PCMTreePreorderCpp(tree)), verbose = FALSE, ...)
+PCMInfoCpp(X, tree, model, metaI = PCMInfo(X, tree, model, verbose,
+  preorder = PCMTreePreorderCpp(tree)), verbose = FALSE, ...)
+}
+\arguments{
+\item{X}{a \code{k x N} numerical matrix with possible \code{NA} and \code{NaN} entries. Each
+column of X contains the measured trait values for one species (tip in tree).
+Missing values can be either not-available (\code{NA}) or not existing (\code{NaN}).
+Thse two values have are treated differently when calculating
+likelihoods: see \code{\link{PCMPresentCoordinates}}.}
+
+\item{tree}{a phylo object with N tips.}
+
+\item{model}{an S3 object specifying both, the model type (class, e.g. "OU") as
+well as the concrete model parameter values at which the likelihood is to be
+calculated (see also Details).}
+
+\item{metaI}{a list returned from a call to \code{PCMInfo(X, tree, model)},
+containing meta-data such as N, M and k. Default: 
+\code{PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree))}}
+
+\item{verbose}{logical indicating if some debug-messages should be printed. 
+Default: FALSE}
+
+\item{...}{passed to methods.}
+}
+\value{
+a list to be passed to PCMLik as argument metaI.
 }
 \description{
-A generic method for creating C++ backend objects given a model, data and 
-a tree.
+Replace calls to PCMInfo() with this method in order to use C++
+for likelihood calculation.
 }

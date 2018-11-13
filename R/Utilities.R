@@ -15,21 +15,16 @@
 # You should have received a copy of the GNU General Public License
 # along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
 
-#'@export
-PCMInfoCpp.BM <- function(X, tree, model, 
-                          #metaI = PCMInfo(X, tree, model, verbose), 
-                          metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
-                          verbose = FALSE, ...) {
-  
-  if(is.Transformable(model)) {
-    model <- PCMApplyTransformation(model)
-  }
-  
-  metaI$pcListInt <- PCListInt(metaI$pc)
-  
-  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolynomialBM$new(X, tree, model, metaI))
-  res$TraverseTree = res$cppObject$TraverseTree
-  
-  class(res) <- c("PCMInfoCpp", class(metaI))
-  res
+#' Check if the PCMBaseCpp version correpsonds to a dev release
+#' @param numVersionComponents an integer, default 4.
+#' @importFrom utils packageDescription
+#' @description We define a dev release as having a sub-release, eg 0.9.15.5 is
+#' one whereas 0.9.16 is not. The number of components in the version can be
+#' changed through the argument numVersionComponents.
+#' @return a logical
+#' @export
+PCMBaseCppIsADevRelease <- function(numVersionComponents = 4L) {
+  !is.na( packageDescription("PCMBaseCpp") ) &&
+    length(strsplit(packageDescription("PCMBaseCpp")$Version, "\\.")[[1]]) >= numVersionComponents
 }
+

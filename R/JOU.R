@@ -1,3 +1,20 @@
+# Copyright 2018 Venelin Mitov
+#
+# This file is part of PCMBaseCpp.
+#
+# PCMBase is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PCMBase is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
+
 #'@export
 PCMInfoCpp.JOU <- function(X, tree, model, 
                            #metaI = PCMInfo(X, tree, model, verbose), 
@@ -10,7 +27,7 @@ PCMInfoCpp.JOU <- function(X, tree, model,
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  res <- c(metaI, cppObject = QuadraticPolynomialJOU$new(X, tree, model, metaI))
+  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolynomialJOU$new(X, tree, model, metaI))
   
   res$TraverseTree = res$cppObject$TraverseTree
   
@@ -18,4 +35,4 @@ PCMInfoCpp.JOU <- function(X, tree, model,
   res
 }
 
-loadModule( "QuadraticPolynomialJOU", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolynomialJOU", TRUE )

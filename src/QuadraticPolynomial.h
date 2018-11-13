@@ -2,7 +2,7 @@
  *  QuadraticPolynomial.h
  *  PCMBaseCpp
  *
- * Copyright 2017 Venelin Mitov
+ * Copyright 2017,2018 Venelin Mitov
  *
  * This file is part of PCMBaseCpp: A C++ backend for calculating the likelihood of phylogenetic comparative models.
  *
@@ -60,13 +60,6 @@ inline bool IsSingular(MatType const& X, double threshold_SV) {
   double ratio_SV = (*(svd_V.cend()-1)) / (*svd_V.cbegin());
   return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
 }
-// 
-// inline bool IsSingular(arma::mat const& X, double threshold_SV) {
-//   using namespace arma;
-//   vec svd_V = svd(X);
-//   double ratio_SV = (*(svd_V.cend()-1))/(*svd_V.cbegin());
-//   return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
-// }
 
 template<class MatType, class VecType>
 inline void PairSums(MatType& pairSums, VecType const& elems) {
@@ -92,12 +85,7 @@ inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType&
   } else {
     eig_gen(eigval, eigvec, H.slice(r));
   }
-  // std::cout<<"eig_gen: X:\n";
-  // std::cout<<H.slice(r)<<"\n";
-  // std::cout<<"eigval:"<<eigval<<"\n";
-  // std::cout<<"eigvec:"<<eigvec <<"\n";
-  // std::cout<<"eigvec.t:"<<eigvec.t() <<"\n";
-  // 
+
   lambda.col(r) = eigval;
   P.slice(r) = eigvec;
   if(IsSingular(P.slice(r), threshold_SV)) {
@@ -108,7 +96,6 @@ inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType&
   }
   P_1.slice(r) = inv(P.slice(r));
   
-  // std::cout<<"P_1.slice(r): \n"<<P_1.slice(r)<<"\n";
 }
 
 
@@ -224,85 +211,6 @@ std::vector<arma::uword> mapRegimesToIndices(
   return regimeIndices;
 }
 
-// not used anymore, since we pass the vectos of present coordinates from the 
-// user interface
-// template<class Tree>
-// class PresentCoordinates: public SPLITT::TraversalSpecification<Tree> {
-// public:
-//   typedef PresentCoordinates<Tree> MyType;
-//   typedef SPLITT::TraversalSpecification<Tree> BaseType;
-//   typedef Tree TreeType;
-//   typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
-//   typedef int ParameterType; // dummy ParameterType
-//   typedef NumericTraitData<typename TreeType::NodeType> DataType;
-//   typedef arma::uvec StateType;
-// 
-//   arma::imat Pc_;
-//   bool internal_pc_full_;
-// 
-//   PresentCoordinates(TreeType const& tree, DataType const& input_data):
-//     BaseType(tree) {
-//     if(input_data.Pc_.n_cols != this->ref_tree_.num_tips()) {
-//       throw std::invalid_argument(
-//           "ERR:03111:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits and as many columns as the number of tips.");
-//     } else {
-//       // We need to be careful with the typedefs SPLITT::uvec and arma::uvec.
-//       using namespace arma;
-// 
-//       // number of tips
-//       uword M = this->ref_tree_.num_nodes();
-//       uword N = this->ref_tree_.num_tips();
-// 
-//       // number of traits
-//       uword k = input_data.Pc_.n_rows;
-// 
-//       if(k == 0) {
-//         throw std::invalid_argument(
-//             "ERR:03112:PCMBaseCpp:QuadraticPolynomial.h:PresentCoordinates:: The input matrix Pc_ must have as many rows as the number of traits. The number of traits should be at least 1 but was 0.");
-//       }
-// 
-//       this->internal_pc_full_ = input_data.internal_pc_full_;
-//       
-//       if(internal_pc_full_) {
-//         this->Pc_ = imat(k, M, fill::ones);
-//       } else {
-//         this->Pc_ = imat(k, M, fill::zeros);
-//       }
-// 
-//       uvec ordNodes(
-//           this->ref_tree_.OrderNodesPosType(
-//               input_data.names_, static_cast<uword>(SPLITT::NA_UINT)));
-// 
-//       Pc_.cols(0, N - 1) = input_data.Pc_.cols(ordNodes);
-//     }
-//   }
-// 
-//   void SetParameter(ParameterType const& par) {}
-// 
-//   void PruneNode(uint i, uint i_parent) {
-//     if(!internal_pc_full_) {
-//       using namespace arma;
-//       Pc_.col(i_parent) += Pc_.col(i);  
-//     }
-//   }
-// 
-//   // Present coordinates for a node (to be called after tree traversal)
-//   arma::uvec PcForNodeId(uint i) {
-//     using namespace arma;
-//     std::vector<arma::uword> pc;
-//     for(uword u = 0; u < Pc_.n_rows; ++u) {
-//       if(Pc_(u, i) > 0) {
-//         pc.push_back(u);
-//       }
-//     }
-//     return arma::uvec(&pc[0], pc.size());
-//   }
-// 
-//   StateType StateAtRoot() {
-//     return PcForNodeId(this->ref_tree_.num_nodes() - 1);
-//   }
-// };
-
 // Conditional Gaussian distribution of trait vector at a daughter 
 // node, Xi, given trait vector at its parent, Xj, assuming that the conditional mean
 // depends linearly in Xj, i.e. Mean(Xi) = omega + Phi %*% Xj, and the variance does
@@ -321,10 +229,6 @@ public:
   typedef Tree TreeType;
   typedef std::vector<double> StateType;
 
-  // not used anymore since we pass the vectors of present coordinates from a higher level
-  // typedef SPLITT::TraversalTaskLightweight<
-  //   PresentCoordinates<TreeType> > PresentCoordinatesTask;
-  
   // singular value threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;
   // positive eigenvalue threshold for V_i. 
@@ -433,7 +337,7 @@ public:
 
     arma::uvec ordTips(
         this->ref_tree_.OrderNodesPosType(
-            input_data.names_, static_cast<arma::uword>(SPLITT::NA_UINT)));
+            input_data.names_, static_cast<arma::uword>(SPLITT::G_NA_UINT)));
 
     this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordTips);
 
@@ -443,7 +347,7 @@ public:
     SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), tree.num_nodes());
     arma::uvec ordNodes(
         this->ref_tree_.OrderNodesPosType(
-            node_names, static_cast<arma::uword>(SPLITT::NA_UINT)));
+            node_names, static_cast<arma::uword>(SPLITT::G_NA_UINT)));
     
     for(size_t i = 0; i < tree.num_nodes(); ++i) {
       //pc.push_back(pc_task.spec().PcForNodeId(i));

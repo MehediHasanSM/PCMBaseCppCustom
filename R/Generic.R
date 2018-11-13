@@ -1,9 +1,24 @@
-loadModule( "PCMBaseCppTree", TRUE )
-loadModule( "PCMBaseCppOrderedTree", TRUE )
+# Copyright 2018 Venelin Mitov
+#
+# This file is part of PCMBaseCpp.
+#
+# PCMBase is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PCMBase is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #' Get a vector with all model parameters unrolled
 #' @param model a PCM model object
+#' @param ... passed to methods
 #' @return a numerical vector
 #' @export
 PCMParamGetFullVector <- function(model, ...) {
@@ -64,11 +79,29 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
   unname(res)
 }
 
-#' A generic method for creating C++ backend objects given a model, data and 
+#' A S3 generic for creating C++ backend objects given a model, data and 
 #' a tree.
-#' @useDynLib PCMBaseCpp
-#' @importFrom PCMBase PCMInfo PCMTreeJumps PCMApplyTransformation is.Transformable
 #' 
+#' @description Replace calls to PCMInfo() with this method in order to use C++
+#' for likelihood calculation. 
+#' @param X a \code{k x N} numerical matrix with possible \code{NA} and \code{NaN} entries. Each
+#'   column of X contains the measured trait values for one species (tip in tree).
+#'   Missing values can be either not-available (\code{NA}) or not existing (\code{NaN}).
+#'   Thse two values have are treated differently when calculating
+#'   likelihoods: see \code{\link{PCMPresentCoordinates}}.
+#' @param tree a phylo object with N tips.
+#' @param model an S3 object specifying both, the model type (class, e.g. "OU") as
+#'   well as the concrete model parameter values at which the likelihood is to be
+#'   calculated (see also Details).
+#' @param metaI a list returned from a call to \code{PCMInfo(X, tree, model)},
+#'   containing meta-data such as N, M and k. Default: 
+#'   \code{PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree))}
+#' @param verbose logical indicating if some debug-messages should be printed. 
+#' Default: FALSE
+#' @param ... passed to methods.
+#' @importFrom PCMBase PCMInfo PCMTreeJumps PCMApplyTransformation is.Transformable
+#' PCMNumRegimes PCMNumTraits PCMTreeNumNodes is.Global is.Omitted is.PCM
+#' @return a list to be passed to PCMLik as argument metaI.
 #' @export
 PCMInfoCpp <- function(X, tree, model, 
                        metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
@@ -80,11 +113,12 @@ PCMInfoCpp <- function(X, tree, model,
 #' @param tree a phylo object
 #' @export
 PCMTreePreorderCpp <- function(tree) {
-  trCpp <- PCMBaseCppOrderedTree$new(tree)
+  trCpp <- PCMBaseCpp__OrderedTree$new(tree)
   nodesInPreorder <- rev(trCpp$OrderNodes(1:PCMTreeNumNodes(tree)) + 1)[-1]
   match(nodesInPreorder, tree$edge[, 2])
 }
 
+#' @importFrom abind abind
 PCMExtractAbCdEfLmr <- function(metaI) {
   tr <- metaI$cppObject$tree
   M <- tr$num_nodes
@@ -112,7 +146,7 @@ PCMExtractAbCdEfLmr <- function(metaI) {
 }
 
 #' @importFrom PCMBase PCMLmr PCMInfo PCMApplyTransformation is.Transformable
-#'
+#' 
 #' @export
 PCMLmr.PCMInfoCpp <- function(
   X, tree, model, 
@@ -143,6 +177,8 @@ PCMLmr.PCMInfoCpp <- function(
 
 #' Converts the logical matrix pc into a list of vectors denoting the (0-based) TRUE-indices in 
 #' each column
+#' @param pc a logical matrix.
+#' @return a list
 PCListInt <- function(pc) {
   lapply(1:ncol(pc), function(i) (which(pc[, i]) - 1))
 }

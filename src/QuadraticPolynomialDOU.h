@@ -2,7 +2,7 @@
  *  QuadraticPolynomialDOU.h
  *  PCMBaseCpp
  *
- * Copyright 2017 Venelin Mitov
+ * Copyright 2017,2018 Venelin Mitov
  *
  * This file is part of PCMBaseCpp: A C++ backend for calculating the likelihood of phylogenetic comparative models.
  *

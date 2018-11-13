@@ -2,7 +2,7 @@
  *  Rcpp.cpp
  *  PCMBaseCpp
  *
- * Copyright 2017 Venelin Mitov
+ * Copyright 2017,2018 Venelin Mitov
  *
  * This file is part of PCMBaseCpp: A C++ backend for calculating the likelihood of phylogenetic comparative models.
  *
@@ -22,13 +22,10 @@
  * @author Venelin Mitov
  */
 #include <RcppArmadillo.h>
-#include <R_ext/Rdynload.h>
 
 #include<vector>
 #include<string>
-#include<unordered_map>
 #include<sstream>
-#include<iostream>
 
 #include "QuadraticPolynomialWhite.h"
 #include "QuadraticPolynomialBM.h"
@@ -41,23 +38,16 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
-// BEGIN: Needed for r-devel (R 3.4)
+
 void R_init_PCMBaseCpp(DllInfo *info) {
-  /* Register routines, allocate resources. */
-  R_registerRoutines(info, NULL, NULL, NULL, NULL);
-  R_useDynamicSymbols(info, TRUE);
+   /* Register routines, allocate resources. */
+   R_registerRoutines(info, NULL, NULL, NULL, NULL);
+   R_useDynamicSymbols(info, TRUE);
 }
 
 void R_unload_PCMBaseCpp(DllInfo *info) {
-  /* Release resources. */
+   /* Release resources. */
 }
-// END Needed for r-devel (R 3.4)
-
-
-
-// [[Rcpp::plugins("cpp11")]]
-// [[Rcpp::plugins(openmp)]]
-// [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace PCMBaseCpp;
 using namespace std;
@@ -70,8 +60,8 @@ SPLITT::Tree<uint, double>* CreatePCMBaseCppTree(Rcpp::List const& tree) {
   return new SPLITT::Tree<uint, double>(br_0, br_1, t);
 }
 
-RCPP_MODULE(PCMBaseCppTree) {
-  Rcpp::class_<SPLITT::Tree<uint, double>> ( "PCMBaseCppTree" )
+RCPP_MODULE(PCMBaseCpp__Tree) {
+  Rcpp::class_<SPLITT::Tree<uint, double> > ( "PCMBaseCpp__Tree" )
   .factory<Rcpp::List const&>( &CreatePCMBaseCppTree )
   .property("num_nodes", &SPLITT::Tree<uint, double>::num_nodes )
   .property("num_tips", &SPLITT::Tree<uint, double>::num_tips )
@@ -93,8 +83,8 @@ SPLITT::OrderedTree<uint, double>* CreatePCMBaseCppOrderedTree(Rcpp::List const&
 }
 
 
-RCPP_MODULE(PCMBaseCppOrderedTree) {
-  Rcpp::class_<SPLITT::Tree<uint, double>> ( "PCMBaseCppTree" )
+RCPP_MODULE(PCMBaseCpp__OrderedTree) {
+  Rcpp::class_<SPLITT::Tree<uint, double> > ( "PCMBaseCpp__Tree" )
   .factory<Rcpp::List const&>( &CreatePCMBaseCppTree )
   .property("num_nodes", &SPLITT::Tree<uint, double>::num_nodes )
   .property("num_tips", &SPLITT::Tree<uint, double>::num_tips )
@@ -105,8 +95,8 @@ RCPP_MODULE(PCMBaseCppOrderedTree) {
   .method( "FindChildren", &SPLITT::Tree<uint, double>::FindChildren )
   .method("OrderNodes", &SPLITT::Tree<uint, double>::OrderNodes )
   ;
-  Rcpp::class_<SPLITT::OrderedTree<uint, double>>( "PCMBaseCppOrderedTree" )
-    .derives<SPLITT::Tree<uint, double>> ( "PCMBaseCppTree" )
+  Rcpp::class_<SPLITT::OrderedTree<uint, double> >( "PCMBaseCpp__OrderedTree" )
+    .derives<SPLITT::Tree<uint, double> > ( "PCMBaseCpp__Tree" )
     .factory<Rcpp::List const&>( &CreatePCMBaseCppOrderedTree )
     .property("num_levels", &SPLITT::OrderedTree<uint, double>::num_levels )
     .property("num_parallel_ranges_prune", &SPLITT::OrderedTree<uint, double>::num_parallel_ranges_prune )
@@ -129,16 +119,11 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
   
-  //arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
   for(arma::uword i = 0; i < Pc.size(); ++i) {
     Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
   }
-  // for(arma::uword i = 0; i < X.n_rows; ++i)
-  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
-  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-  //   }
     
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
@@ -149,7 +134,7 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
   
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
   
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -191,8 +176,8 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialWhite::TraversalSpecificationType)
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialWhite::AlgorithmType)
   
-  RCPP_MODULE(QuadraticPolynomialWhite) {
-    Rcpp::class_<QuadraticPolynomialWhite::TreeType::Tree> ( "QuadraticPolynomialWhite_Tree" )
+  RCPP_MODULE(PCMBaseCpp__QuadraticPolynomialWhite) {
+    Rcpp::class_<QuadraticPolynomialWhite::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialWhite_Tree" )
     .property("num_nodes", &QuadraticPolynomialWhite::TreeType::Tree::num_nodes )
     .property("num_tips", &QuadraticPolynomialWhite::TreeType::Tree::num_tips )
     .method("FindNodeWithId", &QuadraticPolynomialWhite::TreeType::Tree::FindNodeWithId )
@@ -200,20 +185,20 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     .method("FindIdOfParent", &QuadraticPolynomialWhite::TreeType::Tree::FindIdOfParent )
     .method("OrderNodes", &QuadraticPolynomialWhite::TreeType::Tree::OrderNodes )
     ;
-    Rcpp::class_<QuadraticPolynomialWhite::TreeType>( "QuadraticPolynomialWhite_OrderedTree" )
-      .derives<QuadraticPolynomialWhite::TreeType::Tree> ( "QuadraticPolynomialWhite_Tree" )
+    Rcpp::class_<QuadraticPolynomialWhite::TreeType>( "PCMBaseCpp__QuadraticPolynomialWhite_OrderedTree" )
+      .derives<QuadraticPolynomialWhite::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialWhite_Tree" )
       .method("RangeIdPruneNode", &QuadraticPolynomialWhite::TreeType::RangeIdPruneNode )
       .method("RangeIdVisitNode", &QuadraticPolynomialWhite::TreeType::RangeIdVisitNode )
       .property("num_levels", &QuadraticPolynomialWhite::TreeType::num_levels )
       .property("ranges_id_visit", &QuadraticPolynomialWhite::TreeType::ranges_id_visit )
       .property("ranges_id_prune", &QuadraticPolynomialWhite::TreeType::ranges_id_prune )
     ;
-    Rcpp::class_<QuadraticPolynomialWhite::AlgorithmType::ParentType>( "QuadraticPolynomialWhite_TraversalAlgorithm" )
+    Rcpp::class_<QuadraticPolynomialWhite::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialWhite_TraversalAlgorithm" )
       .property( "VersionOPENMP", &QuadraticPolynomialWhite::AlgorithmType::ParentType::VersionOPENMP )
-      .property( "num_threads", &QuadraticPolynomialWhite::AlgorithmType::num_threads )
+      .property( "NumOmpThreads", &QuadraticPolynomialWhite::AlgorithmType::NumOmpThreads )
     ;
-    Rcpp::class_<QuadraticPolynomialWhite::AlgorithmType> ( "QuadraticPolynomialWhite_ParallelPruning" )
-      .derives<QuadraticPolynomialWhite::AlgorithmType::ParentType>( "QuadraticPolynomialWhite_TraversalAlgorithm" )
+    Rcpp::class_<QuadraticPolynomialWhite::AlgorithmType> ( "PCMBaseCpp__QuadraticPolynomialWhite_ParallelPruning" )
+      .derives<QuadraticPolynomialWhite::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialWhite_TraversalAlgorithm" )
       .method( "ModeAutoStep", &QuadraticPolynomialWhite::AlgorithmType::ModeAutoStep )
       .property( "ModeAutoCurrent", &QuadraticPolynomialWhite::AlgorithmType::ModeAutoCurrent )
       .property( "IsTuning", &QuadraticPolynomialWhite::AlgorithmType::IsTuning )
@@ -222,7 +207,7 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
       .property( "durations_tuning", &QuadraticPolynomialWhite::AlgorithmType::durations_tuning )
       .property( "fastest_step_tuning", &QuadraticPolynomialWhite::AlgorithmType::fastest_step_tuning )
     ;
-    Rcpp::class_<QuadraticPolynomialWhite::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+    Rcpp::class_<QuadraticPolynomialWhite::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
       .field( "A", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::A)
       .field( "b", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::b )
       .field( "C", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::C )
@@ -235,10 +220,10 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
       .field( "V", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::V )
       .field( "V_1", &QuadraticPolynomialWhite::TraversalSpecificationType::BaseType::V_1 )
     ;
-    Rcpp::class_<QuadraticPolynomialWhite::TraversalSpecificationType> ( "QuadraticPolynomialWhite_PruningSpec" )
-      .derives<QuadraticPolynomialWhite::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+    Rcpp::class_<QuadraticPolynomialWhite::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolynomialWhite_PruningSpec" )
+      .derives<QuadraticPolynomialWhite::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
     ;
-    Rcpp::class_<QuadraticPolynomialWhite>( "QuadraticPolynomialWhite" )
+    Rcpp::class_<QuadraticPolynomialWhite>( "PCMBaseCpp__QuadraticPolynomialWhite" )
       .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialWhite)
       .method( "TraverseTree", &QuadraticPolynomialWhite::TraverseTree )
       .property( "tree", &QuadraticPolynomialWhite::tree )
@@ -266,13 +251,6 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
   for(arma::uword i = 0; i < Pc.size(); ++i) {
     Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
   }
-  // 
-  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  // 
-  // for(arma::uword i = 0; i < X.n_rows; ++i)
-  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
-  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-  //   }
     
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
@@ -283,7 +261,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
   
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
   
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -325,8 +303,8 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialBM::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialBM::AlgorithmType)
   
-RCPP_MODULE(QuadraticPolynomialBM) {
-  Rcpp::class_<QuadraticPolynomialBM::TreeType::Tree> ( "QuadraticPolynomialBM_Tree" )
+RCPP_MODULE(PCMBaseCpp__QuadraticPolynomialBM) {
+  Rcpp::class_<QuadraticPolynomialBM::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialBM_Tree" )
   .property("num_nodes", &QuadraticPolynomialBM::TreeType::Tree::num_nodes )
   .property("num_tips", &QuadraticPolynomialBM::TreeType::Tree::num_tips )
   .method("FindNodeWithId", &QuadraticPolynomialBM::TreeType::Tree::FindNodeWithId )
@@ -334,20 +312,20 @@ RCPP_MODULE(QuadraticPolynomialBM) {
   .method("FindIdOfParent", &QuadraticPolynomialBM::TreeType::Tree::FindIdOfParent )
   .method("OrderNodes", &QuadraticPolynomialBM::TreeType::Tree::OrderNodes )
   ;
-  Rcpp::class_<QuadraticPolynomialBM::TreeType>( "QuadraticPolynomialBM_OrderedTree" )
-    .derives<QuadraticPolynomialBM::TreeType::Tree> ( "QuadraticPolynomialBM_Tree" )
+  Rcpp::class_<QuadraticPolynomialBM::TreeType>( "PCMBaseCpp__QuadraticPolynomialBM_OrderedTree" )
+    .derives<QuadraticPolynomialBM::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialBM_Tree" )
     .method("RangeIdPruneNode", &QuadraticPolynomialBM::TreeType::RangeIdPruneNode )
     .method("RangeIdVisitNode", &QuadraticPolynomialBM::TreeType::RangeIdVisitNode )
     .property("num_levels", &QuadraticPolynomialBM::TreeType::num_levels )
     .property("ranges_id_visit", &QuadraticPolynomialBM::TreeType::ranges_id_visit )
     .property("ranges_id_prune", &QuadraticPolynomialBM::TreeType::ranges_id_prune )
   ;
-  Rcpp::class_<QuadraticPolynomialBM::AlgorithmType::ParentType>( "QuadraticPolynomialBM_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialBM::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialBM_TraversalAlgorithm" )
     .property( "VersionOPENMP", &QuadraticPolynomialBM::AlgorithmType::ParentType::VersionOPENMP )
-    .property( "num_threads", &QuadraticPolynomialBM::AlgorithmType::num_threads )
+    .property( "NumOmpThreads", &QuadraticPolynomialBM::AlgorithmType::NumOmpThreads )
   ;
-  Rcpp::class_<QuadraticPolynomialBM::AlgorithmType> ( "QuadraticPolynomialBM_ParallelPruning" )
-    .derives<QuadraticPolynomialBM::AlgorithmType::ParentType>( "QuadraticPolynomialBM_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialBM::AlgorithmType> ( "PCMBaseCpp__QuadraticPolynomialBM_ParallelPruning" )
+    .derives<QuadraticPolynomialBM::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialBM_TraversalAlgorithm" )
     .method( "ModeAutoStep", &QuadraticPolynomialBM::AlgorithmType::ModeAutoStep )
     .property( "ModeAutoCurrent", &QuadraticPolynomialBM::AlgorithmType::ModeAutoCurrent )
     .property( "IsTuning", &QuadraticPolynomialBM::AlgorithmType::IsTuning )
@@ -356,7 +334,7 @@ RCPP_MODULE(QuadraticPolynomialBM) {
     .property( "durations_tuning", &QuadraticPolynomialBM::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolynomialBM::AlgorithmType::fastest_step_tuning )
   ;
-  Rcpp::class_<QuadraticPolynomialBM::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialBM::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
     .field( "A", &QuadraticPolynomialBM::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolynomialBM::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolynomialBM::TraversalSpecificationType::BaseType::C )
@@ -369,10 +347,10 @@ RCPP_MODULE(QuadraticPolynomialBM) {
     .field( "V", &QuadraticPolynomialBM::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolynomialBM::TraversalSpecificationType::BaseType::V_1 )
   ;
-  Rcpp::class_<QuadraticPolynomialBM::TraversalSpecificationType> ( "QuadraticPolynomialBM_PruningSpec" )
-    .derives<QuadraticPolynomialBM::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialBM::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolynomialBM_PruningSpec" )
+    .derives<QuadraticPolynomialBM::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
   ;
-  Rcpp::class_<QuadraticPolynomialBM>( "QuadraticPolynomialBM" )
+  Rcpp::class_<QuadraticPolynomialBM>( "PCMBaseCpp__QuadraticPolynomialBM" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialBM)
     .method( "TraverseTree", &QuadraticPolynomialBM::TraverseTree )
     .property( "tree", &QuadraticPolynomialBM::tree )
@@ -399,14 +377,7 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   for(arma::uword i = 0; i < Pc.size(); ++i) {
     Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
   }
-  // 
-  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  // 
-  // for(arma::uword i = 0; i < X.n_rows; ++i)
-  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
-  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-  //   }
-  //   
+  
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
@@ -416,7 +387,7 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
 
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
   
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
   
 
   if(regimes.size() != branches.n_rows) {
@@ -465,8 +436,8 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialOU::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialOU::AlgorithmType)
   
-RCPP_MODULE(QuadraticPolynomialOU) {
-  Rcpp::class_<QuadraticPolynomialOU::TreeType::Tree> ( "QuadraticPolynomialOU_Tree" )
+RCPP_MODULE(PCMBaseCpp__QuadraticPolynomialOU) {
+  Rcpp::class_<QuadraticPolynomialOU::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialOU_Tree" )
   .property("num_nodes", &QuadraticPolynomialOU::TreeType::Tree::num_nodes )
   .property("num_tips", &QuadraticPolynomialOU::TreeType::Tree::num_tips )
   .method("FindNodeWithId", &QuadraticPolynomialOU::TreeType::Tree::FindNodeWithId )
@@ -474,20 +445,20 @@ RCPP_MODULE(QuadraticPolynomialOU) {
   .method("FindIdOfParent", &QuadraticPolynomialOU::TreeType::Tree::FindIdOfParent )
   .method("OrderNodes", &QuadraticPolynomialOU::TreeType::Tree::OrderNodes )
   ;
-  Rcpp::class_<QuadraticPolynomialOU::TreeType>( "QuadraticPolynomialOU_OrderedTree" )
-    .derives<QuadraticPolynomialOU::TreeType::Tree> ( "QuadraticPolynomialOU_Tree" )
+  Rcpp::class_<QuadraticPolynomialOU::TreeType>( "PCMBaseCpp__QuadraticPolynomialOU_OrderedTree" )
+    .derives<QuadraticPolynomialOU::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialOU_Tree" )
     .method("RangeIdPruneNode", &QuadraticPolynomialOU::TreeType::RangeIdPruneNode )
     .method("RangeIdVisitNode", &QuadraticPolynomialOU::TreeType::RangeIdVisitNode )
     .property("num_levels", &QuadraticPolynomialOU::TreeType::num_levels )
     .property("ranges_id_visit", &QuadraticPolynomialOU::TreeType::ranges_id_visit )
     .property("ranges_id_prune", &QuadraticPolynomialOU::TreeType::ranges_id_prune )
   ;
-  Rcpp::class_<QuadraticPolynomialOU::AlgorithmType::ParentType>( "QuadraticPolynomialOU_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialOU::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialOU_TraversalAlgorithm" )
     .property( "VersionOPENMP", &QuadraticPolynomialOU::AlgorithmType::ParentType::VersionOPENMP )
-    .property( "num_threads", &QuadraticPolynomialOU::AlgorithmType::num_threads )
+    .property( "NumOmpThreads", &QuadraticPolynomialOU::AlgorithmType::NumOmpThreads )
   ;
-  Rcpp::class_<QuadraticPolynomialOU::AlgorithmType> ( "QuadraticPolynomialOU_ParallelPruning" )
-    .derives<QuadraticPolynomialOU::AlgorithmType::ParentType>( "QuadraticPolynomialOU_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialOU::AlgorithmType> ( "PCMBaseCpp__QuadraticPolynomialOU_ParallelPruning" )
+    .derives<QuadraticPolynomialOU::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialOU_TraversalAlgorithm" )
     .method( "ModeAutoStep", &QuadraticPolynomialOU::AlgorithmType::ModeAutoStep )
     .property( "ModeAutoCurrent", &QuadraticPolynomialOU::AlgorithmType::ModeAutoCurrent )
     .property( "IsTuning", &QuadraticPolynomialOU::AlgorithmType::IsTuning )
@@ -496,7 +467,7 @@ RCPP_MODULE(QuadraticPolynomialOU) {
     .property( "durations_tuning", &QuadraticPolynomialOU::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolynomialOU::AlgorithmType::fastest_step_tuning )
   ;
-  Rcpp::class_<QuadraticPolynomialOU::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
     .field( "A", &QuadraticPolynomialOU::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolynomialOU::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolynomialOU::TraversalSpecificationType::BaseType::C )
@@ -509,10 +480,10 @@ RCPP_MODULE(QuadraticPolynomialOU) {
     .field( "V", &QuadraticPolynomialOU::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolynomialOU::TraversalSpecificationType::BaseType::V_1 )
   ;
-  Rcpp::class_<QuadraticPolynomialOU::TraversalSpecificationType> ( "QuadraticPolynomialOU_PruningSpec" )
-    .derives<QuadraticPolynomialOU::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolynomialOU_PruningSpec" )
+    .derives<QuadraticPolynomialOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
   ;
-  Rcpp::class_<QuadraticPolynomialOU>( "QuadraticPolynomialOU" )
+  Rcpp::class_<QuadraticPolynomialOU>( "PCMBaseCpp__QuadraticPolynomialOU" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialOU)
     .method( "TraverseTree", &QuadraticPolynomialOU::TraverseTree )
     .property( "tree", &QuadraticPolynomialOU::tree )
@@ -541,14 +512,7 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
  }
  
-  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  // 
-  // for(arma::uword i = 0; i < X.n_rows; ++i)
-  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
-  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-  //   }
-  //   
-    arma::umat branches = tree["edge"];
+  arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
   SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
@@ -556,8 +520,8 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   using namespace std;
   
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
-  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(metaInfo["xi"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
+  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8> >(metaInfo["xi"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -613,8 +577,8 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialJOU::TreeType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialJOU::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialJOU::AlgorithmType)
   
-RCPP_MODULE(QuadraticPolynomialJOU) {
-  Rcpp::class_<QuadraticPolynomialJOU::TreeType::Tree> ( "QuadraticPolynomialJOU_Tree" )
+RCPP_MODULE(PCMBaseCpp__QuadraticPolynomialJOU) {
+  Rcpp::class_<QuadraticPolynomialJOU::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialJOU_Tree" )
   .property("num_nodes", &QuadraticPolynomialJOU::TreeType::Tree::num_nodes )
   .property("num_tips", &QuadraticPolynomialJOU::TreeType::Tree::num_tips )
   .method("FindNodeWithId", &QuadraticPolynomialJOU::TreeType::Tree::FindNodeWithId )
@@ -622,20 +586,20 @@ RCPP_MODULE(QuadraticPolynomialJOU) {
   .method("FindIdOfParent", &QuadraticPolynomialJOU::TreeType::Tree::FindIdOfParent )
   .method("OrderNodes", &QuadraticPolynomialJOU::TreeType::Tree::OrderNodes )
   ;
-  Rcpp::class_<QuadraticPolynomialJOU::TreeType>( "QuadraticPolynomialJOU_OrderedTree" )
-    .derives<QuadraticPolynomialJOU::TreeType::Tree> ( "QuadraticPolynomialJOU_Tree" )
+  Rcpp::class_<QuadraticPolynomialJOU::TreeType>( "PCMBaseCpp__QuadraticPolynomialJOU_OrderedTree" )
+    .derives<QuadraticPolynomialJOU::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialJOU_Tree" )
     .method("RangeIdPruneNode", &QuadraticPolynomialJOU::TreeType::RangeIdPruneNode )
     .method("RangeIdVisitNode", &QuadraticPolynomialJOU::TreeType::RangeIdVisitNode )
     .property("num_levels", &QuadraticPolynomialJOU::TreeType::num_levels )
     .property("ranges_id_visit", &QuadraticPolynomialJOU::TreeType::ranges_id_visit )
     .property("ranges_id_prune", &QuadraticPolynomialJOU::TreeType::ranges_id_prune )
   ;
-  Rcpp::class_<QuadraticPolynomialJOU::AlgorithmType::ParentType>( "QuadraticPolynomialJOU_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialJOU::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialJOU_TraversalAlgorithm" )
     .property( "VersionOPENMP", &QuadraticPolynomialJOU::AlgorithmType::ParentType::VersionOPENMP )
-    .property( "num_threads", &QuadraticPolynomialJOU::AlgorithmType::num_threads )
+    .property( "NumOmpThreads", &QuadraticPolynomialJOU::AlgorithmType::NumOmpThreads )
   ;
-  Rcpp::class_<QuadraticPolynomialJOU::AlgorithmType> ( "QuadraticPolynomialJOU_ParallelPruning" )
-    .derives<QuadraticPolynomialJOU::AlgorithmType::ParentType>( "QuadraticPolynomialJOU_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialJOU::AlgorithmType> ( "PCMBaseCpp__QuadraticPolynomialJOU_ParallelPruning" )
+    .derives<QuadraticPolynomialJOU::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialJOU_TraversalAlgorithm" )
     .method( "ModeAutoStep", &QuadraticPolynomialJOU::AlgorithmType::ModeAutoStep )
     .property( "ModeAutoCurrent", &QuadraticPolynomialJOU::AlgorithmType::ModeAutoCurrent )
     .property( "IsTuning", &QuadraticPolynomialJOU::AlgorithmType::IsTuning )
@@ -644,7 +608,7 @@ RCPP_MODULE(QuadraticPolynomialJOU) {
     .property( "durations_tuning", &QuadraticPolynomialJOU::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolynomialJOU::AlgorithmType::fastest_step_tuning )
   ;
-  Rcpp::class_<QuadraticPolynomialJOU::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialJOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
     .field( "A", &QuadraticPolynomialJOU::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolynomialJOU::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolynomialJOU::TraversalSpecificationType::BaseType::C )
@@ -657,10 +621,10 @@ RCPP_MODULE(QuadraticPolynomialJOU) {
     .field( "V", &QuadraticPolynomialJOU::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolynomialJOU::TraversalSpecificationType::BaseType::V_1 )
   ;
-  Rcpp::class_<QuadraticPolynomialJOU::TraversalSpecificationType> ( "QuadraticPolynomialJOU_PruningSpec" )
-    .derives<QuadraticPolynomialJOU::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialJOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolynomialJOU_PruningSpec" )
+    .derives<QuadraticPolynomialJOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
   ;
-  Rcpp::class_<QuadraticPolynomialJOU>( "QuadraticPolynomialJOU" )
+  Rcpp::class_<QuadraticPolynomialJOU>( "PCMBaseCpp__QuadraticPolynomialJOU" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialJOU)
     .method( "TraverseTree", &QuadraticPolynomialJOU::TraverseTree )
     .property( "tree", &QuadraticPolynomialJOU::tree )
@@ -688,13 +652,6 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
     Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
   }
   
-  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  // 
-  // for(arma::uword i = 0; i < X.n_rows; ++i)
-  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
-  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-  //   }
-  //   
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
   SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
@@ -702,7 +659,7 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
   
   using namespace std;
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -749,8 +706,8 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialDOU::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialDOU::AlgorithmType)
   
-RCPP_MODULE(QuadraticPolynomialDOU) {
-  Rcpp::class_<QuadraticPolynomialDOU::TreeType::Tree> ( "QuadraticPolynomialDOU_Tree" )
+RCPP_MODULE(PCMBaseCpp__QuadraticPolynomialDOU) {
+  Rcpp::class_<QuadraticPolynomialDOU::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialDOU_Tree" )
   .property("num_nodes", &QuadraticPolynomialDOU::TreeType::Tree::num_nodes )
   .property("num_tips", &QuadraticPolynomialDOU::TreeType::Tree::num_tips )
   .method("FindNodeWithId", &QuadraticPolynomialDOU::TreeType::Tree::FindNodeWithId )
@@ -758,20 +715,20 @@ RCPP_MODULE(QuadraticPolynomialDOU) {
   .method("FindIdOfParent", &QuadraticPolynomialDOU::TreeType::Tree::FindIdOfParent )
   .method("OrderNodes", &QuadraticPolynomialDOU::TreeType::Tree::OrderNodes )
   ;
-  Rcpp::class_<QuadraticPolynomialDOU::TreeType>( "QuadraticPolynomialDOU_OrderedTree" )
-    .derives<QuadraticPolynomialDOU::TreeType::Tree> ( "QuadraticPolynomialDOU_Tree" )
+  Rcpp::class_<QuadraticPolynomialDOU::TreeType>( "PCMBaseCpp__QuadraticPolynomialDOU_OrderedTree" )
+    .derives<QuadraticPolynomialDOU::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialDOU_Tree" )
     .method("RangeIdPruneNode", &QuadraticPolynomialDOU::TreeType::RangeIdPruneNode )
     .method("RangeIdVisitNode", &QuadraticPolynomialDOU::TreeType::RangeIdVisitNode )
     .property("num_levels", &QuadraticPolynomialDOU::TreeType::num_levels )
     .property("ranges_id_visit", &QuadraticPolynomialDOU::TreeType::ranges_id_visit )
     .property("ranges_id_prune", &QuadraticPolynomialDOU::TreeType::ranges_id_prune )
   ;
-  Rcpp::class_<QuadraticPolynomialDOU::AlgorithmType::ParentType>( "QuadraticPolynomialDOU_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialDOU::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialDOU_TraversalAlgorithm" )
     .property( "VersionOPENMP", &QuadraticPolynomialDOU::AlgorithmType::ParentType::VersionOPENMP )
-    .property( "num_threads", &QuadraticPolynomialDOU::AlgorithmType::num_threads )
+    .property( "NumOmpThreads", &QuadraticPolynomialDOU::AlgorithmType::NumOmpThreads )
   ;
-  Rcpp::class_<QuadraticPolynomialDOU::AlgorithmType> ( "QuadraticPolynomialDOU_ParallelPruning" )
-    .derives<QuadraticPolynomialDOU::AlgorithmType::ParentType>( "QuadraticPolynomialDOU_TraversalAlgorithm" )
+  Rcpp::class_<QuadraticPolynomialDOU::AlgorithmType> ( "PCMBaseCpp__QuadraticPolynomialDOU_ParallelPruning" )
+    .derives<QuadraticPolynomialDOU::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialDOU_TraversalAlgorithm" )
     .method( "ModeAutoStep", &QuadraticPolynomialDOU::AlgorithmType::ModeAutoStep )
     .property( "ModeAutoCurrent", &QuadraticPolynomialDOU::AlgorithmType::ModeAutoCurrent )
     .property( "IsTuning", &QuadraticPolynomialDOU::AlgorithmType::IsTuning )
@@ -780,7 +737,7 @@ RCPP_MODULE(QuadraticPolynomialDOU) {
     .property( "durations_tuning", &QuadraticPolynomialDOU::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolynomialDOU::AlgorithmType::fastest_step_tuning )
   ;
-  Rcpp::class_<QuadraticPolynomialDOU::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialDOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
     .field( "A", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::C )
@@ -793,10 +750,10 @@ RCPP_MODULE(QuadraticPolynomialDOU) {
     .field( "V", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolynomialDOU::TraversalSpecificationType::BaseType::V_1 )
   ;
-  Rcpp::class_<QuadraticPolynomialDOU::TraversalSpecificationType> ( "QuadraticPolynomialDOU_PruningSpec" )
-    .derives<QuadraticPolynomialDOU::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+  Rcpp::class_<QuadraticPolynomialDOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolynomialDOU_PruningSpec" )
+    .derives<QuadraticPolynomialDOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
   ;
-  Rcpp::class_<QuadraticPolynomialDOU>( "QuadraticPolynomialDOU" )
+  Rcpp::class_<QuadraticPolynomialDOU>( "PCMBaseCpp__QuadraticPolynomialDOU" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialDOU)
     .method( "TraverseTree", &QuadraticPolynomialDOU::TraverseTree )
     .property( "tree", &QuadraticPolynomialDOU::tree )
@@ -820,22 +777,11 @@ QuadraticPolynomialMixedGaussian* CreateQuadraticPolynomialMixedGaussian(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
-  // std::cout<<"skip_singular(1)"<<static_cast<bool>(metaInfo["PCMBase.Skip.Singular"])<<"\n";
-  // std::cout<<"skip_singular(2)"<<static_cast<int>(metaInfo["PCMBase.Skip.Singular"])<<"\n";
-  // std::cout<<"skip_singular(3)"<<skip_singular<<"\n";
-  // 
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
   for(arma::uword i = 0; i < Pc.size(); ++i) {
     Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
   }
-  // 
-  // arma::imat Pc(X.n_rows, X.n_cols, arma::fill::ones);
-  // 
-  // for(arma::uword i = 0; i < X.n_rows; ++i)
-  //   for(arma::uword j = 0; j < X.n_cols; ++j) {
-  //     Pc(i,j) = static_cast<arma::imat::value_type>(arma::is_finite(X(i,j)));
-  //   }
     
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
@@ -844,8 +790,8 @@ QuadraticPolynomialMixedGaussian* CreateQuadraticPolynomialMixedGaussian(
   
   using namespace std;
   uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword>>(metaInfo["r"]);
-  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8>>(metaInfo["xi"]);
+  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
+  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8> >(metaInfo["xi"]);
   
   if(regimes.size() != branches.n_rows) {
     ostringstream os;
@@ -904,8 +850,8 @@ QuadraticPolynomialMixedGaussian* CreateQuadraticPolynomialMixedGaussian(
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::TraversalSpecificationType)
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::AlgorithmType)
   
-  RCPP_MODULE(QuadraticPolynomialMixedGaussian) {
-    Rcpp::class_<QuadraticPolynomialMixedGaussian::TreeType::Tree> ( "QuadraticPolynomialMixedGaussian_Tree" )
+  RCPP_MODULE(PCMBaseCpp__QuadraticPolynomialMixedGaussian) {
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_Tree" )
     .property("num_nodes", &QuadraticPolynomialMixedGaussian::TreeType::Tree::num_nodes )
     .property("num_tips", &QuadraticPolynomialMixedGaussian::TreeType::Tree::num_tips )
     .method("FindNodeWithId", &QuadraticPolynomialMixedGaussian::TreeType::Tree::FindNodeWithId )
@@ -913,20 +859,20 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::TraversalSpecificati
     .method("FindIdOfParent", &QuadraticPolynomialMixedGaussian::TreeType::Tree::FindIdOfParent )
     .method("OrderNodes", &QuadraticPolynomialMixedGaussian::TreeType::Tree::OrderNodes )
     ;
-    Rcpp::class_<QuadraticPolynomialMixedGaussian::TreeType>( "QuadraticPolynomialMixedGaussian_OrderedTree" )
-      .derives<QuadraticPolynomialMixedGaussian::TreeType::Tree> ( "QuadraticPolynomialMixedGaussian_Tree" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TreeType>( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_OrderedTree" )
+      .derives<QuadraticPolynomialMixedGaussian::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_Tree" )
       .method("RangeIdPruneNode", &QuadraticPolynomialMixedGaussian::TreeType::RangeIdPruneNode )
       .method("RangeIdVisitNode", &QuadraticPolynomialMixedGaussian::TreeType::RangeIdVisitNode )
       .property("num_levels", &QuadraticPolynomialMixedGaussian::TreeType::num_levels )
       .property("ranges_id_visit", &QuadraticPolynomialMixedGaussian::TreeType::ranges_id_visit )
       .property("ranges_id_prune", &QuadraticPolynomialMixedGaussian::TreeType::ranges_id_prune )
     ;
-    Rcpp::class_<QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType>( "QuadraticPolynomialMixedGaussian_TraversalAlgorithm" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_TraversalAlgorithm" )
       .property( "VersionOPENMP", &QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType::VersionOPENMP )
-      .property( "num_threads", &QuadraticPolynomialMixedGaussian::AlgorithmType::num_threads )
+      .property( "NumOmpThreads", &QuadraticPolynomialMixedGaussian::AlgorithmType::NumOmpThreads )
     ;
-    Rcpp::class_<QuadraticPolynomialMixedGaussian::AlgorithmType> ( "QuadraticPolynomialMixedGaussian_ParallelPruning" )
-      .derives<QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType>( "QuadraticPolynomialMixedGaussian_TraversalAlgorithm" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::AlgorithmType> ( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_ParallelPruning" )
+      .derives<QuadraticPolynomialMixedGaussian::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_TraversalAlgorithm" )
       .method( "ModeAutoStep", &QuadraticPolynomialMixedGaussian::AlgorithmType::ModeAutoStep )
       .property( "ModeAutoCurrent", &QuadraticPolynomialMixedGaussian::AlgorithmType::ModeAutoCurrent )
       .property( "IsTuning", &QuadraticPolynomialMixedGaussian::AlgorithmType::IsTuning )
@@ -935,7 +881,7 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::TraversalSpecificati
       .property( "durations_tuning", &QuadraticPolynomialMixedGaussian::AlgorithmType::durations_tuning )
       .property( "fastest_step_tuning", &QuadraticPolynomialMixedGaussian::AlgorithmType::fastest_step_tuning )
     ;
-    Rcpp::class_<QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType> ( "QuadraticPolynomial_PrunignSpec" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
       .field( "A", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::A)
       .field( "b", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::b )
       .field( "C", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::C )
@@ -948,10 +894,10 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolynomialMixedGaussian::TraversalSpecificati
       .field( "V", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::V )
       .field( "V_1", &QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType::V_1 )
     ;
-    Rcpp::class_<QuadraticPolynomialMixedGaussian::TraversalSpecificationType> ( "QuadraticPolynomialMixedGaussian_PruningSpec" )
-      .derives<QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType>( "QuadraticPolynomial_PrunignSpec" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolynomialMixedGaussian_PruningSpec" )
+      .derives<QuadraticPolynomialMixedGaussian::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPolynomial_PrunignSpec" )
     ;
-    Rcpp::class_<QuadraticPolynomialMixedGaussian>( "QuadraticPolynomialMixedGaussian" )
+    Rcpp::class_<QuadraticPolynomialMixedGaussian>( "PCMBaseCpp__QuadraticPolynomialMixedGaussian" )
       .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolynomialMixedGaussian)
       .method( "TraverseTree", &QuadraticPolynomialMixedGaussian::TraverseTree )
       .property( "tree", &QuadraticPolynomialMixedGaussian::tree )

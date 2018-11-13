@@ -7,6 +7,12 @@ each column}
 \usage{
 PCListInt(pc)
 }
+\arguments{
+\item{pc}{a logical matrix.}
+}
+\value{
+a list
+}
 \description{
 Converts the logical matrix pc into a list of vectors denoting the (0-based) TRUE-indices in 
 each column
