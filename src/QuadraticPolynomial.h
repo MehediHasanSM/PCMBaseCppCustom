@@ -58,7 +58,7 @@ inline bool IsSingular(MatType const& X, double threshold_SV) {
   using namespace arma;
   vec svd_V = svd(X);
   double ratio_SV = (*(svd_V.cend()-1)) / (*svd_V.cbegin());
-  return (!isfinite(ratio_SV) || ratio_SV < threshold_SV);
+  return (!std::isfinite(ratio_SV) || ratio_SV < threshold_SV);
 }
 
 template<class MatType, class VecType>
