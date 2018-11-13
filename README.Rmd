@@ -14,6 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 [![Travis build status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp)
+[![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
 
 # PCMBaseCpp
 

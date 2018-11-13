@@ -22,7 +22,8 @@ Suggests:
     testthat,
     data.table,
     knitr,
-    rmarkdown
+    rmarkdown,
+    covr
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.1.1
 VignetteBuilder: knitr, rmarkdown
