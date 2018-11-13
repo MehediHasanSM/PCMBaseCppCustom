@@ -38,7 +38,6 @@
 // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
-
 void R_init_PCMBaseCpp(DllInfo *info) {
    /* Register routines, allocate resources. */
    R_registerRoutines(info, NULL, NULL, NULL, NULL);

@@ -71,5 +71,5 @@
 # shared libraries. Yet, for these options to have an effect, the compiler itself
 # should support OpenMP, i.e. it should include the appropriate OpenMP headers,
 # and the openmp shared library binaries in its distribution (see above comments).
-PKG_CPPFLAGS=$(SHLIB_OPENMP_CXXFLAGS)
+PKG_CPPFLAGS=$(SHLIB_OPENMP_CXXFLAGS) -std=c++11
 PKG_LIBS=$(SHLIB_OPENMP_CFLAGS)
