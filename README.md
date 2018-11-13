@@ -10,12 +10,20 @@ The goal of PCMBaseCpp is to provide fast C++ backend for the [PCMBase](https://
 Installation
 ------------
 
-You can install the released version of PCMBaseCpp from [CRAN](https://CRAN.R-project.org) with:
+The package needs a C++ 11 compiler and Rcpp to be installed in you R-environment. Once this is done, you can install the package from github:
 
 ``` r
-install.packages("PCMBaseCpp")
+devtools::install_github("venelin/PCMBaseCpp")
 ```
 
+<!--
+You can install the github version of PCMBaseCpp: from [CRAN](https://CRAN.R-project.org) with:
+
+
+```r
+install.packages("PCMBaseCpp")
+```
+-->
 Example
 -------
 
