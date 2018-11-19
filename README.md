@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-[![Travis build status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp) [![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
+[![Travis build status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp) [![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](http://cran.r-project.org/web/packages/PCMBaseCpp) [![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](http://cran.rstudio.com/package=PCMBaseCpp)
 
 PCMBaseCpp
 ==========

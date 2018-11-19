@@ -1684,7 +1684,7 @@ public:
   }
   
   bool IsTemporarilyEmpty() const {
-    return it_queue_begin == it_queue_end & it_queue_end < queue_.end();
+    return it_queue_begin == it_queue_end && it_queue_end < queue_.end();
   }
   
   // thread-safe
