@@ -93,6 +93,8 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 #' @param model an S3 object specifying both, the model type (class, e.g. "OU") as
 #'   well as the concrete model parameter values at which the likelihood is to be
 #'   calculated (see also Details).
+#' @param SE a k x N matrix specifying the standard error for each measurement in 
+#' X. Default: \code{matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree))}.
 #' @param metaI a list returned from a call to \code{PCMInfo(X, tree, model)},
 #'   containing meta-data such as N, M and k. Default: 
 #'   \code{PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree))}
@@ -103,9 +105,11 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 #' PCMNumRegimes PCMNumTraits PCMTreeNumNodes is.Global is.Omitted is.PCM
 #' @return a list to be passed to PCMLik as argument metaI.
 #' @export
-PCMInfoCpp <- function(X, tree, model, 
-                       metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
-                       verbose = FALSE, ...) {
+PCMInfoCpp <- function(
+  X, tree, model, 
+  SE = matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree)),
+  metaI = PCMInfo(X, tree, model, SE, verbose, preorder=PCMTreePreorderCpp(tree)), 
+  verbose = FALSE, ...) {
   UseMethod("PCMInfoCpp", model)
 }
 

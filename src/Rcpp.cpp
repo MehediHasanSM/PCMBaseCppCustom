@@ -117,7 +117,8 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
-  
+  arma::mat SE(Rcpp::as<arma::mat>(metaInfo["SE"]));
+    
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
   for(arma::uword i = 0; i < Pc.size(); ++i) {
@@ -164,7 +165,7 @@ QuadraticPolynomialWhite* CreateQuadraticPolynomialWhite(
     throw invalid_argument(os.str());
   }
   typename QuadraticPolynomialWhite::DataType data(
-      tip_names, X, Pc, RModel, std::vector<std::string>(), 
+      tip_names, X, SE, Pc, RModel, std::vector<std::string>(), 
       threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
@@ -244,6 +245,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
+  arma::mat SE(Rcpp::as<arma::mat>(metaInfo["SE"]));
   
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
@@ -291,7 +293,7 @@ QuadraticPolynomialBM* CreateQuadraticPolynomialBM(
     throw invalid_argument(os.str());
   }
   typename QuadraticPolynomialBM::DataType data(
-      tip_names, X, Pc, RModel, std::vector<std::string>(), 
+      tip_names, X, SE, Pc, RModel, std::vector<std::string>(), 
       threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
   
@@ -371,6 +373,8 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
+  arma::mat SE(Rcpp::as<arma::mat>(metaInfo["SE"]));
+  
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
   for(arma::uword i = 0; i < Pc.size(); ++i) {
@@ -424,7 +428,7 @@ QuadraticPolynomialOU* CreateQuadraticPolynomialOU(
   }
   
   typename QuadraticPolynomialOU::DataType data(
-      tip_names, X, Pc, 
+      tip_names, X, SE, Pc, 
       RModel, std::vector<std::string>(), 
       threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
@@ -505,11 +509,12 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
  
- Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
- std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
- for(arma::uword i = 0; i < Pc.size(); ++i) {
-   Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
- }
+  arma::mat SE(Rcpp::as<arma::mat>(metaInfo["SE"]));
+  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
+  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
+  for(arma::uword i = 0; i < Pc.size(); ++i) {
+    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+  }
  
   arma::umat branches = tree["edge"];
   SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
@@ -564,7 +569,7 @@ QuadraticPolynomialJOU* CreateQuadraticPolynomialJOU(
   }
   
   typename QuadraticPolynomialJOU::DataType data(
-      tip_names, X, Pc, 
+      tip_names, X, SE, Pc, 
       RModel, std::vector<std::string>(), 
       threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
@@ -645,6 +650,8 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
 
+  arma::mat SE(Rcpp::as<arma::mat>(metaInfo["SE"]));
+  
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
   for(arma::uword i = 0; i < Pc.size(); ++i) {
@@ -694,7 +701,7 @@ QuadraticPolynomialDOU* CreateQuadraticPolynomialDOU(
   }
   
   typename QuadraticPolynomialDOU::DataType data(
-      tip_names, X, Pc, 
+      tip_names, X, SE, Pc, 
       RModel, std::vector<std::string>(), 
       threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
       threshold_Lambda_ij);
@@ -776,6 +783,8 @@ QuadraticPolynomialMixedGaussian* CreateQuadraticPolynomialMixedGaussian(
   
   bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
   
+  arma::mat SE(Rcpp::as<arma::mat>(metaInfo["SE"]));
+  
   Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
   std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
   for(arma::uword i = 0; i < Pc.size(); ++i) {
@@ -836,7 +845,7 @@ QuadraticPolynomialMixedGaussian* CreateQuadraticPolynomialMixedGaussian(
   }
   
   typename QuadraticPolynomialMixedGaussian::DataType data(
-      tip_names, X, Pc, 
+      tip_names, X, SE, Pc, 
       RModel, 
       regimeModels,
       threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,

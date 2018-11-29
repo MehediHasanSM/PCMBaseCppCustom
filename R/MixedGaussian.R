@@ -16,10 +16,12 @@
 # along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
 
 #'@export
-PCMInfoCpp.MixedGaussian <- function(X, tree, model,
-                           metaI = PCMInfo(X, tree, model, verbose), 
-                           #metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
-                           verbose = FALSE, ...) {
+PCMInfoCpp.MixedGaussian <- function(
+  X, tree, model,
+  SE = matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree)),
+  metaI = PCMInfo(X, tree, model, SE, verbose), 
+  #metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
+  verbose = FALSE, ...) {
   
   if(is.Transformable(model)) {
     model <- PCMApplyTransformation(model)

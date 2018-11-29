@@ -17,8 +17,8 @@
 
 #'@export
 PCMInfoCpp.BM <- function(X, tree, model, 
-                          #metaI = PCMInfo(X, tree, model, verbose), 
-                          metaI = PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree)), 
+                          SE = matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree)),
+                          metaI = PCMInfo(X, tree, model, SE, verbose, preorder=PCMTreePreorderCpp(tree)), 
                           verbose = FALSE, ...) {
   
   if(is.Transformable(model)) {

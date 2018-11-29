@@ -45,6 +45,13 @@ if(PCMBaseCppIsADevRelease(numVersionComponents = 3)) {
     expect_equal(PCMLik(traits.ab.123, tree.ab, model.ab.123.OU),
                  PCMLik(traits.ab.123, tree.ab, model.ab.123.OU, metaI = metaICpp))
     
+    expect_silent(metaICpp <- PCMInfoCpp(
+      X = traits.ab.123[, 1:length(tree.ab$tip.label)],
+      tree = tree.ab, model.ab.123.OU,
+      SE = 0.05*abs(traits.ab.123[, 1:length(tree.ab$tip.label)])))
+    expect_equal(PCMLik(traits.ab.123, tree.ab, model.ab.123.OU, SE = 0.05*abs(traits.ab.123[, 1:length(tree.ab$tip.label)])),
+                 PCMLik(traits.ab.123, tree.ab, model.ab.123.OU, metaI = metaICpp))
   })
+  
 }
 

@@ -122,6 +122,7 @@ struct NumericTraitData {
   std::vector<NameType> const& names_;
 
   arma::mat const& X_;
+  arma::mat const& SE_;
 
   // column vectors of present coordinates (0: missing, !=0: present) for each
   // node in the tree. 
@@ -140,6 +141,7 @@ struct NumericTraitData {
   NumericTraitData(
     std::vector<NameType> const& names,
     arma::mat const& X,
+    arma::mat const& SE,
     std::vector<arma::uvec> const& Pc, 
     uint R,
     std::vector<std::string> regime_models,
@@ -147,7 +149,7 @@ struct NumericTraitData {
     double threshold_EV,
     double threshold_skip_singular,
     bool skip_singular,
-    double threshold_Lambda_ij): names_(names), X_(X), Pc_(Pc), k_(X.n_rows), 
+    double threshold_Lambda_ij): names_(names), X_(X), SE_(SE), Pc_(Pc), k_(X.n_rows), 
       R_(R), regime_models_(regime_models),
       threshold_SV_(threshold_SV), 
       threshold_EV_(threshold_EV), 
@@ -260,6 +262,11 @@ public:
   // column corresponds to a tip.
   //
   arma::mat X;
+  
+  // 
+  // Standard error for each entry in the input data;
+  //
+  arma::mat SE;
 
   //
   // Coefficients used to calculate L, m, r, which are calculated in the
@@ -314,6 +321,7 @@ public:
     skip_singular_(input_data.skip_singular_),
     
     X(input_data.X_),
+    SE(input_data.SE_),
 
     // all these fields have to be initialized with 0 during SetParameter.
     A(X.n_rows, X.n_rows, tree.num_nodes()),
@@ -340,6 +348,7 @@ public:
             input_data.names_, static_cast<arma::uword>(SPLITT::G_NA_UINT)));
 
     this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordTips);
+    this->SE.cols(0, this->ref_tree_.num_tips() - 1) = SE.cols(ordTips);
 
     //PresentCoordinatesTask pc_task(tree, input_data);
     //pc_task.TraverseTree(0, 1);
@@ -429,8 +438,18 @@ public:
       
       arma::uvec ki = pc[i];
       
+      // handle measurement error
+      if(i < this->ref_tree_.num_tips()) {
+        // tip node
+        for(auto kii: ki) {
+          V.slice(i)(kii, kii) += SE(kii, i)*SE(kii, i);
+        }
+      }
+      
+      // 
       // force symmetry of V, which could be lost due to numerical inprecision
       V.slice(i)(ki,ki) = 0.5 * (V.slice(i)(ki,ki) + V.slice(i)(ki,ki).t());
+      
       
       if( IsSingular(V.slice(i)(ki,ki), threshold_SV_) ) {
         singular_branch_[i] = 1;
