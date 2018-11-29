@@ -5,7 +5,8 @@
 \title{A S3 generic for creating C++ backend objects given a model, data and 
 a tree.}
 \usage{
-PCMInfoCpp(X, tree, model, metaI = PCMInfo(X, tree, model, verbose,
+PCMInfoCpp(X, tree, model, SE = matrix(0, PCMNumTraits(model),
+  PCMTreeNumTips(tree)), metaI = PCMInfo(X, tree, model, SE, verbose,
   preorder = PCMTreePreorderCpp(tree)), verbose = FALSE, ...)
 }
 \arguments{
@@ -20,6 +21,9 @@ likelihoods: see \code{\link{PCMPresentCoordinates}}.}
 \item{model}{an S3 object specifying both, the model type (class, e.g. "OU") as
 well as the concrete model parameter values at which the likelihood is to be
 calculated (see also Details).}
+
+\item{SE}{a k x N matrix specifying the standard error for each measurement in 
+X. Default: \code{matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree))}.}
 
 \item{metaI}{a list returned from a call to \code{PCMInfo(X, tree, model)},
 containing meta-data such as N, M and k. Default: 

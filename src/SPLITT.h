@@ -109,8 +109,6 @@
 //' \item{\link[=SPLITT::OrderedTree]{OrderedTree}}{}
 //' \item{\link[=SPLITT::ThreadExceptionHandler]{ThreadExceptionHandler}}{}
 //' }
-//' 
-//' [[Rcpp::export]]
 namespace SPLITT{
 
 

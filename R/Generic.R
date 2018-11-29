@@ -102,7 +102,7 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 #' Default: FALSE
 #' @param ... passed to methods.
 #' @importFrom PCMBase PCMInfo PCMTreeJumps PCMApplyTransformation is.Transformable
-#' PCMNumRegimes PCMNumTraits PCMTreeNumNodes is.Global is.Omitted is.PCM
+#' PCMNumRegimes PCMNumTraits PCMTreeNumNodes PCMTreeNumTips is.Global is.Omitted is.PCM
 #' @return a list to be passed to PCMLik as argument metaI.
 #' @export
 PCMInfoCpp <- function(
