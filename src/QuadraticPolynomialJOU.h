@@ -27,7 +27,7 @@
 #include "QuadraticPolynomial.h"
 #include <armadillo>
 #include <sstream>
-#include <iostream>
+//#include <iostream>
 
 namespace PCMBaseCpp {
 

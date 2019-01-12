@@ -122,7 +122,7 @@ struct NumericTraitData {
   std::vector<NameType> const& names_;
 
   arma::mat const& X_;
-  arma::mat const& SE_;
+  arma::cube const& VE_;
 
   // column vectors of present coordinates (0: missing, !=0: present) for each
   // node in the tree. 
@@ -141,7 +141,7 @@ struct NumericTraitData {
   NumericTraitData(
     std::vector<NameType> const& names,
     arma::mat const& X,
-    arma::mat const& SE,
+    arma::cube const& VE,
     std::vector<arma::uvec> const& Pc, 
     uint R,
     std::vector<std::string> regime_models,
@@ -149,7 +149,7 @@ struct NumericTraitData {
     double threshold_EV,
     double threshold_skip_singular,
     bool skip_singular,
-    double threshold_Lambda_ij): names_(names), X_(X), SE_(SE), Pc_(Pc), k_(X.n_rows), 
+    double threshold_Lambda_ij): names_(names), X_(X), VE_(VE), Pc_(Pc), k_(X.n_rows), 
       R_(R), regime_models_(regime_models),
       threshold_SV_(threshold_SV), 
       threshold_EV_(threshold_EV), 
@@ -266,7 +266,7 @@ public:
   // 
   // Standard error for each entry in the input data;
   //
-  arma::mat SE;
+  arma::cube VE;
 
   //
   // Coefficients used to calculate L, m, r, which are calculated in the
@@ -321,7 +321,7 @@ public:
     skip_singular_(input_data.skip_singular_),
     
     X(input_data.X_),
-    SE(input_data.SE_),
+    VE(input_data.VE_),
 
     // all these fields have to be initialized with 0 during SetParameter.
     A(X.n_rows, X.n_rows, tree.num_nodes()),
@@ -348,7 +348,7 @@ public:
             input_data.names_, static_cast<arma::uword>(SPLITT::G_NA_UINT)));
 
     this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordTips);
-    this->SE.cols(0, this->ref_tree_.num_tips() - 1) = SE.cols(ordTips);
+    this->VE.slices(0, this->ref_tree_.num_tips() - 1) = VE.slices(ordTips);
 
     //PresentCoordinatesTask pc_task(tree, input_data);
     //pc_task.TraverseTree(0, 1);
@@ -441,9 +441,7 @@ public:
       // handle measurement error
       if(i < this->ref_tree_.num_tips()) {
         // tip node
-        for(auto kii: ki) {
-          V.slice(i)(kii, kii) += SE(kii, i)*SE(kii, i);
-        }
+        V.slice(i)(ki, ki) += VE.slice(i)(ki, ki);
       }
       
       // 

@@ -124,6 +124,12 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
+    // cout<<"X0:\n"<<X0<<"\n";
+    // cout<<"H:\n"<<H<<"\n";
+    // cout<<"Theta:\n"<<Theta<<"\n";
+    // cout<<"Sigma:\n"<<Sigma<<"\n";
+    // cout<<"Sigmae\n"<<Sigmae<<"\n";
+    
     for(uword r = 0; r < R_; r++) {
       Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
       Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  

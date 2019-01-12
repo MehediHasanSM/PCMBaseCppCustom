@@ -28,6 +28,9 @@ PCMParamGetFullVector <- function(model, ...) {
 #' @export
 PCMParamGetFullVector.PCM <- function(model, ...) {
   R <- PCMNumRegimes(model)
+  k <- PCMNumTraits(model)
+  spec <- attr(model, "spec", exact = TRUE)
+  
   res <- do.call(c, lapply(names(model), function(name) {
     if(is.PCM(model[[name]])) {
       PCMParamGetFullVector(model[[name]], ...)
@@ -37,6 +40,14 @@ PCMParamGetFullVector.PCM <- function(model, ...) {
       as.vector(model[[name]])
     }
   }))
+  
+  # Sigmae_x can be _Omitted.
+  if(is.Omitted(spec[["Sigmae_x"]])) {
+    # in this case Sigmae_x should be appended as fixed 0 (this is required by
+    # the C++ classes)
+    res <- c(res, rep(0.0, R*k*k))
+  } 
+  
   unname(res)
 }
 
@@ -45,37 +56,30 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
   R <- PCMNumRegimes(model)
   k <- PCMNumTraits(model)
   spec <- attr(model, "spec", exact = TRUE)
-  
 
   # X0 should be _Omitted in every sub-model
   vecX0 <- as.vector(model[["X0"]])
-  
-  # Sigmae_x can be _Omitted or not _Omitted in sub-models. If it is not _Omitted 
-  # the Sigmae_x in the sub-model overwrites the Sigmae_x in the parent model 
+
+  # Sigmae_x can be _Omitted or not _Omitted in sub-models. If it is not _Omitted
+  # the Sigmae_x in the sub-model overwrites the Sigmae_x in the parent model
   vecSigmae_x <- double(0)
-  if(is.Omitted(spec[["Sigmae_x"]])) {
-    # in this case Sigmae_x should be appended as fixed 0 (this is required by
-    # the C++ classes)
-    vecSigmae_x <- rep(0.0, k*k)
-  } else {
-    # will be appended to the Submodel's vectors only if they have Sigmae_x 
-    # omitted.
+  if(!is.Omitted(spec[["Sigmae_x"]])) {
     vecSigmae_x <- as.vector(model[["Sigmae_x"]])
   }
-  
+
   # replicating the global parameters for each model
   res <- do.call(c, lapply(model, function(o) {
     if(is.PCM(o)) {
       vec <- c(vecX0, PCMParamGetFullVector(o, ...))
-      if(! ("Sigmae_x" %in% names(o)) ) {
-        vec <- c(vec, vecSigmae_x)
+      if( !("Sigmae_x" %in% names(o)) && !is.Omitted(spec[["Sigmae_x"]]) ) {
+        vec[(length(vec) - length(vecSigmae_x) + 1):length(vec)] <- vecSigmae_x
       }
       vec
     } else {
       double(0L)
     }
   }))
-  
+
   unname(res)
 }
 
@@ -94,8 +98,11 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 #'   well as the concrete model parameter values at which the likelihood is to be
 #'   calculated (see also Details).
 #' @param SE a k x N matrix specifying the standard error for each measurement in 
-#' X. Default: \code{matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree))}.
-#' @param metaI a list returned from a call to \code{PCMInfo(X, tree, model)},
+#' X. Alternatively, a k x k x N cube specifying an upper triangular k x k 
+#' Choleski factor of the variance covariance matrix for the measurement error 
+#' for each node i=1, ..., N. 
+#' Default: \code{matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree))}. 
+#' @param metaI a list returned from a call to \code{PCMInfo(X, tree, model, SE)},
 #'   containing meta-data such as N, M and k. Default: 
 #'   \code{PCMInfo(X, tree, model, verbose, preorder=PCMTreePreorderCpp(tree))}
 #' @param verbose logical indicating if some debug-messages should be printed. 

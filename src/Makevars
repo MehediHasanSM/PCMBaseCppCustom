@@ -57,7 +57,7 @@
 # Intel compiler on Mac OS X, one needs to add the following lines to the global
 # Makevars file USER-HOME/.R/Makevars:
 # 
-# CXXFLAGS +=      -v -std=c++11 -Wall -O2 -march=native
+CXXFLAGS +=      -v -std=c++11 -Wall -O2 -march=native
 # CPP=cpp
 # CXX=icpc
 # 
@@ -71,7 +71,7 @@
 # shared libraries. Yet, for these options to have an effect, the compiler itself
 # should support OpenMP, i.e. it should include the appropriate OpenMP headers,
 # and the openmp shared library binaries in its distribution (see above comments).
-PKG_CPPFLAGS=$(SHLIB_OPENMP_CXXFLAGS) 
+PKG_CPPFLAGS=$(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS=$(SHLIB_OPENMP_CFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 CXX_STD = CXX11
