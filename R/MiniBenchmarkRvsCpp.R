@@ -1,5 +1,5 @@
 #' Evaluate the likelihood calculation times for example trees and data
-#' @param data a `data.table` with at least the following columns: 
+#' @param data a `data.frame` with at least the following columns: 
 #' \itemize{
 #' \item{tree: }{a list column of phylo objects with an edge.regime member set.}
 #' \item{X: }{a list column of k x N numerical matrices.}
@@ -16,9 +16,8 @@
 #' traversal algorithm (see 
 #' \href{https://venelin.github.io/SPLITT/articles/SPLITTTraversalModes.html}{this page}
 #' for possible values).
-#' @return a data.table.
+#' @return a data.frame.
 #' @importFrom  PCMBase PCMInfo PCMLik PCMOptions MGPMDefaultModelTypes PCMTreeNumTips PCMTreeNumUniqueRegimes
-#' @importFrom data.table data.table rbindlist 
 #' @examples
 #' library(PCMBase)
 #' library(PCMBaseCpp)
@@ -36,7 +35,7 @@ MiniBenchmarkRvsCpp <- function(
   modelTypes <- MGPMDefaultModelTypes()
   
   
-  res <- rbindlist(lapply(seq_len(nrow(data)), function(i) {
+  res <- do.call(rbind, lapply(seq_len(nrow(data)), function(i) {
     tree <- data$treeWithRegimes[[i]]
     X <- data$X[[i]]
     model <- data$model[[i]]
@@ -50,22 +49,21 @@ MiniBenchmarkRvsCpp <- function(
       valueR <- PCMLik(X, tree, model, metaI = metaIR)
     })[3]
     
-    timeCpp <- system.time({
-      for(i in seq_len(nRepsCpp)) 
-        valueCpp <- PCMLik(X, tree, model, metaI = metaICpp)
-    })[3] / nRepsCpp
+    timeCpp <- system.time(
+      valueCpp <-replicate(
+        nRepsCpp, 
+        PCMLik(X, tree, model, metaI = metaICpp))[1])[3] / nRepsCpp
     
-    data.table(
-      id = i, 
+    data.frame(
       N = PCMTreeNumTips(tree), 
       R = PCMTreeNumUniqueRegimes(tree),
-      mapping = list(names(attr(model, "modelTypes"))[attr(model, "mapping")]), 
-      type=list(class(model)),
+      mapping = I(list(names(attr(model, "modelTypes"))[attr(model, "mapping")])), 
+      type = I(list(class(model))),
       PCMBase.Lmr.mode = PCMOptions()$PCMBase.Lmr.mode,
       logLik = valueR, 
       logLikCpp = valueCpp, 
-      timeR = timeR, 
-      timeCpp = timeCpp)
+      timeR = unname(timeR), 
+      timeCpp = unname(timeCpp))
   }))
   do.call(options, listCurrentOptions)
   res

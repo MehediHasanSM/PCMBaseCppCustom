@@ -9,7 +9,7 @@ MiniBenchmarkRvsCpp(data = testData_t5_miniBenchmark, nRepsCpp = 10L,
   1e-07))
 }
 \arguments{
-\item{data}{a `data.table` with at least the following columns: 
+\item{data}{a `data.frame` with at least the following columns: 
 \itemize{
 \item{tree: }{a list column of phylo objects with an edge.regime member set.}
 \item{X: }{a list column of k x N numerical matrices.}
@@ -30,7 +30,7 @@ traversal algorithm (see
 for possible values).}
 }
 \value{
-a data.table.
+a data.frame.
 }
 \description{
 Evaluate the likelihood calculation times for example trees and data
