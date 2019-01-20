@@ -5,7 +5,7 @@
 #' \item{X: }{a list column of k x N numerical matrices.}
 #' \item{model: }{a list column of PCM objects.}
 #' }
-#' Defaults: to `testData_t5_miniBenchmark`, which is small data-table included
+#' Defaults: to `miniBenchmarkData`, which is small data-table included
 #' with the PCMBaseCpp package.
 #' @param nRepsCpp : number of repetitions for the cpp likelihood calculation 
 #' calls: a bigger value increases the precision of time estimation at the 
@@ -19,13 +19,16 @@
 #' @return a data.frame.
 #' @importFrom  PCMBase PCMInfo PCMLik PCMOptions MGPMDefaultModelTypes PCMTreeNumTips PCMTreeNumUniqueRegimes
 #' @examples
+#' \dontrun{
 #' library(PCMBase)
 #' library(PCMBaseCpp)
-#' View(MiniBenchmarkRvsCpp())
-#' View(MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21)))
+#' MiniBenchmarkRvsCpp()
+#' 
+#' MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21))
+#' }
 #' @export
 MiniBenchmarkRvsCpp <- function(
-  data = testData_t5_miniBenchmark, nRepsCpp = 10L, 
+  data = PCMBaseCpp::miniBenchmarkData, nRepsCpp = 10L, 
   listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-7)) {
   
   listCurrentOptions <- options()
@@ -36,7 +39,7 @@ MiniBenchmarkRvsCpp <- function(
   
   
   res <- do.call(rbind, lapply(seq_len(nrow(data)), function(i) {
-    tree <- data$treeWithRegimes[[i]]
+    tree <- data$tree[[i]]
     X <- data$X[[i]]
     model <- data$model[[i]]
     

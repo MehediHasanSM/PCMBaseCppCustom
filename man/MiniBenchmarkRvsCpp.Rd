@@ -4,9 +4,9 @@
 \alias{MiniBenchmarkRvsCpp}
 \title{Evaluate the likelihood calculation times for example trees and data}
 \usage{
-MiniBenchmarkRvsCpp(data = testData_t5_miniBenchmark, nRepsCpp = 10L,
-  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV =
-  1e-07))
+MiniBenchmarkRvsCpp(data = PCMBaseCpp::miniBenchmarkData,
+  nRepsCpp = 10L, listOptions = list(PCMBase.Lmr.mode = 11,
+  PCMBase.Threshold.EV = 1e-07))
 }
 \arguments{
 \item{data}{a `data.frame` with at least the following columns: 
@@ -15,7 +15,7 @@ MiniBenchmarkRvsCpp(data = testData_t5_miniBenchmark, nRepsCpp = 10L,
 \item{X: }{a list column of k x N numerical matrices.}
 \item{model: }{a list column of PCM objects.}
 }
-Defaults: to `testData_t5_miniBenchmark`, which is small data-table included
+Defaults: to `miniBenchmarkData`, which is small data-table included
 with the PCMBaseCpp package.}
 
 \item{nRepsCpp}{: number of repetitions for the cpp likelihood calculation 
@@ -36,8 +36,11 @@ a data.frame.
 Evaluate the likelihood calculation times for example trees and data
 }
 \examples{
+\dontrun{
 library(PCMBase)
 library(PCMBaseCpp)
-View(MiniBenchmarkRvsCpp())
-View(MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21)))
+MiniBenchmarkRvsCpp()
+
+MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21))
+}
 }
