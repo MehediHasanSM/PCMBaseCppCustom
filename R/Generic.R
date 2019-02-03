@@ -115,7 +115,9 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 PCMInfoCpp <- function(
   X, tree, model, 
   SE = matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree)),
-  metaI = PCMInfo(X, tree, model, SE, verbose, preorder=PCMTreePreorderCpp(tree)), 
+  metaI = PCMInfo(
+    X = X, tree = tree, model = model, SE = SE, verbose = verbose, 
+    preorder=PCMTreePreorderCpp(tree)), 
   verbose = FALSE, ...) {
   UseMethod("PCMInfoCpp", model)
 }
@@ -161,7 +163,8 @@ PCMExtractAbCdEfLmr <- function(metaI) {
 #' @export
 PCMLmr.PCMInfoCpp <- function(
   X, tree, model, 
-  metaI = PCMInfo(X, tree, model), 
+  SE = matrix(0.0, PCMNumTraits(model), PCMTreeNumTips(tree)),
+  metaI = PCMInfo(X = X, tree = tree, model = model, SE = SE, verbose = verbose), 
   root.only = FALSE, verbose = FALSE
 ) {
   
