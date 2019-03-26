@@ -5,7 +5,7 @@ library(PCMBase)
 library(PCMBaseCpp)
 library(data.table)
 
-if(PCMBaseCppIsADevRelease(numVersionComponents = 3)) {
+if(PCMBaseCppIsADevRelease()) {
   
   load("testobjects.RData")
   

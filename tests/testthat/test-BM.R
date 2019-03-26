@@ -4,7 +4,7 @@ context("PCMLik, BM")
 library(PCMBase)
 library(PCMBaseCpp)
 
-if(PCMBaseCppIsADevRelease(numVersionComponents = 3)) {
+if(PCMBaseCppIsADevRelease()) {
   
   load("testobjects.RData")
   
