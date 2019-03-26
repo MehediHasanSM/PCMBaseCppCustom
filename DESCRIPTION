@@ -1,7 +1,7 @@
 Package: PCMBaseCpp
 Type: Package
 Title: A C++ backend for calculating the likelihood of phylogenetic comparative models
-Version: 0.1.3
+Version: 0.1.4
 Authors@R: c(person("Venelin", "Mitov", email = "vmitov@gmail.com",
                  role = c("aut", "cre", "cph")))
 Maintainer: Venelin Mitov <vmitov@gmail.com>

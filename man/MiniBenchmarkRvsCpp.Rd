@@ -11,7 +11,7 @@ MiniBenchmarkRvsCpp(data = PCMBaseCpp::miniBenchmarkData,
 \arguments{
 \item{data}{a `data.frame` with at least the following columns: 
 \itemize{
-\item{tree: }{a list column of phylo objects with an edge.regime member set.}
+\item{tree: }{a list column of phylo objects with an edge.part member set.}
 \item{X: }{a list column of k x N numerical matrices.}
 \item{model: }{a list column of PCM objects.}
 }

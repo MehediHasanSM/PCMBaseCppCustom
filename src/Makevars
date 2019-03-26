@@ -57,7 +57,8 @@
 # Intel compiler on Mac OS X, one needs to add the following lines to the global
 # Makevars file USER-HOME/.R/Makevars:
 # 
-# CXXFLAGS +=      -v -std=c++11 -Wall -O2 -march=native
+
+CXXFLAGS +=      -v -std=c++11 -Wall -O2 -march=native
 # CPP=cpp
 # CXX=icpc
 # 
@@ -74,4 +75,4 @@
 PKG_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS)
 PKG_LIBS=$(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
-CXX_STD = CXX11
+#CXX_STD = CXX11

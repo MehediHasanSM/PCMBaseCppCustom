@@ -1,7 +1,7 @@
 #' Evaluate the likelihood calculation times for example trees and data
 #' @param data a `data.frame` with at least the following columns: 
 #' \itemize{
-#' \item{tree: }{a list column of phylo objects with an edge.regime member set.}
+#' \item{tree: }{a list column of phylo objects with an edge.part member set.}
 #' \item{X: }{a list column of k x N numerical matrices.}
 #' \item{model: }{a list column of PCM objects.}
 #' }
@@ -17,7 +17,7 @@
 #' \href{https://venelin.github.io/SPLITT/articles/SPLITTTraversalModes.html}{this page}
 #' for possible values).
 #' @return a data.frame.
-#' @importFrom  PCMBase PCMInfo PCMLik PCMOptions MGPMDefaultModelTypes PCMTreeNumTips PCMTreeNumUniqueRegimes
+#' @importFrom  PCMBase PCMInfo PCMLik PCMOptions MGPMDefaultModelTypes PCMTreeNumTips PCMTreeNumParts
 #' @examples
 #' \dontrun{
 #' library(PCMBase)
@@ -59,7 +59,7 @@ MiniBenchmarkRvsCpp <- function(
     
     data.frame(
       N = PCMTreeNumTips(tree), 
-      R = PCMTreeNumUniqueRegimes(tree),
+      R = PCMTreeNumParts(tree),
       mapping = I(list(names(attr(model, "modelTypes"))[attr(model, "mapping")])), 
       type = I(list(class(model))),
       PCMBase.Lmr.mode = PCMOptions()$PCMBase.Lmr.mode,
