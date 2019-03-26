@@ -92,7 +92,7 @@ RCPP_MODULE(PCMBaseCpp__OrderedTree) {
   .method("FindNodeWithId", &SPLITT::Tree<uint, double>::FindNodeWithId )
   .method("FindIdOfNode", &SPLITT::Tree<uint, double>::FindIdOfNode )
   .method("FindIdOfParent", &SPLITT::Tree<uint, double>::FindIdOfParent )
-  .method( "FindChildren", &SPLITT::Tree<uint, double>::FindChildren )
+  .method("FindChildren", &SPLITT::Tree<uint, double>::FindChildren )
   .method("OrderNodes", &SPLITT::Tree<uint, double>::OrderNodes )
   ;
   Rcpp::class_<SPLITT::OrderedTree<uint, double> >( "PCMBaseCpp__OrderedTree" )
@@ -105,72 +105,114 @@ RCPP_MODULE(PCMBaseCpp__OrderedTree) {
   ;
 }
 
+struct ParsedRObjects {
+  double threshold_SV;
+  double threshold_EV;
+  double threshold_skip_singular;
+  double threshold_Lambda_ij;
+  bool skip_singular;
+  arma::mat const& X;
+  arma::cube VE;
+  Rcpp::List pcListInt;
+  std::vector<arma::uvec> Pc;
+  SPLITT::uvec br_0;
+  SPLITT::uvec br_1; 
+  SPLITT::vec t;
+  
+  uint RModel;
+  std::vector<arma::uword> regimes;
+  std::vector<arma::u8> jumps;
+  
+  SPLITT::uint num_tips;
+  SPLITT::uint num_branches;
+  SPLITT::uvec tip_names;
+  
+  ParsedRObjects(
+    arma::mat const& X, 
+    Rcpp::List const& tree, 
+    Rcpp::List const& model,
+    Rcpp::List const& metaInfo):
+    X(X),
+    threshold_SV(static_cast<double>(metaInfo["PCMBase.Threshold.SV"])),
+    threshold_EV(static_cast<double>(metaInfo["PCMBase.Threshold.EV"])),
+    threshold_skip_singular(static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"])), 
+    threshold_Lambda_ij(static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"])),
+    skip_singular(static_cast<int>(metaInfo["PCMBase.Skip.Singular"])),
+    VE(Rcpp::as<arma::cube>(metaInfo["VE"])),
+    pcListInt(Rcpp::as<Rcpp::List>(metaInfo["pcListInt"])), 
+    Pc(Rcpp::as<arma::uword>(metaInfo["M"])),
+    RModel(Rcpp::as<uint>(metaInfo["RModel"])),
+    regimes(Rcpp::as<vector<arma::uword> >(metaInfo["r"])),
+    jumps(Rcpp::as<vector<arma::u8> >(metaInfo["xi"])), 
+    num_tips(Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size()),
+    tip_names(SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips)) {
+    
+    if(threshold_SV <= 0) {
+      ostringstream os;
+      os<<"ERR:03823:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The argument threshold_SV should be positive real number.";
+      throw invalid_argument(os.str());
+    }
+    if(threshold_EV <= 0) {
+      ostringstream os;
+      os<<"ERR:03824:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The argument threshold_EV should be positive real number.";
+      throw invalid_argument(os.str());
+    }
+    if(threshold_Lambda_ij < 0) {
+      ostringstream os;
+      os<<"ERR:03825:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The argument threshold_Lambda_ij should be non-negative double.";
+      throw invalid_argument(os.str());
+    }
+    
+    for(arma::uword i = 0; i < Pc.size(); ++i) {
+      Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
+    }
+    
+    arma::umat branches = tree["edge"];
+    br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
+    br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
+    t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
+    num_branches = branches.n_rows;
+    
+    using namespace std;
+    
+    if(regimes.size() != branches.n_rows) {
+      ostringstream os;
+      os<<"ERR:03821:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The slot r in metaInfo has different length ("<<regimes.size()<<
+        ") than the number of edges ("<<branches.n_rows<<").";
+      throw logic_error(os.str());
+    }
+    
+    if(jumps.size() != branches.n_rows) {
+      ostringstream os;
+      os<<"ERR:03822:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The slot jumps in trees has different length ("<<jumps.size()<<
+        ") than the number of edges ("<<branches.n_rows<<").";
+      throw logic_error(os.str());
+    }
+  }
+};
+
 QuadraticPolyWhite* CreateQuadraticPolyWhite(
     arma::mat const&X, 
     Rcpp::List const& tree, 
     Rcpp::List const& model,
     Rcpp::List const& metaInfo) { 
   
-  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
-  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
-  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
-  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
   
-  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
+  vector<typename QuadraticPolyWhite::LengthType> lengths(pObjs.num_branches);
   
-  arma::cube VE(Rcpp::as<arma::cube>(metaInfo["VE"]));
-    
-  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
-  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
-  for(arma::uword i = 0; i < Pc.size(); ++i) {
-    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
-  }
-    
-  arma::umat branches = tree["edge"];
-  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
-  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
-  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
-  
-  using namespace std;
-  
-  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03801:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyWhite:: The slot r in metaInfo has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
   }
   
-  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolyWhite::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i] - 1;
-  }
-  
-  
-  if(threshold_SV <= 0) {
-    ostringstream os;
-    os<<"ERR:03802:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyWhite:: The argument threshold_SV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_EV <= 0) {
-    ostringstream os;
-    os<<"ERR:03803:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_EV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
   typename QuadraticPolyWhite::DataType data(
-      tip_names, X, VE, Pc, RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
-      threshold_Lambda_ij);
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, pObjs.RModel, 
+      std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
   
-  return new QuadraticPolyWhite(br_0, br_1, lengths, data);
+  return new QuadraticPolyWhite(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyWhite::TreeType)
@@ -234,71 +276,27 @@ QuadraticPolyWhite* CreateQuadraticPolyWhite(
   }
 
 QuadraticPolyBM* CreateQuadraticPolyBM(
-    arma::mat const&X, 
+    arma::mat const& X, 
     Rcpp::List const& tree, 
     Rcpp::List const& model,
     Rcpp::List const& metaInfo) { 
     
-  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
-  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
-  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
-  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
   
-  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
+  vector<typename QuadraticPolyBM::LengthType> lengths(pObjs.num_branches);
   
-  arma::cube VE(Rcpp::as<arma::cube>(metaInfo["VE"]));
-  
-  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
-  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
-  for(arma::uword i = 0; i < Pc.size(); ++i) {
-    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
-  }
-    
-  arma::umat branches = tree["edge"];
-  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
-  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
-  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
-  
-  using namespace std;
-  
-  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03801:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyBM:: The slot r in metaInfo has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
   }
   
-  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolyBM::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i] - 1;
-  }
-  
-  
-  if(threshold_SV <= 0) {
-    ostringstream os;
-    os<<"ERR:03802:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyBM:: The argument threshold_SV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_EV <= 0) {
-    ostringstream os;
-    os<<"ERR:03803:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_EV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
   typename QuadraticPolyBM::DataType data(
-      tip_names, X, VE, Pc, RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
-      threshold_Lambda_ij);
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, pObjs.RModel, 
+      std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
   
-  return new QuadraticPolyBM(br_0, br_1, lengths, data);
+  return new QuadraticPolyBM(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 //RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM::TreeType)
@@ -362,79 +360,27 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM) {
 }
 
 QuadraticPolyOU* CreateQuadraticPolyOU(
-    arma::mat const&X, 
+    arma::mat const& X, 
     Rcpp::List const& tree, 
     Rcpp::List const& model,
     Rcpp::List const& metaInfo) {
   
-  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
-  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
-  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
-  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
   
-  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
+  vector<typename QuadraticPolyOU::LengthType> lengths(pObjs.num_branches);
   
-  arma::cube VE(Rcpp::as<arma::cube>(metaInfo["VE"]));
-  
-  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
-  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
-  for(arma::uword i = 0; i < Pc.size(); ++i) {
-    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
-  }
-  
-  arma::umat branches = tree["edge"];
-  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
-  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
-  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
-  
-  using namespace std;
-
-  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
-  
-
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03811:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-
-  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolyOU::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i] - 1;
-  }
-  
-  if(threshold_SV <= 0) {
-    ostringstream os;
-    os<<"ERR:03812:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyOU:: The argument threshold_SV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_EV <= 0) {
-    ostringstream os;
-    os<<"ERR:03814:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_EV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  
-  if(threshold_Lambda_ij < 0) {
-    ostringstream os;
-    os<<"ERR:03813:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyOU:: The argument threshold_Lambda_ij should be non-negative double.";
-    throw invalid_argument(os.str());
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
   }
   
   typename QuadraticPolyOU::DataType data(
-      tip_names, X, VE, Pc, 
-      RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
-      threshold_Lambda_ij);
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
+      pObjs.RModel, std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
   
-  return new QuadraticPolyOU(br_0, br_1, lengths, data);
+  return new QuadraticPolyOU(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU::TraversalSpecificationType)
@@ -498,84 +444,28 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU) {
 
 
 QuadraticPolyJOU* CreateQuadraticPolyJOU(
-    arma::mat const&X, 
+    arma::mat const& X, 
     Rcpp::List const& tree, 
     Rcpp::List const& model,
     Rcpp::List const& metaInfo) {
   
-  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
-  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
-  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
-  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
   
-  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
- 
-  arma::cube VE(Rcpp::as<arma::cube>(metaInfo["VE"]));
-  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
-  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
-  for(arma::uword i = 0; i < Pc.size(); ++i) {
-    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
-  }
- 
-  arma::umat branches = tree["edge"];
-  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
-  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
-  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
+  vector<typename QuadraticPolyJOU::LengthType> lengths(pObjs.num_branches);
   
-  using namespace std;
-  
-  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
-  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8> >(metaInfo["xi"]);
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03821:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyJOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  if(jumps.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03822:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyJOU:: The slot jumps in trees has different length ("<<jumps.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolyJOU::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i] - 1;
-    lengths[i].jump_ = jumps[i];
-  }
-  
-  if(threshold_SV <= 0) {
-    ostringstream os;
-    os<<"ERR:03823:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyJOU:: The argument threshold_SV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_EV <= 0) {
-    ostringstream os;
-    os<<"ERR:03824:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_EV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_Lambda_ij < 0) {
-    ostringstream os;
-    os<<"ERR:03825:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyJOU:: The argument threshold_Lambda_ij should be non-negative double.";
-    throw invalid_argument(os.str());
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+    lengths[i].jump_ = pObjs.jumps[i];
   }
   
   typename QuadraticPolyJOU::DataType data(
-      tip_names, X, VE, Pc, 
-      RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
-      threshold_Lambda_ij);
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
+      pObjs.RModel, std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
   
-  return new QuadraticPolyJOU(br_0, br_1, lengths, data);
+  return new QuadraticPolyJOU(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyJOU::TreeType)
@@ -644,70 +534,22 @@ QuadraticPolyDOU* CreateQuadraticPolyDOU(
     Rcpp::List const& model,
     Rcpp::List const& metaInfo) {
   
-  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
-  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
-  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
-  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
   
-  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
-
-  arma::cube VE(Rcpp::as<arma::cube>(metaInfo["VE"]));
+  vector<typename QuadraticPolyDOU::LengthType> lengths(pObjs.num_branches);
   
-  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
-  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
-  for(arma::uword i = 0; i < Pc.size(); ++i) {
-    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
-  }
-  
-  arma::umat branches = tree["edge"];
-  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
-  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
-  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
-  
-  using namespace std;
-  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03831:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyDOU:: The slot r in metaInfo has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolyDOU::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i] - 1;
-  }
-  
-  if(threshold_SV <= 0) {
-    ostringstream os;
-    os<<"ERR:03832:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyDOU:: The argument threshold_SV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_EV <= 0) {
-    ostringstream os;
-    os<<"ERR:03834:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_EV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_Lambda_ij < 0) {
-    ostringstream os;
-    os<<"ERR:03833:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyDOU:: The argument threshold_Lambda_ij should be non-negative double.";
-    throw invalid_argument(os.str());
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
   }
   
   typename QuadraticPolyDOU::DataType data(
-      tip_names, X, VE, Pc, 
-      RModel, std::vector<std::string>(), 
-      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
-      threshold_Lambda_ij);
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
+      pObjs.RModel, std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
   
-  return new QuadraticPolyDOU(br_0, br_1, lengths, data);;
+  return new QuadraticPolyDOU(pObjs.br_0, pObjs.br_1, lengths, data);;
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyDOU::TraversalSpecificationType)
@@ -777,83 +619,25 @@ QuadraticPolyMixedGaussian* CreateQuadraticPolyMixedGaussian(
     Rcpp::List const& metaInfo,
     std::vector<std::string> const& regimeModels) {
   
-  double threshold_SV = static_cast<double>(metaInfo["PCMBase.Threshold.SV"]);
-  double threshold_EV = static_cast<double>(metaInfo["PCMBase.Threshold.EV"]);
-  double threshold_skip_singular = static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"]);
-  double threshold_Lambda_ij = static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"]);
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
   
-  bool skip_singular = static_cast<int>(metaInfo["PCMBase.Skip.Singular"]);
+  vector<typename QuadraticPolyMixedGaussian::LengthType> lengths(pObjs.num_branches);
   
-  arma::cube VE(Rcpp::as<arma::cube>(metaInfo["VE"]));
-  
-  Rcpp::List pcListInt = Rcpp::as<Rcpp::List>(metaInfo["pcListInt"]);
-  std::vector<arma::uvec> Pc(Rcpp::as<arma::uword>(metaInfo["M"]));
-  for(arma::uword i = 0; i < Pc.size(); ++i) {
-    Pc[i] = Rcpp::as<arma::uvec>(pcListInt[i]);
-  }
-    
-  arma::umat branches = tree["edge"];
-  SPLITT::uvec br_0 = arma::conv_to<SPLITT::uvec>::from(branches.col(0));
-  SPLITT::uvec br_1 = arma::conv_to<SPLITT::uvec>::from(branches.col(1));
-  SPLITT::vec t = Rcpp::as<SPLITT::vec>(tree["edge.length"]);
-  
-  using namespace std;
-  uint RModel = Rcpp::as<uint>(metaInfo["RModel"]);
-  vector<arma::uword> regimes = Rcpp::as<vector<arma::uword> >(metaInfo["r"]);
-  vector<arma::u8> jumps = Rcpp::as<vector<arma::u8> >(metaInfo["xi"]);
-  
-  if(regimes.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03841:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The slot r in metaInfo has different length ("<<regimes.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  if(jumps.size() != branches.n_rows) {
-    ostringstream os;
-    os<<"ERR:03842:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyJOU:: The slot jumps in trees has different length ("<<jumps.size()<<
-      ") than the number of edges ("<<branches.n_rows<<").";
-    throw logic_error(os.str());
-  }
-  
-  SPLITT::uint num_tips = Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size();
-  
-  SPLITT::uvec tip_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips);
-  
-  vector<typename QuadraticPolyMixedGaussian::LengthType> lengths(branches.n_rows);
-  
-  for(arma::uword i = 0; i < branches.n_rows; ++i) {
-    lengths[i].length_ = t[i];
-    lengths[i].regime_ = regimes[i] - 1;
-    lengths[i].jump_ = jumps[i];
-  }
-  
-  
-  if(threshold_SV <= 0) {
-    ostringstream os;
-    os<<"ERR:03843:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_SV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_EV <= 0) {
-    ostringstream os;
-    os<<"ERR:03844:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_EV should be positive real number.";
-    throw invalid_argument(os.str());
-  }
-  if(threshold_Lambda_ij < 0) {
-    ostringstream os;
-    os<<"ERR:03845:PCMBaseCpp:Rcpp.cpp:CreateQuadraticPolyMixedGaussian:: The argument threshold_Lambda_ij should be non-negative double.";
-    throw invalid_argument(os.str());
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+    lengths[i].jump_ = pObjs.jumps[i];
   }
   
   typename QuadraticPolyMixedGaussian::DataType data(
-      tip_names, X, VE, Pc, 
-      RModel, 
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
+      pObjs.RModel, 
       regimeModels,
-      threshold_SV, threshold_EV, threshold_skip_singular, skip_singular,
-      threshold_Lambda_ij
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij
       );
   
-  return new QuadraticPolyMixedGaussian(br_0, br_1, lengths, data);
+  return new QuadraticPolyMixedGaussian(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian::TraversalSpecificationType)

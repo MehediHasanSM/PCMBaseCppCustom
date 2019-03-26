@@ -25,6 +25,7 @@
 #define PCMBase_QuadraticPoly_H_
 
 #include "SPLITT.h"
+#include "QuadraticPolyCommon.h"
 #include <armadillo>
 #include <algorithm>
 #include <sstream>
@@ -157,61 +158,6 @@ struct NumericTraitData {
       threshold_Lambda_ij_(threshold_Lambda_ij),
       skip_singular_(skip_singular) {}
 };
-
-struct LengthAndRegime {
-  double length_;
-  arma::uword regime_;
-
-  LengthAndRegime() {}
-
-  LengthAndRegime(double length, arma::uword regime):
-    length_(length), regime_(regime) {}
-};
-
-struct LengthRegimeAndJump {
-  double length_;
-  arma::uword regime_;
-  arma::u8 jump_;
-  
-  LengthRegimeAndJump() {}
-  
-  LengthRegimeAndJump(double length, arma::uword regime, arma::u8 jump):
-    length_(length), regime_(regime), jump_(jump) {}
-};
-
-template<class RegimeType>
-std::vector<arma::uword> mapRegimesToIndices(
-    std::vector<RegimeType> const& regimes,
-    std::vector<RegimeType> const& regimes_unique) {
-  
-  if(regimes_unique.size() == 0) {
-    throw std::logic_error("ERR:03101:PCMBaseCpp:QuadraticPoly.h:mapRegimesToIndices:: regimes_unique has 0 length but should have at least one regime.");
-  }
-  std::unordered_map<RegimeType, arma::uword> map_regimes;
-  arma::uword next_regime = 0;
-  for(auto r: regimes_unique) {
-    auto it = map_regimes.insert(std::pair<RegimeType, arma::uword>(r, next_regime));
-    if(!it.second) {
-      std::ostringstream os;
-      os<<"ERR:03102:PCMBaseCpp:QuadraticPoly.h:mapRegimesToIndices:: The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
-      throw std::logic_error(os.str());
-    } else {
-      ++next_regime;
-    }
-  }
-  std::vector<arma::uword> regimeIndices;
-  for(auto r: regimes) {
-    auto it = map_regimes.find(r);
-    if(it == map_regimes.end()) {
-      std::ostringstream os;
-      os<<"ERR:03103:PCMBaseCpp:QuadraticPoly.h:mapRegimesToIndices:: The regime named '"<<r<<"' was not found in regimes_unique.";
-      throw std::logic_error(os.str());
-    } else {
-      regimeIndices.push_back(it->second);
-    }
-  }
-  return regimeIndices;
-}
 
 // Conditional Gaussian distribution of trait vector at a daughter 
 // node, Xi, given trait vector at its parent, Xj, assuming that the conditional mean
