@@ -27,7 +27,7 @@ PCMInfoCpp.White <- function(X, tree, model,
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolynomialWhite$new(X, tree, model, metaI))
+  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyWhite$new(X, tree, model, metaI))
   res$TraverseTree = res$cppObject$TraverseTree
   
   class(res) <- c("PCMInfoCpp", class(metaI))

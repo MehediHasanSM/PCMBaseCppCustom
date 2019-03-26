@@ -1,5 +1,5 @@
 /*
- *  QuadraticPolynomial.h
+ *  QuadraticPoly.h
  *  PCMBaseCpp
  *
  * Copyright 2017,2018 Venelin Mitov
@@ -21,8 +21,8 @@
  *
  * @author Venelin Mitov
  */
-#ifndef PCMBase_QuadraticPolynomial_H_
-#define PCMBase_QuadraticPolynomial_H_
+#ifndef PCMBase_QuadraticPoly_H_
+#define PCMBase_QuadraticPoly_H_
 
 #include "SPLITT.h"
 #include <armadillo>
@@ -90,7 +90,7 @@ inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType&
   P.slice(r) = eigvec;
   if(IsSingular(P.slice(r), threshold_SV)) {
     std::ostringstream os;
-    os<<"ERR:03402:PCMBaseCpp:QuadraticPolynomial.h:DecomposeH:: Defective H matrix:"<<
+    os<<"ERR:03402:PCMBaseCpp:QuadraticPoly.h:DecomposeH:: Defective H matrix:"<<
       H.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
     throw std::logic_error(os.str());
   }
@@ -185,7 +185,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     std::vector<RegimeType> const& regimes_unique) {
   
   if(regimes_unique.size() == 0) {
-    throw std::logic_error("ERR:03101:PCMBaseCpp:QuadraticPolynomial.h:mapRegimesToIndices:: regimes_unique has 0 length but should have at least one regime.");
+    throw std::logic_error("ERR:03101:PCMBaseCpp:QuadraticPoly.h:mapRegimesToIndices:: regimes_unique has 0 length but should have at least one regime.");
   }
   std::unordered_map<RegimeType, arma::uword> map_regimes;
   arma::uword next_regime = 0;
@@ -193,7 +193,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     auto it = map_regimes.insert(std::pair<RegimeType, arma::uword>(r, next_regime));
     if(!it.second) {
       std::ostringstream os;
-      os<<"ERR:03102:PCMBaseCpp:QuadraticPolynomial.h:mapRegimesToIndices:: The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
+      os<<"ERR:03102:PCMBaseCpp:QuadraticPoly.h:mapRegimesToIndices:: The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
       throw std::logic_error(os.str());
     } else {
       ++next_regime;
@@ -204,7 +204,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     auto it = map_regimes.find(r);
     if(it == map_regimes.end()) {
       std::ostringstream os;
-      os<<"ERR:03103:PCMBaseCpp:QuadraticPolynomial.h:mapRegimesToIndices:: The regime named '"<<r<<"' was not found in regimes_unique.";
+      os<<"ERR:03103:PCMBaseCpp:QuadraticPoly.h:mapRegimesToIndices:: The regime named '"<<r<<"' was not found in regimes_unique.";
       throw std::logic_error(os.str());
     } else {
       regimeIndices.push_back(it->second);
@@ -225,7 +225,7 @@ public:
 };
 
 template<class Tree>
-class QuadraticPolynomial: public SPLITT::TraversalSpecification<Tree> {
+class QuadraticPoly: public SPLITT::TraversalSpecification<Tree> {
 public:
   typedef SPLITT::TraversalSpecification<Tree> BaseType;
   typedef Tree TreeType;
@@ -308,7 +308,7 @@ public:
 
   std::vector<CondGaussianOmegaPhiV*> ptr_cond_dist_;
   
-  QuadraticPolynomial(
+  QuadraticPoly(
     TreeType const& tree,
     NumericTraitData<typename TreeType::NodeType> const& input_data):
 
@@ -363,7 +363,7 @@ public:
       pc.push_back(input_data.Pc_[ordNodes(i)]);
       if(pc[i].n_elem == 0) {
         std::ostringstream oss;
-        oss<<"ERR:03121:PCMBaseCpp:QuadraticPolynomial.h:QuadraticPolynomial:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
+        oss<<"ERR:03121:PCMBaseCpp:QuadraticPoly.h:QuadraticPoly:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
         throw std::logic_error(oss.str());
       }
     }
@@ -453,7 +453,7 @@ public:
         singular_branch_[i] = 1;
         if(!skip_singular_ || ti > threshold_skip_singular_) {
           ostringstream oss;
-          oss<<"ERR:03131:PCMBaseCpp:QuadraticPolynomial.h:InitNode:: The matrix V for node "<<
+          oss<<"ERR:03131:PCMBaseCpp:QuadraticPoly.h:InitNode:: The matrix V for node "<<
             this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: "<<V.slice(i)(ki,ki)<<
                 ". Check the model parameters and the length of the branch"<<
                   " leading to the node. For details on this error, read the User Guide.";
@@ -485,7 +485,7 @@ public:
         for(double eigv: re_eigval) {
           if(eigv < threshold_EV_) {
             ostringstream oss;
-            oss<<"ERR:03132:PCMBaseCpp:QuadraticPolynomial.h:InitNode:: The matrix V for node "<<
+            oss<<"ERR:03132:PCMBaseCpp:QuadraticPoly.h:InitNode:: The matrix V for node "<<
               this->ref_tree_.FindNodeWithId(i)<<
                 " is nearly singular or not positive definite; near-0 or negative eigenvalue found: "<<eigv<<
                 "V.slice(i)(ki,ki): "<<V.slice(i)(ki,ki)<<". Check the model parameters.";
@@ -550,4 +550,4 @@ public:
 };
 }
 
-#endif // PCMBase_QuadraticPolynomial_H_
+#endif // PCMBase_QuadraticPoly_H_

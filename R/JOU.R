@@ -27,7 +27,7 @@ PCMInfoCpp.JOU <- function(X, tree, model,
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolynomialJOU$new(X, tree, model, metaI))
+  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyJOU$new(X, tree, model, metaI))
   
   res$TraverseTree = res$cppObject$TraverseTree
   
@@ -35,4 +35,4 @@ PCMInfoCpp.JOU <- function(X, tree, model,
   res
 }
 
-loadModule( "PCMBaseCpp__QuadraticPolynomialJOU", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyJOU", TRUE )

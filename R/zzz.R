@@ -20,8 +20,8 @@
 #' @useDynLib PCMBaseCpp
 loadModule( "PCMBaseCpp__Tree", TRUE )
 loadModule( "PCMBaseCpp__OrderedTree", TRUE )
-loadModule( "PCMBaseCpp__QuadraticPolynomialBM", TRUE )
-loadModule( "PCMBaseCpp__QuadraticPolynomialDOU", TRUE )
-loadModule( "PCMBaseCpp__QuadraticPolynomialMixedGaussian", TRUE )
-loadModule( "PCMBaseCpp__QuadraticPolynomialOU", TRUE )
-loadModule( "PCMBaseCpp__QuadraticPolynomialWhite", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyBM", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyDOU", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyMixedGaussian", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyOU", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyWhite", TRUE )

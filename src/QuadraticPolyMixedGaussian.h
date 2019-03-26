@@ -1,5 +1,5 @@
 /*
- *  QuadraticPolynomialMixedGaussian.h
+ *  QuadraticPolyMixedGaussian.h
  *  PCMBaseCpp
  *
  * Copyright 2017,2018 Venelin Mitov
@@ -21,14 +21,14 @@
  *
  * @author Venelin Mitov
  */
-#ifndef QuadraticPolynomial_MixedGaussian_H_
-#define QuadraticPolynomial_MixedGaussian_H_
+#ifndef QuadraticPoly_MixedGaussian_H_
+#define QuadraticPoly_MixedGaussian_H_
 
-#include "QuadraticPolynomial.h"
-#include "QuadraticPolynomialBM.h"
-#include "QuadraticPolynomialJOU.h"
-#include "QuadraticPolynomialOU.h"
-#include "QuadraticPolynomialDOU.h"
+#include "QuadraticPoly.h"
+#include "QuadraticPolyBM.h"
+#include "QuadraticPolyJOU.h"
+#include "QuadraticPolyOU.h"
+#include "QuadraticPolyDOU.h"
 #include <armadillo>
 #include <sstream>
 
@@ -37,10 +37,10 @@ namespace PCMBaseCpp {
 
 typedef SPLITT::OrderedTree<SPLITT::uint, LengthRegimeAndJump> MixedGaussianTreeType;
 
-class MixedGaussian: public QuadraticPolynomial<MixedGaussianTreeType> {
+class MixedGaussian: public QuadraticPoly<MixedGaussianTreeType> {
 public:
   typedef MixedGaussianTreeType TreeType;
-  typedef QuadraticPolynomial<TreeType> BaseType;
+  typedef QuadraticPoly<TreeType> BaseType;
   typedef MixedGaussian MyType;
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
@@ -80,7 +80,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<MixedGaussian> QuadraticPolynomialMixedGaussian;
+typedef SPLITT::TraversalTask<MixedGaussian> QuadraticPolyMixedGaussian;
 }
 
-#endif // QuadraticPolynomial_MixedGaussian_H_
+#endif // QuadraticPoly_MixedGaussian_H_

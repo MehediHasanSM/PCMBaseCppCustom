@@ -1,5 +1,5 @@
 /*
- *  QuadraticPolynomialOU.h
+ *  QuadraticPolyJOU.h
  *  PCMBaseCpp
  *
  * Copyright 2017,2018 Venelin Mitov
@@ -21,39 +21,40 @@
  *
  * @author Venelin Mitov
  */
-#ifndef QuadraticPolynomial_OU_H_
-#define QuadraticPolynomial_OU_H_
+#ifndef QuadraticPoly_JOU_H_
+#define QuadraticPoly_JOU_H_
 
-#include "QuadraticPolynomial.h"
+#include "QuadraticPoly.h"
 #include <armadillo>
 #include <sstream>
 //#include <iostream>
 
 namespace PCMBaseCpp {
 
-typedef SPLITT::OrderedTree<SPLITT::uint, LengthAndRegime> OUTreeType;
+
+typedef SPLITT::OrderedTree<SPLITT::uint, LengthRegimeAndJump> JOUTreeType;
 
 template<class TreeType, class DataType>
-struct CondGaussianOU: public CondGaussianOmegaPhiV {
-  
-  TreeType const& ref_tree_;
+struct CondGaussianJOU: public CondGaussianOmegaPhiV {
   
   // a 0-threshold for abs(Lambda_i + Lambda_j), where Lambda_i and Lambda_j are
   //  eigenvalues of the parameter matrix H. This threshold-values is used as a condition to
   // take the limit time of the expression `(1-exp(-Lambda_ij*time))/Lambda_ij` as
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
+  
   double threshold_SV_ = 1e-6;
   
-  //
-  // model parameters
-  //
+  TreeType const& ref_tree_;
   
   // number of traits
   uint k_;
   
   // number of regimes;
   uint R_; 
+  //
+  // model parameters
+  //
   
   // Each slice or column of the following cubes or matrices correponds to one regime
   arma::mat X0;
@@ -63,28 +64,33 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
   arma::cube Sigma;
   arma::cube Sigmae;
   
+  // Jump mean and standard variance covariance matrix
+  arma::mat mj;
+  arma::cube Sigmaj;
+  
   arma::cx_cube P;
   arma::cx_cube P_1;
   arma::cx_cube P_1SigmaP_1_t;
   
-  // k-vectors of eigenvalues for each regime
+  // k_-vectors of eigenvalues for each regime
   arma::cx_mat lambda;
   
   // matrices of sums of pairs of eigenvalues lambda_i+lambda_j for each regime
   arma::cx_cube Lambda_ij;
   
-  // identity matrix
   arma::mat I;
   
-  CondGaussianOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
+  CondGaussianJOU(TreeType const& ref_tree, DataType const& ref_data, uint R): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = R;
+    
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    
     InitInternal();
   }
   
-  CondGaussianOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
+  CondGaussianJOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
@@ -94,7 +100,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
   
   void InitInternal() {
     using namespace arma;
-    this->I = eye(k_, k_);
+    this->I = arma::eye(k_, k_);
     this->P = cx_cube(k_, k_, R_);
     this->P_1 = cx_cube(k_, k_, R_);
     this->P_1SigmaP_1_t = cx_cube(k_, k_, R_);
@@ -104,16 +110,12 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
   
   arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
     using namespace arma;
-
-    // for (const auto& i: par)
-    //   std::cout << i << ' ';
-    // std::cout<<"; "<<offset<<";"<<R_<<"; "<<k_<<"\n";
     
-    uint npar = R_*(3*k_*k_ + 2*k_);
+    uint npar = R_*(4*k_*k_ + 3*k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03401:PCMBaseCpp:QuadraticPolynomialOU.h:CondOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
-        ") should be at least of R*(3k^2+2k), where k="<<k_<<" is the number of traits and "<<
+      os<<"ERR:03301:PCMBaseCpp:QuadraticPolyJOU.h:CondJOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+        ") should be at least of R*(4k^2+3k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
     }
@@ -122,21 +124,17 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     H = cube(&par[offset + k_*R_], k_, k_, R_);
     Theta = mat(&par[offset + (k_ + k_*k_)*R_], k_, R_);
     Sigma = cube(&par[offset + (k_ + k_*k_ + k_)*R_], k_, k_, R_);
-    Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
-    // cout<<"X0:\n"<<X0<<"\n";
-    // cout<<"H:\n"<<H<<"\n";
-    // cout<<"Theta:\n"<<Theta<<"\n";
-    // cout<<"Sigma:\n"<<Sigma<<"\n";
-    // cout<<"Sigmae\n"<<Sigmae<<"\n";
+    mj = mat(&par[offset + (k_ + k_*k_ + k_ + k_*k_)*R_], k_, R_);
+    Sigmaj = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_)*R_], k_, k_, R_);
+    Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
     for(uword r = 0; r < R_; r++) {
       Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+      Sigmaj.slice(r) = Sigmaj.slice(r) * Sigmaj.slice(r).t();  
       Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
     }
     
-    InitInternal();
-      
     for(uword r = 0; r < R_; ++r) {
       using namespace std;
       
@@ -147,55 +145,58 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
       
       PairSums(Lambda_ij.slice(r), lambda.col(r));
     }
-    
     return npar;
   }
- 
- 
+  
   void CalculateOmegaPhiV(uint i, arma::uword ri, arma::mat& omega, arma::cube& Phi, arma::cube& V) {
     using namespace arma;
-      
-      double ti = this->ref_tree_.LengthOfBranch(i).length_;
-      
-      Phi.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
-      omega.col(i) = (I - Phi.slice(i)) * Theta.col(ri);
-      
-      cx_mat fLambda_ij(k_, k_);
-      CDFExpDivLambda(fLambda_ij, Lambda_ij.slice(ri), ti, threshold_Lambda_ij_);
-      // notice that we use st() instead of t() for P.slice(ri) to avoid conjugate (Hermitian) transpose.
-      V.slice(i) = real(P.slice(ri) * (fLambda_ij % P_1SigmaP_1_t.slice(ri)) * P.slice(ri).st());
-      
-      if(i < this->ref_tree_.num_tips()) {
-        V.slice(i) += Sigmae.slice(ri);
-      }
+    
+    double ti = this->ref_tree_.LengthOfBranch(i).length_;
+    u8 xi = this->ref_tree_.LengthOfBranch(i).jump_;
+    
+    Phi.slice(i) = real(P.slice(ri) * diagmat(exp(-ti * lambda.col(ri))) * P_1.slice(ri));
+    omega.col(i) = xi * Phi.slice(i) * mj.col(ri) + (I - Phi.slice(i)) * Theta.col(ri);
+    
+    cx_mat fLambda_ij(k_, k_);
+    CDFExpDivLambda(fLambda_ij, Lambda_ij.slice(ri), ti, threshold_Lambda_ij_);
+    
+    // notice that we use st() instead of t() for P.slice(ri) to avoid conjugate transpose.
+    V.slice(i) = 
+      real(P.slice(ri)* (fLambda_ij%P_1SigmaP_1_t.slice(ri)) * P.slice(ri).st() +
+      xi * Phi.slice(i) * Sigmaj.slice(ri) * Phi.slice(i).t() );
+    
+    if(i < this->ref_tree_.num_tips()) {
+      V.slice(i) += Sigmae.slice(ri);
+    }
   }
 };
 
 
-class OU: public QuadraticPolynomial<OUTreeType> {
+class JOU: public QuadraticPoly<JOUTreeType> {
 public:
-  typedef OUTreeType TreeType;
-  typedef QuadraticPolynomial<TreeType> BaseType;
-  typedef OU MyType;
+  typedef JOUTreeType TreeType;
+  typedef QuadraticPoly<TreeType> BaseType;
+  typedef JOU MyType;
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
   typedef std::vector<double> ParameterType;
   typedef SPLITT::PostOrderTraversal<MyType> AlgorithmType;
 
-  CondGaussianOU<TreeType, DataType> cond_dist_;
+  CondGaussianJOU<TreeType, DataType> cond_dist_;
   
-  OU(TreeType const& tree, DataType const& input_data):
+  JOU(TreeType const& tree, DataType const& input_data):
     BaseType(tree, input_data), cond_dist_(tree, input_data) {
     
     BaseType::ptr_cond_dist_.push_back(&cond_dist_);
   }
-
+  
   void SetParameter(ParameterType const& par) {
     cond_dist_.SetParameter(par, 0);
   }
 };
 
-typedef SPLITT::TraversalTask<OU> QuadraticPolynomialOU;
+
+typedef SPLITT::TraversalTask<JOU> QuadraticPolyJOU;
 }
 
-#endif // QuadraticPolynomial_OU_H_
+#endif // QuadraticPoly_JOU_H_

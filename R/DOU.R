@@ -27,7 +27,7 @@ PCMInfoCpp.DOU <- function(X, tree, model,
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolynomialDOU$new(X, tree, model, metaI))
+  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyDOU$new(X, tree, model, metaI))
   
   res$TraverseTree = res$cppObject$TraverseTree
   

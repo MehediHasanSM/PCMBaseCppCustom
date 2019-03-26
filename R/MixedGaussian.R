@@ -49,7 +49,7 @@ PCMInfoCpp.MixedGaussian <- function(
   metaI$pcListInt <- PCListInt(metaI$pc)
   
   res <- c(metaI, 
-           cppObject = PCMBaseCpp__QuadraticPolynomialMixedGaussian$new(
+           cppObject = PCMBaseCpp__QuadraticPolyMixedGaussian$new(
              X, tree, model, metaI, 
              regimeModel))
   

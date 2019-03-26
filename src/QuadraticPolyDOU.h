@@ -1,5 +1,5 @@
 /*
- *  QuadraticPolynomialDOU.h
+ *  QuadraticPolyDOU.h
  *  PCMBaseCpp
  *
  * Copyright 2017,2018 Venelin Mitov
@@ -21,10 +21,10 @@
  *
  * @author Venelin Mitov
  */
-#ifndef QuadraticPolynomial_DOU_H_
-#define QuadraticPolynomial_DOU_H_
+#ifndef QuadraticPoly_DOU_H_
+#define QuadraticPoly_DOU_H_
 
-#include "QuadraticPolynomial.h"
+#include "QuadraticPoly.h"
 #include <armadillo>
 #include <sstream>
 
@@ -122,7 +122,7 @@ struct CondGaussianDOU: public CondGaussianOmegaPhiV {
     uint npar = R_*(4*k_*k_ + 2*k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03501:PCMBaseCpp:QuadraticPolynomialDOU.h:CondDOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"ERR:03501:PCMBaseCpp:QuadraticPolyDOU.h:CondDOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(4k^2+2k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
@@ -173,10 +173,10 @@ struct CondGaussianDOU: public CondGaussianOmegaPhiV {
   }
 };
 
-class DOU: public QuadraticPolynomial<OUTreeType> {
+class DOU: public QuadraticPoly<OUTreeType> {
 public:
   typedef OUTreeType TreeType;
-  typedef QuadraticPolynomial<TreeType> BaseType;
+  typedef QuadraticPoly<TreeType> BaseType;
   typedef DOU MyType;
   typedef arma::vec StateType;
   typedef NumericTraitData<TreeType::NodeType> DataType;
@@ -197,7 +197,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<DOU> QuadraticPolynomialDOU;
+typedef SPLITT::TraversalTask<DOU> QuadraticPolyDOU;
 }
 
-#endif // QuadraticPolynomial_OU_H_
+#endif // QuadraticPoly_OU_H_
