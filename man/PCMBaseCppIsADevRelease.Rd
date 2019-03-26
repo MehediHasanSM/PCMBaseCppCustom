@@ -4,10 +4,7 @@
 \alias{PCMBaseCppIsADevRelease}
 \title{Check if the PCMBaseCpp version correpsonds to a dev release}
 \usage{
-PCMBaseCppIsADevRelease(numVersionComponents = 4L)
-}
-\arguments{
-\item{numVersionComponents}{an integer, default 4.}
+PCMBaseCppIsADevRelease()
 }
 \value{
 a logical
