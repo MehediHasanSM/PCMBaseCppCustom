@@ -23,13 +23,16 @@
  */
 #include <RcppArmadillo.h>
 
+
 #include<vector>
 #include<string>
 #include<sstream>
 
 #include "QuadraticPolyWhite.h"
 #include "QuadraticPolyBM.h"
+#include "QuadraticPolyBM1D.h"
 #include "QuadraticPolyOU.h"
+#include "QuadraticPolyOU1D.h"
 #include "QuadraticPolyJOU.h"
 #include "QuadraticPolyDOU.h"
 #include "QuadraticPolyMixedGaussian.h"
@@ -132,12 +135,13 @@ struct ParsedRObjects {
     Rcpp::List const& tree, 
     Rcpp::List const& model,
     Rcpp::List const& metaInfo):
-    X(X),
+    
     threshold_SV(static_cast<double>(metaInfo["PCMBase.Threshold.SV"])),
     threshold_EV(static_cast<double>(metaInfo["PCMBase.Threshold.EV"])),
     threshold_skip_singular(static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"])), 
     threshold_Lambda_ij(static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"])),
     skip_singular(static_cast<int>(metaInfo["PCMBase.Skip.Singular"])),
+    X(X),
     VE(Rcpp::as<arma::cube>(metaInfo["VE"])),
     pcListInt(Rcpp::as<Rcpp::List>(metaInfo["pcListInt"])), 
     Pc(Rcpp::as<arma::uword>(metaInfo["M"])),
@@ -359,6 +363,92 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM) {
   ;
 }
 
+
+QuadraticPolyBM1D* CreateQuadraticPolyBM1D(
+    arma::mat const& X, 
+    Rcpp::List const& tree, 
+    Rcpp::List const& model,
+    Rcpp::List const& metaInfo) { 
+  
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
+  
+  vector<typename QuadraticPolyBM1D::LengthType> lengths(pObjs.num_branches);
+  
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+  }
+  
+  typename QuadraticPolyBM1D::DataType data(
+      pObjs.tip_names, pObjs.X.row(0), pObjs.VE.row(0), pObjs.RModel, 
+      std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
+  
+  return new QuadraticPolyBM1D(pObjs.br_0, pObjs.br_1, lengths, data);
+}
+
+//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::TreeType)
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::TraversalSpecificationType)
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::AlgorithmType)
+  
+  RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM1D) {
+    Rcpp::class_<QuadraticPolyBM1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyBM1D_Tree" )
+    .property("num_nodes", &QuadraticPolyBM1D::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolyBM1D::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolyBM1D::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolyBM1D::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolyBM1D::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolyBM1D::TreeType::Tree::OrderNodes )
+    ;
+    Rcpp::class_<QuadraticPolyBM1D::TreeType>( "PCMBaseCpp__QuadraticPolyBM1D_OrderedTree" )
+      .derives<QuadraticPolyBM1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyBM1D_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolyBM1D::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolyBM1D::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolyBM1D::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolyBM1D::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolyBM1D::TreeType::ranges_id_prune )
+    ;
+    Rcpp::class_<QuadraticPolyBM1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyBM1D_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolyBM1D::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "NumOmpThreads", &QuadraticPolyBM1D::AlgorithmType::NumOmpThreads )
+    ;
+    Rcpp::class_<QuadraticPolyBM1D::AlgorithmType> ( "PCMBaseCpp__QuadraticPolyBM1D_ParallelPruning" )
+      .derives<QuadraticPolyBM1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyBM1D_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolyBM1D::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolyBM1D::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolyBM1D::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolyBM1D::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolyBM1D::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolyBM1D::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolyBM1D::AlgorithmType::fastest_step_tuning )
+    ;
+    Rcpp::class_<QuadraticPolyBM1D::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+      .field( "A", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::A)
+      .field( "b", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::b )
+      .field( "C", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::C )
+      .field( "d", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::d )
+      .field( "E", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::E )
+      .field( "f", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::f )
+      .field( "L", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::L )
+      .field( "m", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::m )
+      .field( "r", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::r )
+      .field( "V", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::V )
+      .field( "V_1", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::V_1 )
+    ;
+    Rcpp::class_<QuadraticPolyBM1D::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyBM1D_PruningSpec" )
+      .derives<QuadraticPolyBM1D::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+    ;
+    Rcpp::class_<QuadraticPolyBM1D>( "PCMBaseCpp__QuadraticPolyBM1D" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyBM1D)
+      .method( "TraverseTree", &QuadraticPolyBM1D::TraverseTree )
+      .property( "tree", &QuadraticPolyBM1D::tree )
+      .property( "spec", &QuadraticPolyBM1D::spec )
+      .property( "algorithm", &QuadraticPolyBM1D::algorithm )
+    ;
+  }
+
+
 QuadraticPolyOU* CreateQuadraticPolyOU(
     arma::mat const& X, 
     Rcpp::List const& tree, 
@@ -441,6 +531,91 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU) {
     .property( "algorithm", &QuadraticPolyOU::algorithm )
   ;
 }
+
+QuadraticPolyOU1D* CreateQuadraticPolyOU1D(
+    arma::mat const& X, 
+    Rcpp::List const& tree, 
+    Rcpp::List const& model,
+    Rcpp::List const& metaInfo) {
+  
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
+  
+  vector<typename QuadraticPolyOU1D::LengthType> lengths(pObjs.num_branches);
+  
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+  }
+  
+  typename QuadraticPolyOU1D::DataType data(
+      pObjs.tip_names, pObjs.X, pObjs.VE, 
+      pObjs.RModel, std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_Lambda_ij);
+  
+  return new QuadraticPolyOU1D(pObjs.br_0, pObjs.br_1, lengths, data);
+}
+
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::TraversalSpecificationType)
+  RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::AlgorithmType)
+  
+  RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU1D) {
+    Rcpp::class_<QuadraticPolyOU1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyOU1D_Tree" )
+    .property("num_nodes", &QuadraticPolyOU1D::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolyOU1D::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolyOU1D::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolyOU1D::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolyOU1D::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolyOU1D::TreeType::Tree::OrderNodes )
+    ;
+    Rcpp::class_<QuadraticPolyOU1D::TreeType>( "PCMBaseCpp__QuadraticPolyOU1D_OrderedTree" )
+      .derives<QuadraticPolyOU1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyOU1D_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolyOU1D::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolyOU1D::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolyOU1D::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolyOU1D::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolyOU1D::TreeType::ranges_id_prune )
+    ;
+    Rcpp::class_<QuadraticPolyOU1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyOU1D_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolyOU1D::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "NumOmpThreads", &QuadraticPolyOU1D::AlgorithmType::NumOmpThreads )
+    ;
+    Rcpp::class_<QuadraticPolyOU1D::AlgorithmType> ( "PCMBaseCpp__QuadraticPolyOU1D_ParallelPruning" )
+      .derives<QuadraticPolyOU1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyOU1D_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolyOU1D::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolyOU1D::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolyOU1D::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolyOU1D::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolyOU1D::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolyOU1D::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolyOU1D::AlgorithmType::fastest_step_tuning )
+    ;
+    Rcpp::class_<QuadraticPolyOU1D::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+      .field( "A", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::A)
+      .field( "b", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::b )
+      .field( "C", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::C )
+      .field( "d", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::d )
+      .field( "E", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::E )
+      .field( "f", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::f )
+      .field( "L", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::L )
+      .field( "m", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::m )
+      .field( "r", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::r )
+      .field( "V", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::V )
+      .field( "V_1", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::V_1 )
+    ;
+    Rcpp::class_<QuadraticPolyOU1D::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyOU1D_PruningSpec" )
+      .derives<QuadraticPolyOU1D::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+    ;
+    Rcpp::class_<QuadraticPolyOU1D>( "PCMBaseCpp__QuadraticPolyOU1D" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyOU1D)
+      .method( "TraverseTree", &QuadraticPolyOU1D::TraverseTree )
+      .property( "tree", &QuadraticPolyOU1D::tree )
+      .property( "spec", &QuadraticPolyOU1D::spec )
+      .property( "algorithm", &QuadraticPolyOU1D::algorithm )
+    ;
+  }
+
+
 
 
 QuadraticPolyJOU* CreateQuadraticPolyJOU(

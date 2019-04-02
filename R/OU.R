@@ -27,7 +27,11 @@ PCMInfoCpp.OU <- function(X, tree, model,
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyOU$new(X, tree, model, metaI))
+  if(metaI$k == 1L && getOption("PCMBaseCpp.Use1DClasses", FALSE)) {
+    res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyOU1D$new(X, tree, model, metaI))
+  } else {
+    res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyOU$new(X, tree, model, metaI))
+  }
   
   res$TraverseTree = res$cppObject$TraverseTree
   
