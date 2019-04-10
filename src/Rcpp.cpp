@@ -23,7 +23,6 @@
  */
 #include <RcppArmadillo.h>
 
-
 #include<vector>
 #include<string>
 #include<sstream>
@@ -36,7 +35,6 @@
 #include "QuadraticPolyJOU.h"
 #include "QuadraticPolyDOU.h"
 #include "QuadraticPolyMixedGaussian.h"
-
 
 // [[Rcpp::plugins("cpp11")]]
 // [[Rcpp::plugins(openmp)]]
