@@ -49,6 +49,8 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
   // number of regimes;
   uint R_; 
   
+  bool transpose_Sigma_x = false; 
+  
   // Each slice or column of the following cubes or matrices correponds to one regime
   arma::mat X0;
   
@@ -64,12 +66,14 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
     this->k_ = ref_data.k_;
     this->R_ = R;
     this->I = arma::eye(k_, k_);
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
   }
   
   CondGaussianBM(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
     this->I = arma::eye(k_, k_);
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
   }
   
   arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
@@ -88,11 +92,17 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
     Sigma = cube(&par[offset + k_*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_)*R_], k_, k_, R_);
     
-    for(uword r = 0; r < R_; r++) {
-      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
-      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    if(transpose_Sigma_x) {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r).t() * Sigma.slice(r);
+        Sigmae.slice(r) = Sigmae.slice(r).t() * Sigmae.slice(r);  
+      }
+    } else {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+        Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+      }
     }
-    
     return npar;
   }
   

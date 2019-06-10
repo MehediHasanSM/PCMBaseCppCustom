@@ -45,6 +45,8 @@ struct CondGaussianJOU: public CondGaussianOmegaPhiV {
   
   double threshold_SV_ = 1e-6;
   
+  bool transpose_Sigma_x = false;
+  
   TreeType const& ref_tree_;
   
   // number of traits
@@ -86,6 +88,7 @@ struct CondGaussianJOU: public CondGaussianOmegaPhiV {
     
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
     
     InitInternal();
   }
@@ -93,8 +96,11 @@ struct CondGaussianJOU: public CondGaussianOmegaPhiV {
   CondGaussianJOU(TreeType const& ref_tree, DataType const& ref_data): ref_tree_(ref_tree) {
     this->k_ = ref_data.k_;
     this->R_ = ref_data.R_;
+    
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
+    
     InitInternal();
   }
   
@@ -129,10 +135,18 @@ struct CondGaussianJOU: public CondGaussianOmegaPhiV {
     Sigmaj = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_)*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_ + k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
-    for(uword r = 0; r < R_; r++) {
-      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
-      Sigmaj.slice(r) = Sigmaj.slice(r) * Sigmaj.slice(r).t();  
-      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    if(transpose_Sigma_x) {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r).t() * Sigma.slice(r);
+        Sigmaj.slice(r) = Sigmaj.slice(r).t() * Sigmaj.slice(r);  
+        Sigmae.slice(r) = Sigmae.slice(r).t() * Sigmae.slice(r);  
+      }
+    } else {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+        Sigmaj.slice(r) = Sigmaj.slice(r) * Sigmaj.slice(r).t();  
+        Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+      }
     }
     
     for(uword r = 0; r < R_; ++r) {

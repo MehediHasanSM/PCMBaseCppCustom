@@ -45,6 +45,8 @@ struct CondGaussianDOU: public CondGaussianOmegaPhiV {
   
   double threshold_SV_ = 1e-6;
   
+  bool transpose_Sigma_x = false;
+  
   // number of traits
   uint k_;
   
@@ -90,6 +92,7 @@ struct CondGaussianDOU: public CondGaussianOmegaPhiV {
     this->R_ = R;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
     InitInternal();
   }
   
@@ -99,6 +102,7 @@ struct CondGaussianDOU: public CondGaussianOmegaPhiV {
     this->R_ = ref_data.R_;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
     InitInternal();
   }
   
@@ -135,9 +139,16 @@ struct CondGaussianDOU: public CondGaussianOmegaPhiV {
     Sigma = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_)*R_], k_, k_, R_);
     Sigmae = cube(&par[offset + (k_ + k_*k_ + k_*k_ + k_ + k_*k_)*R_], k_, k_, R_);
     
-    for(uword r = 0; r < R_; r++) {
-      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
-      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    if(transpose_Sigma_x) {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r).t() * Sigma.slice(r);
+        Sigmae.slice(r) = Sigmae.slice(r).t() * Sigmae.slice(r);  
+      }
+    } else {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+        Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+      }
     }
     
     for(uword r = 0; r < R_; ++r) {

@@ -138,6 +138,7 @@ struct NumericTraitData {
   double threshold_skip_singular_;
   double threshold_Lambda_ij_;
   bool skip_singular_;
+  bool transpose_Sigma_x;
   
   NumericTraitData(
     std::vector<NameType> const& names,
@@ -150,13 +151,15 @@ struct NumericTraitData {
     double threshold_EV,
     double threshold_skip_singular,
     bool skip_singular,
+    bool transpose_Sigma_x,
     double threshold_Lambda_ij): names_(names), X_(X), VE_(VE), Pc_(Pc), k_(X.n_rows), 
       R_(R), regime_models_(regime_models),
       threshold_SV_(threshold_SV), 
       threshold_EV_(threshold_EV), 
       threshold_skip_singular_(threshold_skip_singular),
       threshold_Lambda_ij_(threshold_Lambda_ij),
-      skip_singular_(skip_singular) {}
+      skip_singular_(skip_singular),
+      transpose_Sigma_x(transpose_Sigma_x){}
 };
 
 // Conditional Gaussian distribution of trait vector at a daughter 

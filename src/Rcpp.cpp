@@ -112,6 +112,7 @@ struct ParsedRObjects {
   double threshold_skip_singular;
   double threshold_Lambda_ij;
   bool skip_singular;
+  bool transpose_Sigma_x;
   arma::mat const& X;
   arma::cube VE;
   Rcpp::List pcListInt;
@@ -139,6 +140,7 @@ struct ParsedRObjects {
     threshold_skip_singular(static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"])), 
     threshold_Lambda_ij(static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"])),
     skip_singular(static_cast<int>(metaInfo["PCMBase.Skip.Singular"])),
+    transpose_Sigma_x(static_cast<int>(metaInfo["PCMBase.Transpose.Sigma_x"])),
     X(X),
     VE(Rcpp::as<arma::cube>(metaInfo["VE"])),
     pcListInt(Rcpp::as<Rcpp::List>(metaInfo["pcListInt"])), 
@@ -211,7 +213,9 @@ QuadraticPolyWhite* CreateQuadraticPolyWhite(
   typename QuadraticPolyWhite::DataType data(
       pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, pObjs.RModel, 
       std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyWhite(pObjs.br_0, pObjs.br_1, lengths, data);
@@ -295,7 +299,9 @@ QuadraticPolyBM* CreateQuadraticPolyBM(
   typename QuadraticPolyBM::DataType data(
       pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, pObjs.RModel, 
       std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyBM(pObjs.br_0, pObjs.br_1, lengths, data);
@@ -380,7 +386,9 @@ QuadraticPolyBM1D* CreateQuadraticPolyBM1D(
   typename QuadraticPolyBM1D::DataType data(
       pObjs.tip_names, pObjs.X.row(0), pObjs.VE.row(0), pObjs.RModel, 
       std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyBM1D(pObjs.br_0, pObjs.br_1, lengths, data);
@@ -465,7 +473,9 @@ QuadraticPolyOU* CreateQuadraticPolyOU(
   typename QuadraticPolyOU::DataType data(
       pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
       pObjs.RModel, std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyOU(pObjs.br_0, pObjs.br_1, lengths, data);
@@ -548,7 +558,9 @@ QuadraticPolyOU1D* CreateQuadraticPolyOU1D(
   typename QuadraticPolyOU1D::DataType data(
       pObjs.tip_names, pObjs.X, pObjs.VE, 
       pObjs.RModel, std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyOU1D(pObjs.br_0, pObjs.br_1, lengths, data);
@@ -635,7 +647,9 @@ QuadraticPolyJOU* CreateQuadraticPolyJOU(
   typename QuadraticPolyJOU::DataType data(
       pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
       pObjs.RModel, std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyJOU(pObjs.br_0, pObjs.br_1, lengths, data);
@@ -719,7 +733,9 @@ QuadraticPolyDOU* CreateQuadraticPolyDOU(
   typename QuadraticPolyDOU::DataType data(
       pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
       pObjs.RModel, std::vector<std::string>(), 
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij);
   
   return new QuadraticPolyDOU(pObjs.br_0, pObjs.br_1, lengths, data);;
@@ -806,7 +822,9 @@ QuadraticPolyMixedGaussian* CreateQuadraticPolyMixedGaussian(
       pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, 
       pObjs.RModel, 
       regimeModels,
-      pObjs.threshold_SV, pObjs.threshold_EV, pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij
       );
   

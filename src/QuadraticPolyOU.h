@@ -27,7 +27,7 @@
 #include "QuadraticPoly.h"
 #include <armadillo>
 #include <sstream>
-//#include <iostream>
+#include <iostream>
 
 namespace PCMBaseCpp {
 
@@ -44,6 +44,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
   //   `(Lambda_i+Lambda_j) --> 0`.
   double threshold_Lambda_ij_ = 1e-8;
   double threshold_SV_ = 1e-6;
+  bool transpose_Sigma_x = false;
   
   //
   // model parameters
@@ -81,6 +82,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     this->R_ = R;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
     InitInternal();
   }
   
@@ -89,6 +91,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     this->R_ = ref_data.R_;
     this->threshold_Lambda_ij_ = ref_data.threshold_Lambda_ij_;
     this->threshold_SV_ = ref_data.threshold_SV_;
+    this->transpose_Sigma_x = ref_data.transpose_Sigma_x;
     InitInternal();
   }
   
@@ -130,11 +133,17 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     // cout<<"Sigma:\n"<<Sigma<<"\n";
     // cout<<"Sigmae\n"<<Sigmae<<"\n";
     
-    for(uword r = 0; r < R_; r++) {
-      Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
-      Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+    if(transpose_Sigma_x) {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r).t() * Sigma.slice(r);
+        Sigmae.slice(r) = Sigmae.slice(r).t() * Sigmae.slice(r);  
+      }
+    } else {
+      for(uword r = 0; r < R_; r++) {
+        Sigma.slice(r) = Sigma.slice(r) * Sigma.slice(r).t();
+        Sigmae.slice(r) = Sigmae.slice(r) * Sigmae.slice(r).t();  
+      }
     }
-    
     InitInternal();
       
     for(uword r = 0; r < R_; ++r) {
