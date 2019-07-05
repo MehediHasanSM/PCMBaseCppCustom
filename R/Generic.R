@@ -133,42 +133,89 @@ PCMTreePreorderCpp <- function(tree) {
 
 #' @importFrom abind abind
 PCMExtractAbCdEfLmr <- function(metaI) {
+  k <- metaI$k
+  M <- metaI$M
+  pc <- metaI$pc
   tr <- metaI$cppObject$tree
-  M <- tr$num_nodes
   
   # internal node ids from 1 to M
-  spec <- metaI$cppObject$spec
   nodeIds <- sapply(seq_len(M), function(n) tr$FindIdOfNode(n) + 1)
-  # nodeStates <- lapply(seq_len(M), function(n) {
-  #   id <- metaICpp$cppObject$tree$FindIdOfNode(n)
-  #   metaI$cppObject$spec$StateAtNode(id)
-  # })
-  # cat('PCMExtractAbCdEfLmr:\nnodeIds:')
-  # print(nodeIds)
-  # 
+  nodeStates <- lapply(seq_len(M), function(n) {
+    metaI$StateAtNode(tr$FindIdOfNode(n))
+  })
   
-  specList <- list(
-    omega = spec$omega, Phi = spec$Phi, V = spec$V, V_1 = spec$V_1,
-    A = spec$A, b = spec$b, C = spec$C, d = spec$d, 
-    E = spec$E, 
-    f = spec$f, 
-    L = spec$L, m = spec$m, r = spec$r
+  ExtractMatrix <- function(i, offset) {
+    matRes <- matrix(NA_real_, k, k)
+    matExtracted <- matrix(nodeStates[[i]][seq(offset + 1, offset + k*k)], k, k)
+    matRes[pc[,i], pc[,i]] <- matExtracted[pc[,i], pc[,i]]
+    matRes
+  }
+  ExtractVector <- function(i, offset) {
+    vecRes <- rep(NA_real_, k)
+    vecExtracted <- nodeStates[[i]][seq(offset + 1, offset + k)]
+    vecRes[pc[,i]] <- vecExtracted[pc[,i]]
+    vecRes
+  }
+  ExtractScalar <- function(i, offset) {
+    res <- NA_real_
+    extracted <- nodeStates[[i]][offset + 1]
+    res <- extracted
+    res
+  }
+  list(
+    omega = abind(lapply(
+      seq_len(M), 
+      ExtractVector, k*k + k + 1 + k*k + k + k*k + k + k*k + 1), 
+      along = 2),
+    Phi = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k), 
+      along = 3),
+    V = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k + k*k), 
+      along = 3),
+    V_1 = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, k*k + k + 1 + k*k + k + k*k + k + k*k + 1 + k + k*k + k*k), 
+      along = 3),
+    A = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, k*k + k + 1), 
+      along = 3),
+    b = abind(lapply(
+      seq_len(M), 
+      ExtractVector, k*k + k + 1 + k*k), 
+      along = 2),
+    C = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, k*k + k + 1 + k*k + k), 
+      along = 3),
+    d = abind(lapply(
+      seq_len(M), 
+      ExtractVector, k*k + k + 1 + k*k + k + k*k), 
+      along = 2),
+    E = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, k*k + k + 1 + k*k + k + k*k + k), 
+      along = 3),
+    f = abind(lapply(
+      seq_len(M), 
+      ExtractScalar, k*k + k + 1 + k*k + k + k*k + k + k*k),
+      along = 1),
+    L = abind(lapply(
+      seq_len(M), 
+      ExtractMatrix, 0), 
+      along = 3),
+    m = abind(lapply(
+      seq_len(M), 
+      ExtractVector, k*k), 
+      along = 2),
+    r = abind(lapply(
+      seq_len(M), 
+      ExtractScalar, k*k + k), 
+      along = 1)
   )
-  with(specList,
-       list(omega = abind(lapply(nodeIds, function(i) omega[, i, drop=TRUE]), along = 2),
-            Phi = abind(lapply(nodeIds, function(i) Phi[,, i, drop=TRUE]), along = 3),
-            V = abind(lapply(nodeIds, function(i) V[,, i, drop=TRUE]), along = 3),
-            V_1 = abind(lapply(nodeIds, function(i) V_1[,, i, drop=TRUE]), along = 3),
-            A = abind(lapply(nodeIds, function(i) A[,, i, drop=TRUE]), along = 3),
-            b = abind(lapply(nodeIds, function(i) b[, i, drop=TRUE]), along = 2),
-            C = abind(lapply(nodeIds, function(i) C[,, i, drop=TRUE]), along = 3),
-            d = abind(lapply(nodeIds, function(i) d[, i, drop=TRUE]), along = 2),
-            E = abind(lapply(nodeIds, function(i) E[,, i, drop=TRUE]), along = 3),
-            f = abind(lapply(nodeIds, function(i) f[i, drop=TRUE]), along = 1),
-            L = abind(lapply(nodeIds, function(i) L[,, i, drop=TRUE]), along = 3),
-            m = abind(lapply(nodeIds, function(i) m[, i, drop=TRUE]), along = 2),
-            r = abind(lapply(nodeIds, function(i) r[i, drop=TRUE]), along = 1)
-            ))
 }
 
 #' @importFrom PCMBase PCMLmr PCMInfo PCMApplyTransformation is.Transformable

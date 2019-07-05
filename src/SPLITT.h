@@ -583,6 +583,10 @@ public:
     return spec_.StateAtRoot();
   }
   
+  StateType StateAtNode(uint i) {
+    return spec_.StateAtNode(i);
+  }
+  
   TreeType & tree() {
     return tree_;
   }

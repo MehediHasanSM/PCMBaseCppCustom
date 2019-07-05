@@ -30,6 +30,7 @@ PCMInfoCpp.DOU <- function(X, tree, model,
   res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyDOU$new(X, tree, model, metaI))
   
   res$TraverseTree = res$cppObject$TraverseTree
+  res$StateAtNode = res$cppObject$StateAtNode
   
   class(res) <- c("PCMInfoCpp", class(metaI))
   res

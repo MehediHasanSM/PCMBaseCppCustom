@@ -34,6 +34,7 @@ PCMInfoCpp.BM <- function(X, tree, model,
   }
   
   res$TraverseTree = res$cppObject$TraverseTree
+  res$StateAtNode = res$cppObject$StateAtNode
   
   class(res) <- c("PCMInfoCpp", class(metaI))
   res
