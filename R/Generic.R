@@ -135,26 +135,39 @@ PCMTreePreorderCpp <- function(tree) {
 PCMExtractAbCdEfLmr <- function(metaI) {
   tr <- metaI$cppObject$tree
   M <- tr$num_nodes
-  # internal node ids from 1 to M
-  nodeIds <- sapply(1:M, function(n) tr$FindIdOfNode(n) + 1)
   
+  # internal node ids from 1 to M
   spec <- metaI$cppObject$spec
+  nodeIds <- sapply(seq_len(M), function(n) tr$FindIdOfNode(n) + 1)
+  # nodeStates <- lapply(seq_len(M), function(n) {
+  #   id <- metaICpp$cppObject$tree$FindIdOfNode(n)
+  #   metaI$cppObject$spec$StateAtNode(id)
+  # })
+  # cat('PCMExtractAbCdEfLmr:\nnodeIds:')
+  # print(nodeIds)
+  # 
+  
   specList <- list(
-    A = spec$A, b = spec$b, C = spec$C, d = spec$d, E = spec$E, f = spec$f, 
-    L = spec$L, m = spec$m, r = spec$r, V = spec$V, V_1 = spec$V_1
+    omega = spec$omega, Phi = spec$Phi, V = spec$V, V_1 = spec$V_1,
+    A = spec$A, b = spec$b, C = spec$C, d = spec$d, 
+    E = spec$E, 
+    f = spec$f, 
+    L = spec$L, m = spec$m, r = spec$r
   )
   with(specList,
-       list(A = abind(lapply(nodeIds, function(i) A[,, i, drop=TRUE]), along = 3),
+       list(omega = abind(lapply(nodeIds, function(i) omega[, i, drop=TRUE]), along = 2),
+            Phi = abind(lapply(nodeIds, function(i) Phi[,, i, drop=TRUE]), along = 3),
+            V = abind(lapply(nodeIds, function(i) V[,, i, drop=TRUE]), along = 3),
+            V_1 = abind(lapply(nodeIds, function(i) V_1[,, i, drop=TRUE]), along = 3),
+            A = abind(lapply(nodeIds, function(i) A[,, i, drop=TRUE]), along = 3),
             b = abind(lapply(nodeIds, function(i) b[, i, drop=TRUE]), along = 2),
             C = abind(lapply(nodeIds, function(i) C[,, i, drop=TRUE]), along = 3),
             d = abind(lapply(nodeIds, function(i) d[, i, drop=TRUE]), along = 2),
             E = abind(lapply(nodeIds, function(i) E[,, i, drop=TRUE]), along = 3),
-            f = as.vector(abind(lapply(nodeIds, function(i) f[i, drop=TRUE]), along = 1)),
-            V = abind(lapply(nodeIds, function(i) V[,, i, drop=TRUE]), along = 3),
-            V_1 = abind(lapply(nodeIds, function(i) V_1[,, i, drop=TRUE]), along = 3),
+            f = abind(lapply(nodeIds, function(i) f[i, drop=TRUE]), along = 1),
             L = abind(lapply(nodeIds, function(i) L[,, i, drop=TRUE]), along = 3),
             m = abind(lapply(nodeIds, function(i) m[, i, drop=TRUE]), along = 2),
-            r = as.vector(abind(lapply(nodeIds, function(i) r[i, drop=TRUE]), along = 1))
+            r = abind(lapply(nodeIds, function(i) r[i, drop=TRUE]), along = 1)
             ))
 }
 

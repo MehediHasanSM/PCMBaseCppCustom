@@ -257,6 +257,7 @@ QuadraticPolyWhite* CreateQuadraticPolyWhite(
       .property( "fastest_step_tuning", &QuadraticPolyWhite::AlgorithmType::fastest_step_tuning )
     ;
     Rcpp::class_<QuadraticPolyWhite::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+      .method( "StateAtNode", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::StateAtNode )
       .field( "A", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::A)
       .field( "b", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::b )
       .field( "C", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::C )
@@ -268,6 +269,9 @@ QuadraticPolyWhite* CreateQuadraticPolyWhite(
       .field( "r", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::r )
       .field( "V", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::V )
       .field( "V_1", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::V_1 )
+      .field( "omega", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::omega )
+      .field( "Phi", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::Phi )
+    
     ;
     Rcpp::class_<QuadraticPolyWhite::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyWhite_PruningSpec" )
       .derives<QuadraticPolyWhite::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -343,6 +347,7 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM) {
     .property( "fastest_step_tuning", &QuadraticPolyBM::AlgorithmType::fastest_step_tuning )
   ;
   Rcpp::class_<QuadraticPolyBM::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+    .method( "StateAtNode", &QuadraticPolyBM::TraversalSpecificationType::BaseType::StateAtNode )
     .field( "A", &QuadraticPolyBM::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolyBM::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolyBM::TraversalSpecificationType::BaseType::C )
@@ -354,6 +359,8 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM) {
     .field( "r", &QuadraticPolyBM::TraversalSpecificationType::BaseType::r )
     .field( "V", &QuadraticPolyBM::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolyBM::TraversalSpecificationType::BaseType::V_1 )
+    .field( "omega", &QuadraticPolyBM::TraversalSpecificationType::BaseType::omega )
+    .field( "Phi", &QuadraticPolyBM::TraversalSpecificationType::BaseType::Phi )
   ;
   Rcpp::class_<QuadraticPolyBM::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyBM_PruningSpec" )
     .derives<QuadraticPolyBM::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -430,6 +437,7 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::TraversalSpecificationType)
       .property( "fastest_step_tuning", &QuadraticPolyBM1D::AlgorithmType::fastest_step_tuning )
     ;
     Rcpp::class_<QuadraticPolyBM1D::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+      .method( "StateAtNode", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::StateAtNode )
       .field( "A", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::A)
       .field( "b", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::b )
       .field( "C", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::C )
@@ -441,6 +449,8 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::TraversalSpecificationType)
       .field( "r", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::r )
       .field( "V", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::V )
       .field( "V_1", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::V_1 )
+      .field( "omega", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::omega )
+      .field( "Phi", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::Phi )
     ;
     Rcpp::class_<QuadraticPolyBM1D::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyBM1D_PruningSpec" )
       .derives<QuadraticPolyBM1D::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -516,6 +526,7 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU) {
     .property( "fastest_step_tuning", &QuadraticPolyOU::AlgorithmType::fastest_step_tuning )
   ;
   Rcpp::class_<QuadraticPolyOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+    .method( "StateAtNode", &QuadraticPolyOU::TraversalSpecificationType::BaseType::StateAtNode )
     .field( "A", &QuadraticPolyOU::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolyOU::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolyOU::TraversalSpecificationType::BaseType::C )
@@ -527,6 +538,8 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU) {
     .field( "r", &QuadraticPolyOU::TraversalSpecificationType::BaseType::r )
     .field( "V", &QuadraticPolyOU::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolyOU::TraversalSpecificationType::BaseType::V_1 )
+    .field( "omega", &QuadraticPolyOU::TraversalSpecificationType::BaseType::omega )
+    .field( "Phi", &QuadraticPolyOU::TraversalSpecificationType::BaseType::Phi )
   ;
   Rcpp::class_<QuadraticPolyOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyOU_PruningSpec" )
     .derives<QuadraticPolyOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -601,6 +614,7 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::TraversalSpecificationType)
       .property( "fastest_step_tuning", &QuadraticPolyOU1D::AlgorithmType::fastest_step_tuning )
     ;
     Rcpp::class_<QuadraticPolyOU1D::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+      .method( "StateAtNode", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::StateAtNode )
       .field( "A", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::A)
       .field( "b", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::b )
       .field( "C", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::C )
@@ -612,6 +626,8 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::TraversalSpecificationType)
       .field( "r", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::r )
       .field( "V", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::V )
       .field( "V_1", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::V_1 )
+      .field( "omega", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::omega )
+      .field( "Phi", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::Phi )
     ;
     Rcpp::class_<QuadraticPolyOU1D::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyOU1D_PruningSpec" )
       .derives<QuadraticPolyOU1D::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -691,6 +707,7 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyJOU) {
     .property( "fastest_step_tuning", &QuadraticPolyJOU::AlgorithmType::fastest_step_tuning )
   ;
   Rcpp::class_<QuadraticPolyJOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+    .method( "StateAtNode", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::StateAtNode )
     .field( "A", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::C )
@@ -702,6 +719,8 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyJOU) {
     .field( "r", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::r )
     .field( "V", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::V_1 )
+    .field( "omega", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::omega )
+    .field( "Phi", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::Phi )
   ;
   Rcpp::class_<QuadraticPolyJOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyJOU_PruningSpec" )
     .derives<QuadraticPolyJOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -776,6 +795,7 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyDOU) {
     .property( "fastest_step_tuning", &QuadraticPolyDOU::AlgorithmType::fastest_step_tuning )
   ;
   Rcpp::class_<QuadraticPolyDOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+    .method( "StateAtNode", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::StateAtNode )
     .field( "A", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::A)
     .field( "b", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::b )
     .field( "C", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::C )
@@ -787,6 +807,8 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyDOU) {
     .field( "r", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::r )
     .field( "V", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::V )
     .field( "V_1", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::V_1 )
+    .field( "omega", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::omega )
+    .field( "Phi", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::Phi )
   ;
   Rcpp::class_<QuadraticPolyDOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyDOU_PruningSpec" )
     .derives<QuadraticPolyDOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
@@ -866,6 +888,7 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian::TraversalSpecificationType
       .property( "fastest_step_tuning", &QuadraticPolyMixedGaussian::AlgorithmType::fastest_step_tuning )
     ;
     Rcpp::class_<QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
+      .method( "StateAtNode", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::StateAtNode )
       .field( "A", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::A)
       .field( "b", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::b )
       .field( "C", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::C )
@@ -877,6 +900,8 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian::TraversalSpecificationType
       .field( "r", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::r )
       .field( "V", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::V )
       .field( "V_1", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::V_1 )
+      .field( "omega", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::omega )
+      .field( "Phi", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::Phi )
     ;
     Rcpp::class_<QuadraticPolyMixedGaussian::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyMixedGaussian_PruningSpec" )
       .derives<QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
