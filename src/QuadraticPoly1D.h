@@ -58,6 +58,7 @@ struct NumericTraitData1D {
   double threshold_Lambda_ij_;
   bool skip_singular_;
   bool transpose_Sigma_x;
+  double NA_double_;
   
   NumericTraitData1D(
     std::vector<NameType> const& names,
@@ -70,14 +71,16 @@ struct NumericTraitData1D {
     double threshold_skip_singular,
     bool skip_singular,
     bool transpose_Sigma_x,
-    double threshold_Lambda_ij): names_(names), X_(X), VE_(VE), 
+    double threshold_Lambda_ij, 
+    double NA_double_): names_(names), X_(X), VE_(VE), 
     R_(R), regime_models_(regime_models),
     threshold_SV_(threshold_SV), 
     threshold_EV_(threshold_EV), 
     threshold_skip_singular_(threshold_skip_singular),
     threshold_Lambda_ij_(threshold_Lambda_ij),
     skip_singular_(skip_singular),
-    transpose_Sigma_x(transpose_Sigma_x) {}
+    transpose_Sigma_x(transpose_Sigma_x),
+    NA_double_(NA_double_) {}
 };
 
 template<class MatType>
@@ -211,6 +214,20 @@ public:
     L(tree.num_nodes()),
     m(tree.num_nodes()),
     r(tree.num_nodes()) {
+    
+    A.fill(input_data.NA_double_);
+    b.fill(input_data.NA_double_);
+    C.fill(input_data.NA_double_);
+    d.fill(input_data.NA_double_);
+    E.fill(input_data.NA_double_);
+    f.fill(input_data.NA_double_);
+    omega.fill(input_data.NA_double_);
+    Phi.fill(input_data.NA_double_);
+    V.fill(input_data.NA_double_);
+    V_1.fill(input_data.NA_double_);
+    L.fill(input_data.NA_double_);
+    m.fill(input_data.NA_double_);
+    r.fill(input_data.NA_double_);
     
     arma::uvec ordTips(
         this->ref_tree_.OrderNodesPosType(

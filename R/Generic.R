@@ -135,6 +135,7 @@ PCMTreePreorderCpp <- function(tree) {
 PCMExtractAbCdEfLmr <- function(metaI) {
   k <- metaI$k
   M <- metaI$M
+  N <- metaI$N
   pc <- metaI$pc
   tr <- metaI$cppObject$tree
   
@@ -145,22 +146,13 @@ PCMExtractAbCdEfLmr <- function(metaI) {
   })
   
   ExtractMatrix <- function(i, offset) {
-    matRes <- matrix(NA_real_, k, k)
-    matExtracted <- matrix(nodeStates[[i]][seq(offset + 1, offset + k*k)], k, k)
-    matRes[pc[,i], pc[,i]] <- matExtracted[pc[,i], pc[,i]]
-    matRes
+    matrix(nodeStates[[i]][seq(offset + 1, offset + k*k)], k, k)
   }
-  ExtractVector <- function(i, offset) {
-    vecRes <- rep(NA_real_, k)
-    vecExtracted <- nodeStates[[i]][seq(offset + 1, offset + k)]
-    vecRes[pc[,i]] <- vecExtracted[pc[,i]]
-    vecRes
+  ExtractVector <- function(i, offset, name) {
+    nodeStates[[i]][seq(offset + 1, offset + k)]
   }
-  ExtractScalar <- function(i, offset) {
-    res <- NA_real_
-    extracted <- nodeStates[[i]][offset + 1]
-    res <- extracted
-    res
+  ExtractScalar <- function(i, offset, name) {
+    nodeStates[[i]][offset + 1]
   }
   list(
     omega = abind(lapply(

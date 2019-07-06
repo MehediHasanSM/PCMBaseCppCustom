@@ -111,6 +111,8 @@ struct ParsedRObjects {
   double threshold_EV;
   double threshold_skip_singular;
   double threshold_Lambda_ij;
+  double NA_double_;
+  
   bool skip_singular;
   bool transpose_Sigma_x;
   arma::mat const& X;
@@ -120,6 +122,7 @@ struct ParsedRObjects {
   SPLITT::uvec br_0;
   SPLITT::uvec br_1; 
   SPLITT::vec t;
+  
   
   uint RModel;
   std::vector<arma::uword> regimes;
@@ -139,6 +142,7 @@ struct ParsedRObjects {
     threshold_EV(static_cast<double>(metaInfo["PCMBase.Threshold.EV"])),
     threshold_skip_singular(static_cast<double>(metaInfo["PCMBase.Threshold.Skip.Singular"])), 
     threshold_Lambda_ij(static_cast<double>(metaInfo["PCMBase.Threshold.Lambda_ij"])),
+    NA_double_(static_cast<double>(metaInfo["NA_double_"])),
     skip_singular(static_cast<int>(metaInfo["PCMBase.Skip.Singular"])),
     transpose_Sigma_x(static_cast<int>(metaInfo["PCMBase.Transpose.Sigma_x"])),
     X(X),
@@ -216,13 +220,13 @@ QuadraticPolyWhite* CreateQuadraticPolyWhite(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyWhite(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyWhite::TreeType)
-  //RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyWhite::TraversalSpecificationType)
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyWhite::AlgorithmType)
   
   RCPP_MODULE(PCMBaseCpp__QuadraticPolyWhite) {
@@ -256,34 +260,11 @@ QuadraticPolyWhite* CreateQuadraticPolyWhite(
       .property( "durations_tuning", &QuadraticPolyWhite::AlgorithmType::durations_tuning )
       .property( "fastest_step_tuning", &QuadraticPolyWhite::AlgorithmType::fastest_step_tuning )
     ;
-    // Rcpp::class_<QuadraticPolyWhite::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    //   .method( "StateAtNode", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::StateAtNode )
-    //   .field( "A", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::A)
-    //   .field( "b", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::b )
-    //   .field( "C", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::C )
-    //   .field( "d", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::d )
-    //   .field( "E", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::E )
-    //   .field( "f", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::f )
-    //   .field( "L", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::L )
-    //   .field( "m", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::m )
-    //   .field( "r", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::r )
-    //   .field( "V", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::V )
-    //   .field( "V_1", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::V_1 )
-    //   .field( "omega", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::omega )
-    //   .field( "Phi", &QuadraticPolyWhite::TraversalSpecificationType::BaseType::Phi )
-    // 
-    // ;
-    // Rcpp::class_<QuadraticPolyWhite::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyWhite_PruningSpec" )
-    //   .derives<QuadraticPolyWhite::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    // ;
     Rcpp::class_<QuadraticPolyWhite>( "PCMBaseCpp__QuadraticPolyWhite" )
       .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyWhite)
       .method( "TraverseTree", &QuadraticPolyWhite::TraverseTree )
       .method( "StateAtNode", &QuadraticPolyWhite::StateAtNode )
       .property( "tree", &QuadraticPolyWhite::tree )
-    // When R tries to garbage-collect an exported spec member, there is a
-    // memory not mapped error. Hence we don't export it.
-      //.property( "spec", &QuadraticPolyWhite::spec )
       .property( "algorithm", &QuadraticPolyWhite::algorithm )
     ;
   }
@@ -309,13 +290,13 @@ QuadraticPolyBM* CreateQuadraticPolyBM(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyBM(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 //RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM::TreeType)
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM::AlgorithmType)
   
 RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM) {
@@ -349,33 +330,11 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM) {
     .property( "durations_tuning", &QuadraticPolyBM::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolyBM::AlgorithmType::fastest_step_tuning )
   ;
-  // Rcpp::class_<QuadraticPolyBM::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  //   .method( "StateAtNode", &QuadraticPolyBM::TraversalSpecificationType::BaseType::StateAtNode )
-  //   .field( "A", &QuadraticPolyBM::TraversalSpecificationType::BaseType::A)
-  //   .field( "b", &QuadraticPolyBM::TraversalSpecificationType::BaseType::b )
-  //   .field( "C", &QuadraticPolyBM::TraversalSpecificationType::BaseType::C )
-  //   .field( "d", &QuadraticPolyBM::TraversalSpecificationType::BaseType::d )
-  //   .field( "E", &QuadraticPolyBM::TraversalSpecificationType::BaseType::E )
-  //   .field( "f", &QuadraticPolyBM::TraversalSpecificationType::BaseType::f )
-  //   .field( "L", &QuadraticPolyBM::TraversalSpecificationType::BaseType::L )
-  //   .field( "m", &QuadraticPolyBM::TraversalSpecificationType::BaseType::m )
-  //   .field( "r", &QuadraticPolyBM::TraversalSpecificationType::BaseType::r )
-  //   .field( "V", &QuadraticPolyBM::TraversalSpecificationType::BaseType::V )
-  //   .field( "V_1", &QuadraticPolyBM::TraversalSpecificationType::BaseType::V_1 )
-  //   .field( "omega", &QuadraticPolyBM::TraversalSpecificationType::BaseType::omega )
-  //   .field( "Phi", &QuadraticPolyBM::TraversalSpecificationType::BaseType::Phi )
-  // ;
-  // Rcpp::class_<QuadraticPolyBM::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyBM_PruningSpec" )
-  //   .derives<QuadraticPolyBM::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  // ;
   Rcpp::class_<QuadraticPolyBM>( "PCMBaseCpp__QuadraticPolyBM" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyBM)
     .method( "TraverseTree", &QuadraticPolyBM::TraverseTree )
     .method( "StateAtNode", &QuadraticPolyBM::StateAtNode )
     .property( "tree", &QuadraticPolyBM::tree )
-  // When R tries to garbage-collect an exported spec member, there is a
-  // memory not mapped error. Hence we don't export it.
-    //.property( "spec", &QuadraticPolyBM::spec )
     .property( "algorithm", &QuadraticPolyBM::algorithm )
   ;
 }
@@ -402,13 +361,13 @@ QuadraticPolyBM1D* CreateQuadraticPolyBM1D(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyBM1D(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 //RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::TreeType)
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::TraversalSpecificationType)
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyBM1D::AlgorithmType)
   
   RCPP_MODULE(PCMBaseCpp__QuadraticPolyBM1D) {
@@ -442,33 +401,11 @@ QuadraticPolyBM1D* CreateQuadraticPolyBM1D(
       .property( "durations_tuning", &QuadraticPolyBM1D::AlgorithmType::durations_tuning )
       .property( "fastest_step_tuning", &QuadraticPolyBM1D::AlgorithmType::fastest_step_tuning )
     ;
-    // Rcpp::class_<QuadraticPolyBM1D::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    //   .method( "StateAtNode", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::StateAtNode )
-    //   .field( "A", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::A)
-    //   .field( "b", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::b )
-    //   .field( "C", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::C )
-    //   .field( "d", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::d )
-    //   .field( "E", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::E )
-    //   .field( "f", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::f )
-    //   .field( "L", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::L )
-    //   .field( "m", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::m )
-    //   .field( "r", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::r )
-    //   .field( "V", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::V )
-    //   .field( "V_1", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::V_1 )
-    //   .field( "omega", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::omega )
-    //   .field( "Phi", &QuadraticPolyBM1D::TraversalSpecificationType::BaseType::Phi )
-    // ;
-    // Rcpp::class_<QuadraticPolyBM1D::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyBM1D_PruningSpec" )
-    //   .derives<QuadraticPolyBM1D::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    // ;
     Rcpp::class_<QuadraticPolyBM1D>( "PCMBaseCpp__QuadraticPolyBM1D" )
       .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyBM1D)
       .method( "TraverseTree", &QuadraticPolyBM1D::TraverseTree )
       .method( "StateAtNode", &QuadraticPolyBM1D::StateAtNode )
       .property( "tree", &QuadraticPolyBM1D::tree )
-    // When R tries to garbage-collect an exported spec member, there is a
-    // memory not mapped error. Hence we don't export it.
-      //.property( "spec", &QuadraticPolyBM1D::spec )
       .property( "algorithm", &QuadraticPolyBM1D::algorithm )
     ;
   }
@@ -495,12 +432,12 @@ QuadraticPolyOU* CreateQuadraticPolyOU(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyOU(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU::AlgorithmType)
   
 RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU) {
@@ -534,33 +471,11 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU) {
     .property( "durations_tuning", &QuadraticPolyOU::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolyOU::AlgorithmType::fastest_step_tuning )
   ;
-  // Rcpp::class_<QuadraticPolyOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  //   .method( "StateAtNode", &QuadraticPolyOU::TraversalSpecificationType::BaseType::StateAtNode )
-  //   .field( "A", &QuadraticPolyOU::TraversalSpecificationType::BaseType::A)
-  //   .field( "b", &QuadraticPolyOU::TraversalSpecificationType::BaseType::b )
-  //   .field( "C", &QuadraticPolyOU::TraversalSpecificationType::BaseType::C )
-  //   .field( "d", &QuadraticPolyOU::TraversalSpecificationType::BaseType::d )
-  //   .field( "E", &QuadraticPolyOU::TraversalSpecificationType::BaseType::E )
-  //   .field( "f", &QuadraticPolyOU::TraversalSpecificationType::BaseType::f )
-  //   .field( "L", &QuadraticPolyOU::TraversalSpecificationType::BaseType::L )
-  //   .field( "m", &QuadraticPolyOU::TraversalSpecificationType::BaseType::m )
-  //   .field( "r", &QuadraticPolyOU::TraversalSpecificationType::BaseType::r )
-  //   .field( "V", &QuadraticPolyOU::TraversalSpecificationType::BaseType::V )
-  //   .field( "V_1", &QuadraticPolyOU::TraversalSpecificationType::BaseType::V_1 )
-  //   .field( "omega", &QuadraticPolyOU::TraversalSpecificationType::BaseType::omega )
-  //   .field( "Phi", &QuadraticPolyOU::TraversalSpecificationType::BaseType::Phi )
-  // ;
-  // Rcpp::class_<QuadraticPolyOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyOU_PruningSpec" )
-  //   .derives<QuadraticPolyOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  // ;
   Rcpp::class_<QuadraticPolyOU>( "PCMBaseCpp__QuadraticPolyOU" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyOU)
     .method( "TraverseTree", &QuadraticPolyOU::TraverseTree )
     .method( "StateAtNode", &QuadraticPolyOU::StateAtNode )
     .property( "tree", &QuadraticPolyOU::tree )
-  // When R tries to garbage-collect an exported spec member, there is a
-  // memory not mapped error. Hence we don't export it.
-    //.property( "spec", &QuadraticPolyOU::spec )
     .property( "algorithm", &QuadraticPolyOU::algorithm )
   ;
 }
@@ -586,12 +501,12 @@ QuadraticPolyOU1D* CreateQuadraticPolyOU1D(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyOU1D(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::TraversalSpecificationType)
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::AlgorithmType)
   
   RCPP_MODULE(PCMBaseCpp__QuadraticPolyOU1D) {
@@ -625,33 +540,11 @@ QuadraticPolyOU1D* CreateQuadraticPolyOU1D(
       .property( "durations_tuning", &QuadraticPolyOU1D::AlgorithmType::durations_tuning )
       .property( "fastest_step_tuning", &QuadraticPolyOU1D::AlgorithmType::fastest_step_tuning )
     ;
-    // Rcpp::class_<QuadraticPolyOU1D::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    //   .method( "StateAtNode", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::StateAtNode )
-    //   .field( "A", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::A)
-    //   .field( "b", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::b )
-    //   .field( "C", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::C )
-    //   .field( "d", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::d )
-    //   .field( "E", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::E )
-    //   .field( "f", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::f )
-    //   .field( "L", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::L )
-    //   .field( "m", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::m )
-    //   .field( "r", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::r )
-    //   .field( "V", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::V )
-    //   .field( "V_1", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::V_1 )
-    //   .field( "omega", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::omega )
-    //   .field( "Phi", &QuadraticPolyOU1D::TraversalSpecificationType::BaseType::Phi )
-    // ;
-    // Rcpp::class_<QuadraticPolyOU1D::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyOU1D_PruningSpec" )
-    //   .derives<QuadraticPolyOU1D::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    // ;
     Rcpp::class_<QuadraticPolyOU1D>( "PCMBaseCpp__QuadraticPolyOU1D" )
       .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyOU1D)
       .method( "TraverseTree", &QuadraticPolyOU1D::TraverseTree )
       .method( "StateAtNode", &QuadraticPolyOU1D::StateAtNode )
       .property( "tree", &QuadraticPolyOU1D::tree )
-    // When R tries to garbage-collect an exported spec member, there is a
-    // memory not mapped error. Hence we don't export it.
-      //.property( "spec", &QuadraticPolyOU1D::spec )
       .property( "algorithm", &QuadraticPolyOU1D::algorithm )
     ;
   }
@@ -681,13 +574,13 @@ QuadraticPolyJOU* CreateQuadraticPolyJOU(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyJOU(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyJOU::TreeType)
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyJOU::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyJOU::AlgorithmType)
   
 RCPP_MODULE(PCMBaseCpp__QuadraticPolyJOU) {
@@ -721,33 +614,11 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyJOU) {
     .property( "durations_tuning", &QuadraticPolyJOU::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolyJOU::AlgorithmType::fastest_step_tuning )
   ;
-  // Rcpp::class_<QuadraticPolyJOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  //   .method( "StateAtNode", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::StateAtNode )
-  //   .field( "A", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::A)
-  //   .field( "b", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::b )
-  //   .field( "C", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::C )
-  //   .field( "d", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::d )
-  //   .field( "E", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::E )
-  //   .field( "f", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::f )
-  //   .field( "L", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::L )
-  //   .field( "m", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::m )
-  //   .field( "r", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::r )
-  //   .field( "V", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::V )
-  //   .field( "V_1", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::V_1 )
-  //   .field( "omega", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::omega )
-  //   .field( "Phi", &QuadraticPolyJOU::TraversalSpecificationType::BaseType::Phi )
-  // ;
-  // Rcpp::class_<QuadraticPolyJOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyJOU_PruningSpec" )
-  //   .derives<QuadraticPolyJOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  // ;
   Rcpp::class_<QuadraticPolyJOU>( "PCMBaseCpp__QuadraticPolyJOU" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyJOU)
     .method( "TraverseTree", &QuadraticPolyJOU::TraverseTree )
     .method( "StateAtNode", &QuadraticPolyJOU::StateAtNode )
     .property( "tree", &QuadraticPolyJOU::tree )
-    // When R tries to garbage-collect an exported spec member, there is a
-    // memory not mapped error. Hence we don't export it.
-    // .property( "spec", &QuadraticPolyJOU::spec )
     .property( "algorithm", &QuadraticPolyJOU::algorithm )
   ;
 }
@@ -773,12 +644,12 @@ QuadraticPolyDOU* CreateQuadraticPolyDOU(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij);
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyDOU(pObjs.br_0, pObjs.br_1, lengths, data);;
 }
 
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyDOU::TraversalSpecificationType)
 RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyDOU::AlgorithmType)
   
 RCPP_MODULE(PCMBaseCpp__QuadraticPolyDOU) {
@@ -812,33 +683,11 @@ RCPP_MODULE(PCMBaseCpp__QuadraticPolyDOU) {
     .property( "durations_tuning", &QuadraticPolyDOU::AlgorithmType::durations_tuning )
     .property( "fastest_step_tuning", &QuadraticPolyDOU::AlgorithmType::fastest_step_tuning )
   ;
-  // Rcpp::class_<QuadraticPolyDOU::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  //   .method( "StateAtNode", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::StateAtNode )
-  //   .field( "A", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::A)
-  //   .field( "b", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::b )
-  //   .field( "C", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::C )
-  //   .field( "d", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::d )
-  //   .field( "E", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::E )
-  //   .field( "f", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::f )
-  //   .field( "L", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::L )
-  //   .field( "m", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::m )
-  //   .field( "r", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::r )
-  //   .field( "V", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::V )
-  //   .field( "V_1", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::V_1 )
-  //   .field( "omega", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::omega )
-  //   .field( "Phi", &QuadraticPolyDOU::TraversalSpecificationType::BaseType::Phi )
-  // ;
-  // Rcpp::class_<QuadraticPolyDOU::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyDOU_PruningSpec" )
-  //   .derives<QuadraticPolyDOU::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-  // ;
   Rcpp::class_<QuadraticPolyDOU>( "PCMBaseCpp__QuadraticPolyDOU" )
     .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyDOU)
     .method( "TraverseTree", &QuadraticPolyDOU::TraverseTree )
     .method( "StateAtNode", &QuadraticPolyDOU::StateAtNode )
     .property( "tree", &QuadraticPolyDOU::tree )
-    // When R tries to garbage-collect an exported spec member, there is a
-    // memory not mapped error. Hence we don't export it.
-    //.property( "spec", &QuadraticPolyDOU::spec )
     .property( "algorithm", &QuadraticPolyDOU::algorithm )
   ;
 }
@@ -868,13 +717,12 @@ QuadraticPolyMixedGaussian* CreateQuadraticPolyMixedGaussian(
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
       pObjs.transpose_Sigma_x,
-      pObjs.threshold_Lambda_ij
-      );
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
   
   return new QuadraticPolyMixedGaussian(pObjs.br_0, pObjs.br_1, lengths, data);
 }
 
-//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian::TraversalSpecificationType)
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian::AlgorithmType)
   
   RCPP_MODULE(PCMBaseCpp__QuadraticPolyMixedGaussian) {
@@ -908,33 +756,11 @@ QuadraticPolyMixedGaussian* CreateQuadraticPolyMixedGaussian(
       .property( "durations_tuning", &QuadraticPolyMixedGaussian::AlgorithmType::durations_tuning )
       .property( "fastest_step_tuning", &QuadraticPolyMixedGaussian::AlgorithmType::fastest_step_tuning )
     ;
-    // Rcpp::class_<QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType> ( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    //   .method( "StateAtNode", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::StateAtNode )
-    //   .field( "A", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::A)
-    //   .field( "b", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::b )
-    //   .field( "C", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::C )
-    //   .field( "d", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::d )
-    //   .field( "E", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::E )
-    //   .field( "f", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::f )
-    //   .field( "L", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::L )
-    //   .field( "m", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::m )
-    //   .field( "r", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::r )
-    //   .field( "V", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::V )
-    //   .field( "V_1", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::V_1 )
-    //   .field( "omega", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::omega )
-    //   .field( "Phi", &QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType::Phi )
-    // ;
-    // Rcpp::class_<QuadraticPolyMixedGaussian::TraversalSpecificationType> ( "PCMBaseCpp__QuadraticPolyMixedGaussian_PruningSpec" )
-    //   .derives<QuadraticPolyMixedGaussian::TraversalSpecificationType::BaseType>( "PCMBaseCpp__QuadraticPoly_PrunignSpec" )
-    // ;
     Rcpp::class_<QuadraticPolyMixedGaussian>( "PCMBaseCpp__QuadraticPolyMixedGaussian" )
       .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyMixedGaussian)
       .method( "TraverseTree", &QuadraticPolyMixedGaussian::TraverseTree )
       .method( "StateAtNode", &QuadraticPolyMixedGaussian::StateAtNode )
       .property( "tree", &QuadraticPolyMixedGaussian::tree )
-      // When R tries to garbage-collect an exported spec member, there is a
-      // memory not mapped error. Hence we don't export it.
-      //.property( "spec", &QuadraticPolyMixedGaussian::spec )
       .property( "algorithm", &QuadraticPolyMixedGaussian::algorithm )
     ;
   }
