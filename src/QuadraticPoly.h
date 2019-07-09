@@ -380,17 +380,24 @@ public:
   }
   
   inline void InitLmr(uint i) {
-    L.slice(i).fill(0.0);
-    m.col(i).fill(0.0);
-    r(i) = 0.0;
-    singular_branch_[i] = 0;
+    if(i >= this->ref_tree_.num_tips()) {
+      // internal or root node: L_i and m_i must be initialized to 0 at k_i:
+      using namespace arma;
+      uvec ki = pc[i];
+      uvec ui(1);
+      ui(0) = i;
+      
+      L.slice(i).submat(ki,ki).fill(0.0);
+      m.submat(ki,ui).fill(0.0);
+      r(i) = 0.0;
+    }
   }
   
   inline void InitNode(uint i) {
     using namespace arma;
     using namespace std;
     InitLmr(i);
-    
+    singular_branch_[i] = 0;
     if(i < this->ref_tree_.num_nodes() - 1) {
       
       auto ri = this->ref_tree_.LengthOfBranch(i).regime_;
