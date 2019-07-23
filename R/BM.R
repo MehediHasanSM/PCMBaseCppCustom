@@ -27,7 +27,7 @@ PCMInfoCpp.BM <- function(X, tree, model,
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  if(metaI$k == 1L && getOption("PCMBaseCpp.Use1DClasses", FALSE)) {
+  if(metaI$k == 1L && getOption("PCMBase.Use1DClasses", FALSE)) {
     res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyBM1D$new(X, tree, model, metaI))
   } else {
     res <- c(metaI, cppObject = PCMBaseCpp__QuadraticPolyBM$new(X, tree, model, metaI))

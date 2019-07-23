@@ -1,0 +1,84 @@
+---
+title: "TestLogLik1D"
+author: "Venelin Mitov"
+date: "7/22/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(PCMBase)
+library(PCMBaseCpp)
+knitr::opts_chunk$set(echo = TRUE)
+options(digits = 4)
+```
+
+```{r, eval=FALSE}
+# single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
+# data1D = PCMBaseCpp::benchmarkData[, list(
+#  tree, 
+#  X = lapply(X, function(x) x[1,, drop=FALSE]), 
+#  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))]
+
+data1D = PCMBaseCpp::benchmarkData[, list(
+  tree, 
+  X = lapply(X, function(x) x[1,, drop=FALSE]), 
+  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1)))]
+
+do.call(options, list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+                   PCMBase.Use1DClasses = FALSE))
+traceLik <- PCMLikTrace(data1D$X[[2]], data1D$tree[[2]], data1D$model[[2]], metaI = PCMInfo)
+
+do.call(options, list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+                   PCMBase.Use1DClasses = TRUE))
+traceLik1D <- PCMLikTrace(data1D$X[[2]], data1D$tree[[2]], data1D$model[[2]], metaI = PCMInfoCpp)
+
+rbind(traceLik[101], traceLik1D[101])
+```
+
+```{r, eval=FALSE}
+save(traceLik, traceLik1D, file = "testLogLik1D.RData")
+```
+
+```{r, eval=TRUE}
+load("testLogLik1D.RData")
+```
+
+# traceLik
+```{r, results='asis'}
+cat(FormatTableAsLatex(traceLik, type="html"))
+```
+
+# traceLik1D
+```{r, results='asis'}
+cat(FormatTableAsLatex(traceLik1D, type="html"))
+```
+
+
+```{r, eval=FALSE}
+do.call(options, list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+                   PCMBase.Use1DClasses = FALSE))
+
+# single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
+MiniBenchmarkRvsCpp(
+data = PCMBaseCpp::benchmarkData[, list(
+ tree, 
+ X = lapply(X, function(x) x[1,, drop=FALSE]), 
+ model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
+listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+PCMBase.Use1DClasses = TRUE))
+```
+
+
+```{r, eval=FALSE}
+do.call(options, list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+                   PCMBase.Use1DClasses = TRUE))
+
+# single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
+MiniBenchmarkRvsCpp(
+data = PCMBaseCpp::benchmarkData[, list(
+ tree, 
+ X = lapply(X, function(x) x[1,, drop=FALSE]), 
+ model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
+listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+PCMBase.Use1DClasses = TRUE))
+```

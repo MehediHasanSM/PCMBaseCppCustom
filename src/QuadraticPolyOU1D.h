@@ -27,7 +27,6 @@
 #include "QuadraticPoly1D.h"
 #include <armadillo>
 #include <sstream>
-//#include <iostream>
 
 namespace PCMBaseCpp {
 
@@ -80,14 +79,10 @@ struct CondGaussianOU1D: public CondGaussianOmegaPhiV1D {
   arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) {
     using namespace arma;
 
-    // for (const auto& i: par)
-    //   std::cout << i << ' ';
-    // std::cout<<"; "<<offset<<";"<<R_<<"; "<<k_<<"\n";
-    
     uint npar = R_ * 5;
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03401:PCMBaseCpp:QuadraticPolyOU1D.h:CondOU1D.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"QuadraticPolyOU1D.h:CondOU1D.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*5, where R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
     }
@@ -97,12 +92,6 @@ struct CondGaussianOU1D: public CondGaussianOmegaPhiV1D {
     Theta = vec(&par[offset + 2*R_], R_);
     Sigma = vec(&par[offset + 3*R_], R_);
     Sigmae = vec(&par[offset + 4*R_], R_);
-    
-    // cout<<"X0:\n"<<X0<<"\n";
-    // cout<<"H:\n"<<H<<"\n";
-    // cout<<"Theta:\n"<<Theta<<"\n";
-    // cout<<"Sigma:\n"<<Sigma<<"\n";
-    // cout<<"Sigmae\n"<<Sigmae<<"\n";
     
     for(uword r = 0; r < R_; r++) {
       Sigma(r) = Sigma(r) * Sigma(r);

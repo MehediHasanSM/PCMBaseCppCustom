@@ -46,8 +46,8 @@ struct NumericTraitData1D {
   // tip-names correponding to the columns in Pc_
   std::vector<NameType> const& names_;
   
-  arma::vec const& X_;
-  arma::vec const& VE_;
+  arma::mat const& X_;
+  arma::cube const& VE_;
   
   uint R_;
   
@@ -62,8 +62,8 @@ struct NumericTraitData1D {
   
   NumericTraitData1D(
     std::vector<NameType> const& names,
-    arma::vec const& X,
-    arma::vec const& VE,
+    arma::mat const& X,
+    arma::cube const& VE,
     uint R,
     std::vector<std::string> regime_models,
     double threshold_SV,
@@ -194,8 +194,8 @@ public:
     singular_branch_(tree.num_nodes(), false),
     skip_singular_(input_data.skip_singular_),
     
-    X(input_data.X_),
-    VE(input_data.VE_),
+    X(input_data.X_.row(0).t()),
+    VE(input_data.VE_.tube(0, 0)),
     
     // all these fields have to be initialized with 0 during SetParameter.
     A(tree.num_nodes()),
@@ -235,9 +235,6 @@ public:
     
     this->X(arma::span(0, this->ref_tree_.num_tips() - 1)) = X(ordTips);
     this->VE(arma::span(0, this->ref_tree_.num_tips() - 1)) = VE(ordTips);
-    
-    //PresentCoordinatesTask pc_task(tree, input_data);
-    //pc_task.TraverseTree(0, 1);
     
     SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), tree.num_nodes());
     arma::uvec ordNodes(
@@ -318,7 +315,7 @@ public:
         singular_branch_[i] = 1;
         if(!skip_singular_ || ti > threshold_skip_singular_) {
           ostringstream oss;
-          oss<<"ERR:03131:PCMBaseCpp:QuadraticPoly1D.h:InitNode:: V for node "<<
+          oss<<"QuadraticPoly1D.h:InitNode:: V for node "<<
             this->ref_tree_.FindNodeWithId(i)<<" is smaller than threshold_SV_:"<<
               V(i)<<"<"<<threshold_SV_<<
               ". Check the model parameters, the length of the branch leading"<<
@@ -332,7 +329,7 @@ public:
         // Check V is positive definite: all eigen-values must be strictly positive
         if( V(i) < threshold_EV_ ) {
           ostringstream oss;
-          oss<<"ERR:03132:PCMBaseCpp:QuadraticPoly1D.h:InitNode:: V for node "<<
+          oss<<"QuadraticPoly1D.h:InitNode:: V for node "<<
             this->ref_tree_.FindNodeWithId(i)<<
               " is nearly 0 or negative: "<<V(i)<<"<"<<threshold_EV_<<
                 ". Check the model parameters and the PCMBase.Threshold.EV option.";

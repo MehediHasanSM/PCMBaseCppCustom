@@ -39,7 +39,7 @@ PCMInfoCpp.MixedGaussian <- function(
       } else if(startsWith(class(param)[1], "OU")) {
         "OU"
       } else 
-        stop(paste0("ERR:03501:PCMBaseCpp:MixedGaussian.R:PCMInfoCpp.MixedGaussian:: Uknown model class ", class(param)[1]))
+        stop(paste0("PCMInfoCpp.MixedGaussian:: Uknown model class ", class(param)[1]))
     } else {
       NULL
     }
@@ -48,10 +48,16 @@ PCMInfoCpp.MixedGaussian <- function(
   
   metaI$pcListInt <- PCListInt(metaI$pc)
   
-  res <- c(metaI, 
-           cppObject = PCMBaseCpp__QuadraticPolyMixedGaussian$new(
-             X, tree, model, metaI, 
-             regimeModel))
+  if(metaI$k == 1L && getOption("PCMBase.Use1DClasses", FALSE) && 
+     isTRUE(all(regimeModel %in% c("OU", "BM")))) { 
+    res <- c(metaI, 
+             cppObject = PCMBaseCpp__QuadraticPolyMixedGaussian1D$new(
+               X, tree, model, metaI, regimeModel))
+  } else {
+    res <- c(metaI, 
+             cppObject = PCMBaseCpp__QuadraticPolyMixedGaussian$new(
+               X, tree, model, metaI, regimeModel))
+  }
   
   res$TraverseTree = res$cppObject$TraverseTree
   res$StateAtNode = res$cppObject$StateAtNode

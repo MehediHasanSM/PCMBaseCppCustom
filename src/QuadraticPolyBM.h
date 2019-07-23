@@ -82,7 +82,7 @@ struct CondGaussianBM: public CondGaussianOmegaPhiV {
     uint npar = R_*(2*k_*k_ + k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03201:PCMBaseCpp:QuadraticPolyBM.h:CondBM.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<":QuadraticPolyBM.h:CondBM.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(2k^2+k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());

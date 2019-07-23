@@ -66,7 +66,7 @@ struct CondGaussianBM1D: public CondGaussianOmegaPhiV1D {
     uint npar = R_ * 3;
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03201:PCMBaseCpp:QuadraticPolyBM1D.h:CondBM1D.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"QuadraticPolyBM1D.h:CondBM1D.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*3, where R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
     }
@@ -75,7 +75,7 @@ struct CondGaussianBM1D: public CondGaussianOmegaPhiV1D {
     Sigma = vec(&par[offset + R_], R_);
     Sigmae = vec(&par[offset + 2*R_], R_);
     
-    // By convention the parameters Sigma and Sigmae are Choleski factors (i.e. square roots).
+    // By convention the parameters Sigma and Sigmae are square roots.
     for(uword r = 0; r < R_; r++) {
       Sigma(r) = Sigma(r) * Sigma(r);
       Sigmae(r) = Sigmae(r) * Sigmae(r);  
@@ -93,6 +93,7 @@ struct CondGaussianBM1D: public CondGaussianOmegaPhiV1D {
     Phi(i) = 1.0;
     
     V(i) = ti * Sigma(ri); 
+    
     if(i < this->ref_tree_.num_tips()) {
       V(i) += Sigmae(ri);
     }

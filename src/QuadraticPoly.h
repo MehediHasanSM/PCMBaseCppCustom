@@ -316,20 +316,16 @@ public:
     this->X.cols(0, this->ref_tree_.num_tips() - 1) = X.cols(ordTips);
     this->VE.slices(0, this->ref_tree_.num_tips() - 1) = VE.slices(ordTips);
 
-    //PresentCoordinatesTask pc_task(tree, input_data);
-    //pc_task.TraverseTree(0, 1);
-
     SPLITT::uvec node_names = SPLITT::Seq(static_cast<SPLITT::uint>(1), tree.num_nodes());
     arma::uvec ordNodes(
         this->ref_tree_.OrderNodesPosType(
             node_names, static_cast<arma::uword>(SPLITT::G_NA_UINT)));
     
     for(size_t i = 0; i < tree.num_nodes(); ++i) {
-      //pc.push_back(pc_task.spec().PcForNodeId(i));
       pc.push_back(input_data.Pc_[ordNodes(i)]);
       if(pc[i].n_elem == 0) {
         std::ostringstream oss;
-        oss<<"ERR:03121:PCMBaseCpp:QuadraticPoly.h:QuadraticPoly:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
+        oss<<"QuadraticPoly:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
         throw std::logic_error(oss.str());
       }
     }
@@ -426,7 +422,7 @@ public:
         singular_branch_[i] = 1;
         if(!skip_singular_ || ti > threshold_skip_singular_) {
           ostringstream oss;
-          oss<<"ERR:03131:PCMBaseCpp:QuadraticPoly.h:InitNode:: The matrix V for node "<<
+          oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
             this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: "<<V.slice(i)(ki,ki)<<
                 ". Check the model parameters and the length of the branch"<<
                   " leading to the node. For details on this error, read the User Guide.";
@@ -458,7 +454,7 @@ public:
         for(double eigv: re_eigval) {
           if(eigv < threshold_EV_) {
             ostringstream oss;
-            oss<<"ERR:03132:PCMBaseCpp:QuadraticPoly.h:InitNode:: The matrix V for node "<<
+            oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
               this->ref_tree_.FindNodeWithId(i)<<
                 " is nearly singular or not positive definite; near-0 or negative eigenvalue found: "<<eigv<<
                 "V.slice(i)(ki,ki): "<<V.slice(i)(ki,ki)<<". Check the model parameters.";

@@ -35,6 +35,7 @@
 #include "QuadraticPolyJOU.h"
 #include "QuadraticPolyDOU.h"
 #include "QuadraticPolyMixedGaussian.h"
+#include "QuadraticPolyMixedGaussian1D.h"
 
 // [[Rcpp::plugins("cpp11")]]
 // [[Rcpp::plugins(openmp)]]
@@ -49,6 +50,7 @@ void R_init_PCMBaseCpp(DllInfo *info) {
 void R_unload_PCMBaseCpp(DllInfo *info) {
    /* Release resources. */
 }
+
 
 using namespace PCMBaseCpp;
 using namespace std;
@@ -122,7 +124,6 @@ struct ParsedRObjects {
   SPLITT::uvec br_0;
   SPLITT::uvec br_1; 
   SPLITT::vec t;
-  
   
   uint RModel;
   std::vector<arma::uword> regimes;
@@ -356,7 +357,8 @@ QuadraticPolyBM1D* CreateQuadraticPolyBM1D(
   }
   
   typename QuadraticPolyBM1D::DataType data(
-      pObjs.tip_names, pObjs.X.row(0), pObjs.VE.row(0), pObjs.RModel, 
+      pObjs.tip_names, pObjs.X, pObjs.VE, 
+      pObjs.RModel, 
       std::vector<std::string>(), 
       pObjs.threshold_SV, pObjs.threshold_EV, 
       pObjs.threshold_skip_singular, pObjs.skip_singular,
@@ -503,9 +505,9 @@ QuadraticPolyOU1D* CreateQuadraticPolyOU1D(
       pObjs.transpose_Sigma_x,
       pObjs.threshold_Lambda_ij,
       pObjs.NA_double_);
-  
   return new QuadraticPolyOU1D(pObjs.br_0, pObjs.br_1, lengths, data);
 }
+
 
   RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyOU1D::AlgorithmType)
   
@@ -762,5 +764,77 @@ QuadraticPolyMixedGaussian* CreateQuadraticPolyMixedGaussian(
       .method( "StateAtNode", &QuadraticPolyMixedGaussian::StateAtNode )
       .property( "tree", &QuadraticPolyMixedGaussian::tree )
       .property( "algorithm", &QuadraticPolyMixedGaussian::algorithm )
+    ;
+  }
+
+QuadraticPolyMixedGaussian1D* CreateQuadraticPolyMixedGaussian1D(
+    arma::mat const& X,
+    Rcpp::List const& tree,
+    Rcpp::List const& model,
+    Rcpp::List const& metaInfo,
+    std::vector<std::string> const& regimeModels) {
+  
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
+  
+  vector<typename QuadraticPolyMixedGaussian1D::LengthType> lengths(pObjs.num_branches);
+  
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+    lengths[i].jump_ = pObjs.jumps[i];
+  }
+  
+  typename QuadraticPolyMixedGaussian1D::DataType data(
+      pObjs.tip_names, pObjs.X, pObjs.VE, 
+      pObjs.RModel, 
+      regimeModels,
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
+  
+  return new QuadraticPolyMixedGaussian1D(pObjs.br_0, pObjs.br_1, lengths, data);
+}
+
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian1D::AlgorithmType)
+  
+  RCPP_MODULE(PCMBaseCpp__QuadraticPolyMixedGaussian1D) {
+    Rcpp::class_<QuadraticPolyMixedGaussian1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyMixedGaussian1D_Tree" )
+    .property("num_nodes", &QuadraticPolyMixedGaussian1D::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolyMixedGaussian1D::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolyMixedGaussian1D::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolyMixedGaussian1D::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolyMixedGaussian1D::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolyMixedGaussian1D::TreeType::Tree::OrderNodes )
+    ;
+    Rcpp::class_<QuadraticPolyMixedGaussian1D::TreeType>( "PCMBaseCpp__QuadraticPolyMixedGaussian1D_OrderedTree" )
+      .derives<QuadraticPolyMixedGaussian1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyMixedGaussian1D_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolyMixedGaussian1D::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolyMixedGaussian1D::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolyMixedGaussian1D::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolyMixedGaussian1D::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolyMixedGaussian1D::TreeType::ranges_id_prune )
+    ;
+    Rcpp::class_<QuadraticPolyMixedGaussian1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyMixedGaussian1D_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolyMixedGaussian1D::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "NumOmpThreads", &QuadraticPolyMixedGaussian1D::AlgorithmType::NumOmpThreads )
+    ;
+    Rcpp::class_<QuadraticPolyMixedGaussian1D::AlgorithmType> ( "PCMBaseCpp__QuadraticPolyMixedGaussian1D_ParallelPruning" )
+      .derives<QuadraticPolyMixedGaussian1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyMixedGaussian1D_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolyMixedGaussian1D::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolyMixedGaussian1D::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolyMixedGaussian1D::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolyMixedGaussian1D::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolyMixedGaussian1D::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolyMixedGaussian1D::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolyMixedGaussian1D::AlgorithmType::fastest_step_tuning )
+    ;
+    Rcpp::class_<QuadraticPolyMixedGaussian1D>( "PCMBaseCpp__QuadraticPolyMixedGaussian1D" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyMixedGaussian1D)
+      .method( "TraverseTree", &QuadraticPolyMixedGaussian1D::TraverseTree )
+      .method( "StateAtNode", &QuadraticPolyMixedGaussian1D::StateAtNode )
+      .property( "tree", &QuadraticPolyMixedGaussian1D::tree )
+      .property( "algorithm", &QuadraticPolyMixedGaussian1D::algorithm )
     ;
   }
