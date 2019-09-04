@@ -2,26 +2,44 @@
 % Please edit documentation in R/BenchmarkRvsCpp.R
 \name{BenchmarkRvsCpp}
 \alias{BenchmarkRvsCpp}
-\title{A log-likelihood calculation time comparison for different numbers of traits and option-sets}
+\title{A log-likelihood calculation time comparison for different numbers of traits 
+and option-sets}
 \usage{
-BenchmarkRvsCpp(ks = c(1, 2, 4, 8), optionSets = NULL,
+BenchmarkRvsCpp(ks = c(1, 2, 4, 8), includeTransformationTime = TRUE,
+  optionSets = NULL, includeParallelMode = TRUE, doProf = FALSE,
+  RprofR.out = "RprofR.out", RprofCpp.out = "RprofCpp.out",
   verbose = FALSE)
 }
 \arguments{
 \item{ks}{a vector of positive integers, denoting different numbers of traits. 
 Default: \code{c(1, 2, 4, 8)}.}
 
-\item{optionSets}{a named list of lists of PCM-options. If NULL (the default) the 
-option set is set to \code{
-list(
-`serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-`parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-`serial / 1D-univar.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = TRUE),
-`parallel / 1D-univar.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = TRUE)
-)} for k = 1 and to \code{
-list(
-`serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-`parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE))} for k > 1.}
+\item{includeTransformationTime}{logical (default TRUE) indicating if the time for
+\code{\link{PCMApplyTransformation}} should be included in the benchmark.}
+
+\item{optionSets}{a named list of lists of PCM-options. If NULL (the default) 
+the option set is set to \code{DefaultBenchmarkOptions(k, includeParallelMode)}
+for each \code{k} in \code{ks} (see the code in 
+\code{PCMBaseCpp:::DefaultBenchmarkOptions}).}
+
+\item{includeParallelMode}{logical (default TRUE) indicating if the default 
+optionSet should include parallel execution modes, i.e. setting the option 
+PCMBase.Lmr.mode to 21 instead of 11. This argument is taken into account 
+only with the argument \code{optionSets} set to NULL (the default).}
+
+\item{doProf}{logical indicating if profiling should be activated (see Rprof
+from the utils R-package). Default: FALSE. Additional arguments to Rprof can 
+be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRprofR'
+and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
+\code{list(append = TRUE, line.profiling = TRUE)}.}
+
+\item{RprofR.out}{character strings indicating Rprof.out files 
+for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
+'RprofR.out' and 'Rprofcpp.out'.}
+
+\item{RprofCpp.out}{character strings indicating Rprof.out files 
+for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
+'RprofR.out' and 'Rprofcpp.out'.}
 
 \item{verbose}{logical indicating if log-messages should be printed to the console during the benchmark. Default FALSE.}
 }
@@ -30,5 +48,6 @@ a data.table for results similar to the data.table returned from \code{\link{Min
 additional columns for k, option-set and the type of model.
 }
 \description{
-A log-likelihood calculation time comparison for different numbers of traits and option-sets
+A log-likelihood calculation time comparison for different numbers of traits 
+and option-sets
 }

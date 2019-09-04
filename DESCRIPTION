@@ -17,10 +17,10 @@ Depends:
     methods
 Imports:
     PCMBase,
+    data.table,
     abind
 Suggests:
     testthat,
-    data.table,
     knitr,
     rmarkdown,
     covr

@@ -178,7 +178,8 @@ if(FALSE) {
     model <- MixedGaussian(
       k = 8, 
       modelTypes = simulatedModels, 
-      mapping = sample(seq_along(simulatedModels), R, TRUE), 
+      #mapping = sample(seq_along(simulatedModels), R, TRUE),
+      mapping = sample(c(2, 4, 5, 6), R, TRUE), 
       Sigmae_x = argsMixedGaussian_SimulatedModels$Sigmae_x)
     vec <- PCMParamRandomVecParams(model, k = PCMNumTraits(model), R = PCMNumRegimes(model))
     PCMParamLoadOrStore(model, vecParams = vec, k = PCMNumTraits(model), offset = 0, load = TRUE)

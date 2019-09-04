@@ -4,9 +4,11 @@
 \alias{MiniBenchmarkRvsCpp}
 \title{Evaluate the likelihood calculation times for example trees and data}
 \usage{
-MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData, nRepsCpp = 10L,
-  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-09,
-  PCMBase.Threshold.SV = 1e-09))
+MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData,
+  includeTransformationTime = TRUE, nRepsCpp = 10L,
+  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 0,
+  PCMBase.Threshold.SV = 0), doProf = FALSE, RprofR.out = "RprofR.out",
+  RprofCpp.out = "RprofCpp.out")
 }
 \arguments{
 \item{data}{a `data.frame` with at least the following columns: 
@@ -18,16 +20,29 @@ MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData, nRepsCpp = 10L,
 Defaults: to `benchmarkData`, which is small data.table included
 with the PCMBaseCpp package.}
 
+\item{includeTransformationTime}{logical (default TRUE) indicating if the time for
+\code{\link{PCMApplyTransformation}} should be included in the benchmark.}
+
 \item{nRepsCpp}{: number of repetitions for the cpp likelihood calculation 
 calls: a bigger value increases the precision of time estimation at the 
 expense of longer running time for the benchmark. Defaults to 10.}
 
 \item{listOptions}{options to set before measuring the calculation times. 
-Defaults to `list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9)`. 
+Defaults to `list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 0, PCMBase.Threshold.SV = 0)`. 
 `PCMBase.Lmr.mode` corresponds to the parallel traversal mode for the tree 
 traversal algorithm (see 
 \href{https://venelin.github.io/SPLITT/articles/SPLITTTraversalModes.html}{this page}
 for possible values).}
+
+\item{doProf}{logical indicating if profiling should be activated (see Rprof
+from the utils R-package). Default: FALSE. Additional arguments to Rprof can 
+be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRprofR'
+and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
+\code{list(append = TRUE, line.profiling = TRUE)}.}
+
+\item{RprofR.out, RprofCpp.out}{character strings indicating Rprof.out files 
+for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
+'RprofR.out' and 'Rprofcpp.out'.}
 }
 \value{
 a data.frame.
@@ -45,7 +60,8 @@ MiniBenchmarkRvsCpp()
 
 # original MGPM model and parallel mode
 MiniBenchmarkRvsCpp(
-listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+PCMBase.Threshold.SV = 1e-9))
 
 # single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
 MiniBenchmarkRvsCpp(
@@ -53,7 +69,8 @@ data = PCMBaseCpp::benchmarkData[, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+PCMBase.Threshold.SV = 1e-9,
 PCMBase.Use1DClasses = FALSE))
 
 # random BM (non-MixedGaussian) model and parallel mode
@@ -62,7 +79,8 @@ data = PCMBaseCpp::benchmarkData[, list(
  tree, 
  X,
  model = modelBM)],
-listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+PCMBase.Threshold.SV = 1e-9))
 
 # random OU (non-MixedGaussian) model and parallel mode
 MiniBenchmarkRvsCpp(
@@ -70,7 +88,8 @@ data = PCMBaseCpp::benchmarkData[, list(
  tree, 
  X,, 
  model = modelOU)],
-listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+PCMBase.Threshold.SV = 1e-9))
 
 # test on sinlge-trait data, BM (non-MGPM) model.
 MiniBenchmarkRvsCpp(
@@ -78,7 +97,8 @@ MiniBenchmarkRvsCpp(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(modelBM, function(m) PCMExtractDimensions(m, dims = 1)))],
- listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, 
+ listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+ PCMBase.Threshold.SV = 1e-9, 
  PCMBase.Use1DClasses = FALSE))
  
  
@@ -88,7 +108,8 @@ MiniBenchmarkRvsCpp(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1)))],
- listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+ listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+ PCMBase.Threshold.SV = 1e-9))
  
 # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
 MiniBenchmarkRvsCpp(
@@ -96,7 +117,8 @@ MiniBenchmarkRvsCpp(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
- listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+ listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+ PCMBase.Threshold.SV = 1e-9,
    PCMBase.Use1DClasses = FALSE))
 
 # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
@@ -105,7 +127,8 @@ MiniBenchmarkRvsCpp(
  tree, 
  X = lapply(X, function(x) x[1:2,, drop=FALSE]), 
  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1:2)))],
- listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+ listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9,
+  PCMBase.Threshold.SV = 1e-9,
    PCMBase.Use1DClasses = TRUE))
 
 MiniBenchmarkRvsCpp(
@@ -113,7 +136,8 @@ MiniBenchmarkRvsCpp(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
- listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+ listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+ PCMBase.Threshold.SV = 1e-9))
 
 #' # test on sinlge-trait data using the PCMBase.Use1DClasses = TRUE option
 MiniBenchmarkRvsCpp(
@@ -122,7 +146,8 @@ MiniBenchmarkRvsCpp(
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
  listOptions = list(
-   PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+   PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+   PCMBase.Threshold.SV = 1e-9,
    PCMBase.Use1DClasses = 1))
 
 # test on sinlge-trait data in parallel mode
@@ -131,7 +156,8 @@ MiniBenchmarkRvsCpp(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
- listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+ listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+ PCMBase.Threshold.SV = 1e-9))
 
 MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21))
 }

@@ -12,7 +12,7 @@
   \item{ll}{log-likelihood value}
   \item{modelBM}{a random BM model}
   \item{llBM}{log-likelihood value form modelBM}
-  \item{modelBM}{a random OU model}
+  \item{modelOU}{a random OU model}
   \item{llOU}{log-likelihood value for modelOU}
 }}
 \usage{

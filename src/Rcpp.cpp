@@ -156,14 +156,14 @@ struct ParsedRObjects {
     num_tips(Rcpp::as<Rcpp::CharacterVector>(tree["tip.label"]).size()),
     tip_names(SPLITT::Seq(static_cast<SPLITT::uint>(1), num_tips)) {
     
-    if(threshold_SV <= 0) {
+    if(threshold_SV < 0) {
       ostringstream os;
-      os<<"ERR:03823:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The argument threshold_SV should be positive real number.";
+      os<<"Rcpp.cpp:ParsedRObjects:: The argument threshold_SV should be non-negative real number.";
       throw invalid_argument(os.str());
     }
-    if(threshold_EV <= 0) {
+    if(threshold_EV < 0) {
       ostringstream os;
-      os<<"ERR:03824:PCMBaseCpp:Rcpp.cpp:ParsedRObjects:: The argument threshold_EV should be positive real number.";
+      os<<"Rcpp.cpp:ParsedRObjects:: The argument threshold_EV should be non-negative real number.";
       throw invalid_argument(os.str());
     }
     if(threshold_Lambda_ij < 0) {

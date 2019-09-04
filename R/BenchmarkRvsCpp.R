@@ -11,7 +11,7 @@
 #'   \item{ll}{log-likelihood value}
 #'   \item{modelBM}{a random BM model}
 #'   \item{llBM}{log-likelihood value form modelBM}
-#'   \item{modelBM}{a random OU model}
+#'   \item{modelOU}{a random OU model}
 #'   \item{llOU}{log-likelihood value for modelOU}
 #' }
 "benchmarkData"
@@ -25,17 +25,28 @@
 #' }
 #' Defaults: to `benchmarkData`, which is small data.table included
 #' with the PCMBaseCpp package.
+#' @param includeTransformationTime logical (default TRUE) indicating if the time for
+#' \code{\link{PCMApplyTransformation}} should be included in the benchmark.
 #' @param nRepsCpp : number of repetitions for the cpp likelihood calculation 
 #' calls: a bigger value increases the precision of time estimation at the 
 #' expense of longer running time for the benchmark. Defaults to 10.
 #' @param listOptions options to set before measuring the calculation times. 
-#' Defaults to `list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9)`. 
+#' Defaults to `list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 0, PCMBase.Threshold.SV = 0)`. 
 #' `PCMBase.Lmr.mode` corresponds to the parallel traversal mode for the tree 
 #' traversal algorithm (see 
 #' \href{https://venelin.github.io/SPLITT/articles/SPLITTTraversalModes.html}{this page}
 #' for possible values).
+#' @param doProf logical indicating if profiling should be activated (see Rprof
+#' from the utils R-package). Default: FALSE. Additional arguments to Rprof can 
+#' be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRprofR'
+#' and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
+#' \code{list(append = TRUE, line.profiling = TRUE)}.
+#' @param RprofR.out,RprofCpp.out character strings indicating Rprof.out files 
+#' for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
+#' 'RprofR.out' and 'Rprofcpp.out'.
 #' @return a data.frame.
-#' @importFrom  PCMBase PCMInfo PCMLik PCMOptions MGPMDefaultModelTypes PCMTreeNumTips PCMTreeNumParts
+#' @importFrom  PCMBase PCMInfo PCMLik PCMOptions MGPMDefaultModelTypes PCMTreeNumTips PCMTreeNumParts PCMApplyTransformation
+#' @importFrom stats logLik
 #' @examples
 #' \dontrun{
 #' library(PCMBase)
@@ -46,7 +57,8 @@
 #' 
 #' # original MGPM model and parallel mode
 #' MiniBenchmarkRvsCpp(
-#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+#' PCMBase.Threshold.SV = 1e-9))
 #' 
 #' # single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
 #' MiniBenchmarkRvsCpp(
@@ -54,7 +66,8 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#' listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+#' listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+#' PCMBase.Threshold.SV = 1e-9,
 #' PCMBase.Use1DClasses = FALSE))
 #' 
 #' # random BM (non-MixedGaussian) model and parallel mode
@@ -63,7 +76,8 @@
 #'  tree, 
 #'  X,
 #'  model = modelBM)],
-#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+#' PCMBase.Threshold.SV = 1e-9))
 #' 
 #' # random OU (non-MixedGaussian) model and parallel mode
 #' MiniBenchmarkRvsCpp(
@@ -71,7 +85,8 @@
 #'  tree, 
 #'  X,, 
 #'  model = modelOU)],
-#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+#' PCMBase.Threshold.SV = 1e-9))
 #'
 #' # test on sinlge-trait data, BM (non-MGPM) model.
 #' MiniBenchmarkRvsCpp(
@@ -79,7 +94,8 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(modelBM, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, 
+#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+#'  PCMBase.Threshold.SV = 1e-9, 
 #'  PCMBase.Use1DClasses = FALSE))
 #'  
 #'  
@@ -89,7 +105,8 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+#'  PCMBase.Threshold.SV = 1e-9))
 #'  
 #' # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
 #' MiniBenchmarkRvsCpp(
@@ -97,7 +114,8 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+#'  PCMBase.Threshold.SV = 1e-9,
 #'    PCMBase.Use1DClasses = FALSE))
 #'
 #' # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
@@ -106,7 +124,8 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1:2,, drop=FALSE]), 
 #'  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1:2)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9,
+#'   PCMBase.Threshold.SV = 1e-9,
 #'    PCMBase.Use1DClasses = TRUE))
 #' 
 #' MiniBenchmarkRvsCpp(
@@ -114,7 +133,8 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+#'  PCMBase.Threshold.SV = 1e-9))
 #'
 #' #' # test on sinlge-trait data using the PCMBase.Use1DClasses = TRUE option
 #' MiniBenchmarkRvsCpp(
@@ -123,7 +143,8 @@
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
 #'  listOptions = list(
-#'    PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9,
+#'    PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
+#'    PCMBase.Threshold.SV = 1e-9,
 #'    PCMBase.Use1DClasses = 1))
 #'
 #' # test on sinlge-trait data in parallel mode
@@ -132,14 +153,20 @@
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9))
+#'  listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
+#'  PCMBase.Threshold.SV = 1e-9))
 #' 
 #' MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21))
 #' }
+#' @importFrom utils Rprof
 #' @export
 MiniBenchmarkRvsCpp <- function(
-  data = PCMBaseCpp::benchmarkData, nRepsCpp = 10L, 
-  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9)) {
+  data = PCMBaseCpp::benchmarkData, 
+  includeTransformationTime = TRUE,
+  nRepsCpp = 10L, 
+  listOptions = list(
+    PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 0, PCMBase.Threshold.SV = 0),
+  doProf = FALSE, RprofR.out = "RprofR.out", RprofCpp.out = "RprofCpp.out") {
   
   listCurrentOptions <- options()
   
@@ -147,25 +174,48 @@ MiniBenchmarkRvsCpp <- function(
   
   modelTypes <- MGPMDefaultModelTypes()
   
-  
   res <- do.call(rbind, lapply(seq_len(nrow(data)), function(i) {
     tree <- data$tree[[i]]
     X <- data$X[[i]]
     model <- data$model[[i]]
     
+    if(!includeTransformationTime) {
+      # Apply the transformation first
+      model <- PCMApplyTransformation(model) 
+    }
+    
     metaIR <- PCMInfo(X, tree, model)
     metaICpp <- PCMInfoCpp(X, tree, model, metaI = metaIR)
     
     valueR <- valueCpp <- as.double(NA)
-    
+  
+    if(doProf) {
+      do.call(
+        Rprof, 
+        c(list(filename = RprofR.out),
+          getOption("PCMBaseCpp.ArgsRprofR", list(append = TRUE, line.profiling = TRUE))))
+    }
     timeR <- system.time({
       valueR <- PCMLik(X, tree, model, metaI = metaIR)
     })[3]
+    if(doProf) {
+      Rprof(NULL)
+    }
     
+    
+    if(doProf) {
+      do.call(
+        Rprof, 
+        c(list(filename = RprofCpp.out),
+          getOption("PCMBaseCpp.ArgsRprofCpp", list(append = TRUE, line.profiling = TRUE))))
+    }
     timeCpp <- system.time(
       valueCpp <-replicate(
         nRepsCpp, 
         PCMLik(X, tree, model, metaI = metaICpp))[1])[3] / nRepsCpp
+    if(doProf) {
+      Rprof(NULL)
+    }
     
     data.frame(
       N = PCMTreeNumTips(tree), 
@@ -178,59 +228,50 @@ MiniBenchmarkRvsCpp <- function(
       timeR = unname(timeR), 
       timeCpp = unname(timeCpp))
   }))
-  do.call(options, listCurrentOptions)
+  resetOptionsStatus <- try(do.call(options, listCurrentOptions), silent = TRUE)
+  if(inherits(resetOptionsStatus, "try-error")) {
+    warning(
+      paste0(
+        "Error while resetting options at the end of a call to MiniBenchmarkRvsCpp: ",
+        toString(resetOptionsStatus)))
+  }
   res
 }
 
-#' A log-likelihood calculation time comparison for different numbers of traits and option-sets
+#' A log-likelihood calculation time comparison for different numbers of traits 
+#' and option-sets
 #' @param ks a vector of positive integers, denoting different numbers of traits. 
 #' Default: \code{c(1, 2, 4, 8)}.
-#' @param optionSets a named list of lists of PCM-options. If NULL (the default) the 
-#' option set is set to \code{
-#' list(
-#' `serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-#' `parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-#' `serial / 1D-univar.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = TRUE),
-#' `parallel / 1D-univar.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = TRUE)
-#' )} for k = 1 and to \code{
-#' list(
-#' `serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-#' `parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE))} for k > 1.
+#' @param optionSets a named list of lists of PCM-options. If NULL (the default) 
+#' the option set is set to \code{DefaultBenchmarkOptions(k, includeParallelMode)}
+#' for each \code{k} in \code{ks} (see the code in 
+#' \code{PCMBaseCpp:::DefaultBenchmarkOptions}). 
+#' @param includeParallelMode logical (default TRUE) indicating if the default 
+#' optionSet should include parallel execution modes, i.e. setting the option 
+#' PCMBase.Lmr.mode to 21 instead of 11. This argument is taken into account 
+#' only with the argument \code{optionSets} set to NULL (the default). 
 #' @param verbose logical indicating if log-messages should be printed to the console during the benchmark. Default FALSE.
+#' @inheritParams MiniBenchmarkRvsCpp
 #' @return a data.table for results similar to the data.table returned from \code{\link{MiniBenchmarkRvsCpp}} with 
 #' additional columns for k, option-set and the type of model. 
 #' @export
-#' @importFrom data.table rbindlist data.table
+#' @importFrom data.table rbindlist
 #' @importFrom PCMBase PCMExtractDimensions
 BenchmarkRvsCpp <- function(
   ks = c(1, 2, 4, 8),
+  includeTransformationTime = TRUE, 
   optionSets = NULL,
+  includeParallelMode = TRUE,
+  doProf = FALSE, RprofR.out = "RprofR.out", RprofCpp.out = "RprofCpp.out",
   verbose = FALSE) {
 
-  findBiggestFactor <- function(k, fMax) {
-    f <- fMax
-    while(f >= 1) {
-      if(k %% f == 0) {
-        break
-      }
-      f <- f - 1
-    }
-    f
-  }
+  benchmarkData <- PCMBaseCpp::benchmarkData
+  X <- model <- modelBM <- modelOU <- modelType <- N <- R <- mapping <- 
+    PCMBase.Lmr.mode <- logLik <- logLikCpp <- timeR <- timeCpp <- NULL
   
   resultList <- lapply(ks, function(k) {
     if(is.null(optionSets)) {
-      optionSets <- if(k == 1) {
-        list(
-          `serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-          `parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-          `serial / 1D-univar.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = TRUE),
-          `parallel / 1D-univar.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = TRUE))
-      } else {
-        list(
-          `serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE),
-          `parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, PCMBase.Threshold.SV = 1e-9, PCMBase.Use1DClasses = FALSE))
-      }
+      optionSets <- DefaultBenchmarkOptions(k, includeParallelMode)
     } 
     
     
@@ -266,7 +307,12 @@ BenchmarkRvsCpp <- function(
           X = lapply(X, function(x) x[rep(ds, nRB),, drop=FALSE]), 
           model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = ds, nRepBlocks = nRB)))]))
       
-      resultData <- MiniBenchmarkRvsCpp(data = testData, listOptions = optionSets[[oset]])
+      resultData <- MiniBenchmarkRvsCpp(
+        data = testData, 
+        includeTransformationTime = includeTransformationTime,
+        listOptions = optionSets[[oset]],
+        doProf = doProf, RprofR.out = RprofR.out, RprofCpp.out = RprofCpp.out)
+      
       resultData <- cbind(testData[, list(k, modelType, options)], resultData)
       if(verbose) {
         print(resultData[, list(
@@ -279,3 +325,60 @@ BenchmarkRvsCpp <- function(
   })
   rbindlist(resultList, use.names = TRUE)
 }
+
+DefaultBenchmarkOptions <- function(k, includeParallelMode) {
+  if(k == 1) {
+    os <- list(
+      `serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, 
+                                   PCMBase.Threshold.EV = 0, 
+                                   PCMBase.Threshold.SV = 0, 
+                                   PCMBase.Use1DClasses = FALSE),
+      `serial / 1D-univar.` = list(PCMBase.Lmr.mode = 11, 
+                                   PCMBase.Threshold.EV = 0, 
+                                   PCMBase.Threshold.SV = 0, 
+                                   PCMBase.Use1DClasses = TRUE))
+    if(includeParallelMode) {
+      os <- c(
+        os, 
+        list(
+          `parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, 
+                                         PCMBase.Threshold.EV = 0, 
+                                         PCMBase.Threshold.SV = 0, 
+                                         PCMBase.Use1DClasses = FALSE),
+          `parallel / 1D-univar.` = list(PCMBase.Lmr.mode = 21, 
+                                         PCMBase.Threshold.EV = 0, 
+                                         PCMBase.Threshold.SV = 0, 
+                                         PCMBase.Use1DClasses = TRUE)) )
+    }
+    os
+  } else {
+    os <- list(
+      `serial / 1D-multiv.` = list(PCMBase.Lmr.mode = 11, 
+                                   PCMBase.Threshold.EV = 0, 
+                                   PCMBase.Threshold.SV = 0, 
+                                   PCMBase.Use1DClasses = FALSE))
+    if(includeParallelMode) {
+      os <- c(
+        os,
+        list(`parallel / 1D-multiv.` = list(PCMBase.Lmr.mode = 21, 
+                                            PCMBase.Threshold.EV = 0, 
+                                            PCMBase.Threshold.SV = 0, 
+                                            PCMBase.Use1DClasses = FALSE)))
+    }
+    os
+  }
+}
+
+
+
+findBiggestFactor <- function(k, fMax) {
+  f <- fMax
+  while(f >= 1) {
+    if(k %% f == 0) {
+      break
+    }
+    f <- f - 1
+  }
+  f
+}
+

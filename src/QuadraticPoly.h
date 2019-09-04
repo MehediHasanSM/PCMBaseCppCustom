@@ -359,7 +359,7 @@ public:
 
   // this function is to be called by daughter classes only after they have
   // initialized omega, Phi and V
-  inline void CalculateAbCdEf(uint i) {
+  inline void CalculateAbCdEf(uint i, double logDetVi) {
     using namespace arma;
     SPLITT::uint j = this->ref_tree_.FindIdOfParent(i);
     uvec kj = pc[j], ki = pc[i];
@@ -371,7 +371,7 @@ public:
     b(ki,ui) = V_1.slice(i)(ki,ki) * omega(ki,ui);
     C.slice(i)(kj,kj) = -0.5 * E.slice(i)(kj,ki) * Phi.slice(i)(ki,kj);
     d(kj,ui) = -E.slice(i)(kj,ki) * omega(ki,ui);
-    f(i) = -0.5*(ki.n_elem * M_LN_2PI + log(det(V.slice(i)(ki,ki))) +
+    f(i) = -0.5*(ki.n_elem * M_LN_2PI + logDetVi +
       omega(ki,ui).t() * V_1.slice(i)(ki,ki) * omega(ki,ui) ).at(0,0);
   }
   
@@ -432,26 +432,32 @@ public:
       
       if(!singular_branch_[i]) {
         // Check V is positive definite: all eigen-values must be strictly positive
-        cx_vec eigval(ki.n_elem);
-        eigval.fill(std::complex<double>(0.0, 0.0));
-        cx_mat eigvec(ki.n_elem, ki.n_elem);
+        //cx_vec eigval(ki.n_elem);
+        vec eigval(ki.n_elem);
+        //eigval.fill(std::complex<double>(0.0, 0.0));
+        eigval.fill(0.0);
+        //cx_mat eigvec(ki.n_elem, ki.n_elem);
         
         arma::mat VSliceIki = V.slice(i)(ki,ki);
+        //eig_sym(eigval, VSliceIki);
+        
         if(IsDiagonal(VSliceIki)) {
           // this is a workaround needed apparently only for diagonal matrices
           // with duplicated elements on the diagonal, but should work fine 
           // with any diagonal matrix
-          eigval.set_real(VSliceIki.diag());
-          eigvec = eye<cx_mat>(ki.n_elem, ki.n_elem);
+          //eigval.set_real(VSliceIki.diag());
+          eigval = VSliceIki.diag();
+          //eigvec = eye<cx_mat>(ki.n_elem, ki.n_elem);
         } else {
-          eig_gen(eigval, eigvec, VSliceIki);
+          //eig_gen(eigval, eigvec, VSliceIki);
+          eig_sym(eigval, VSliceIki);
         }
-
         
         // eig_gen(eigval, eigvec, V.slice(i)(ki,ki));
-        vec re_eigval = real(eigval);
-        
-        for(double eigv: re_eigval) {
+        //vec re_eigval = real(eigval);
+        double logDetVi = 0; 
+        //for(double eigv: re_eigval) {
+        for(double eigv: eigval) {
           if(eigv < threshold_EV_) {
             ostringstream oss;
             oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
@@ -459,13 +465,15 @@ public:
                 " is nearly singular or not positive definite; near-0 or negative eigenvalue found: "<<eigv<<
                 "V.slice(i)(ki,ki): "<<V.slice(i)(ki,ki)<<". Check the model parameters.";
             throw logic_error(oss.str());
+          } else {
+            logDetVi += log(eigv);
           }
         }
         
-        V_1.slice(i)(ki, ki) = real(eigvec * diagmat(1/eigval) * eigvec.t());
-        //V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
+        //V_1.slice(i)(ki, ki) = real(eigvec * diagmat(1/eigval) * eigvec.t());
+        V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
         //V_1.slice(i)(ki, ki) = inv_sympd(V.slice(i)(ki,ki));
-        CalculateAbCdEf(i);  
+        CalculateAbCdEf(i, logDetVi);  
       }
     }  
     
@@ -492,15 +500,16 @@ public:
       } else {
         uvec ui(1);
         ui(0) = i;
-  
+      
         mat AplusL = A.slice(i)(ki,ki) + L.slice(i)(ki,ki);
         // Ensure symmetry of AplusL:
         AplusL = 0.5 * (AplusL + AplusL.t());
-  
         mat AplusL_1 = inv(AplusL);
         mat EAplusL_1 = E.slice(i)(kj,ki) * AplusL_1;
-        double logDetVNode = log(det(-2*AplusL));
-  
+        
+        double logDetVNode, signDetVNode;
+        log_det(logDetVNode, signDetVNode, -2*AplusL);
+        
         r(i) = (f(i) + r(i) + 0.5 * ki.n_elem * M_LN_2PI - 0.5 * logDetVNode -
           0.25 * (b(ki,ui) + m(ki,ui)).t() * AplusL_1 * (b(ki,ui) + m(ki,ui))).at(0,0);
         m(kj,ui) = d(kj,ui) - 0.5*EAplusL_1 * (b(ki,ui) + m(ki,ui));
