@@ -1,13 +1,13 @@
-#' Data for performing a mini-benchmark
+#' Data for performing a benchmark
 #'
 #' A dataset containing three triplets trees, trait-values and models to
 #' evaluate the likelihood calculation times for R and C++ implementations. 
 #'
-#' @format A data frame with 53940 rows and 10 variables:
+#' @format A data frame with 4 rows and 8 variables:
 #' \describe{
-#'   \item{X}{trait values}
 #'   \item{tree}{phylogenetic tree (phylo) with set edge.regimes member}
 #'   \item{model}{MGPM model used to simulate the data in X}
+#'   \item{X}{trait values}
 #'   \item{ll}{log-likelihood value}
 #'   \item{modelBM}{a random BM model}
 #'   \item{llBM}{log-likelihood value form modelBM}
@@ -15,6 +15,19 @@
 #'   \item{llOU}{log-likelihood value for modelOU}
 #' }
 "benchmarkData"
+
+#' Results from running a performance benchmark on a personal computer 
+#' including the time for parameter transformation
+#' 
+#' @format A data.table 
+"benchmarkResults"
+
+
+#' Results from running a performance benchmark on a personal computer 
+#' excluding the time for parameter transformation
+#' 
+#' @format A data.table 
+"benchmarkResultsNoTransform"
 
 #' Evaluate the likelihood calculation times for example trees and data
 #' @param data a `data.frame` with at least the following columns: 

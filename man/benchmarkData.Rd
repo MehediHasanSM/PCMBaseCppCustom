@@ -3,12 +3,12 @@
 \docType{data}
 \name{benchmarkData}
 \alias{benchmarkData}
-\title{Data for performing a mini-benchmark}
-\format{A data frame with 53940 rows and 10 variables:
+\title{Data for performing a benchmark}
+\format{A data frame with 4 rows and 8 variables:
 \describe{
-  \item{X}{trait values}
   \item{tree}{phylogenetic tree (phylo) with set edge.regimes member}
   \item{model}{MGPM model used to simulate the data in X}
+  \item{X}{trait values}
   \item{ll}{log-likelihood value}
   \item{modelBM}{a random BM model}
   \item{llBM}{log-likelihood value form modelBM}
