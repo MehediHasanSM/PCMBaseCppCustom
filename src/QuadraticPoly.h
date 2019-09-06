@@ -394,6 +394,9 @@ public:
     using namespace std;
     InitLmr(i);
     singular_branch_[i] = 0;
+    
+    double logDetVi = 0.0;
+    
     if(i < this->ref_tree_.num_nodes() - 1) {
       
       auto ri = this->ref_tree_.LengthOfBranch(i).regime_;
@@ -420,12 +423,12 @@ public:
       
       if( IsSingular(V.slice(i)(ki,ki), threshold_SV_) ) {
         singular_branch_[i] = 1;
-        if(!skip_singular_ || ti > threshold_skip_singular_) {
+        if(!skip_singular_ || i < this->ref_tree_.num_tips() || 
+           threshold_skip_singular_ < ti) {
           ostringstream oss;
           oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
-            this->ref_tree_.FindNodeWithId(i)<<" is nearly singular: "<<V.slice(i)(ki,ki)<<
-                ". Check the model parameters and the length of the branch"<<
-                  " leading to the node. For details on this error, read the User Guide.";
+            this->ref_tree_.FindNodeWithId(i)<<" (branch-length="<<ti<<
+              ") is nearly singular; V.slice(i)(ki,ki):"<<std::endl<<V.slice(i)(ki,ki);
           throw logic_error(oss.str());  
         } 
       } 
@@ -455,28 +458,35 @@ public:
         
         // eig_gen(eigval, eigvec, V.slice(i)(ki,ki));
         //vec re_eigval = real(eigval);
-        double logDetVi = 0; 
+        logDetVi = 0.0; 
         //for(double eigv: re_eigval) {
         for(double eigv: eigval) {
           if(eigv < threshold_EV_) {
-            ostringstream oss;
-            oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
-              this->ref_tree_.FindNodeWithId(i)<<
-                " is nearly singular or not positive definite; near-0 or negative eigenvalue found: "<<eigv<<
-                "V.slice(i)(ki,ki): "<<V.slice(i)(ki,ki)<<". Check the model parameters.";
-            throw logic_error(oss.str());
+            singular_branch_[i] = 1;
+            if(!skip_singular_ || i < this->ref_tree_.num_tips() || 
+               threshold_skip_singular_ < ti) {
+              ostringstream oss;
+              oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
+                this->ref_tree_.FindNodeWithId(i)<<" (branch length="<<ti<<") "<<
+                  "is nearly singular or not positive definite; near-0 or "<<
+                    "negative eigenvalue found: "<<eigv<<
+                      "; V.slice(i)(ki,ki): "<<std::endl<<V.slice(i)(ki,ki);
+              throw logic_error(oss.str());
+            }
+            break;
           } else {
             logDetVi += log(eigv);
           }
         }
-        
+      }
+      
+      if(!singular_branch_[i]) {
         //V_1.slice(i)(ki, ki) = real(eigvec * diagmat(1/eigval) * eigvec.t());
         V_1.slice(i)(ki, ki) = inv(V.slice(i)(ki,ki));
         //V_1.slice(i)(ki, ki) = inv_sympd(V.slice(i)(ki,ki));
-        CalculateAbCdEf(i, logDetVi);  
+        CalculateAbCdEf(i, logDetVi);
       }
     }  
-    
   }
 
   inline void VisitNode(uint i) {

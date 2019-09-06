@@ -51,7 +51,6 @@ void R_unload_PCMBaseCpp(DllInfo *info) {
    /* Release resources. */
 }
 
-
 using namespace PCMBaseCpp;
 using namespace std;
 
