@@ -186,7 +186,7 @@ public:
   // singular value threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;
   // positive eigenvalue threshold for V_i. 
-  double threshold_EV_ = 1e-4;
+  double threshold_EV_ = 1e-5;
   
   // threshold specifying the maximum allowed branch length for skipping the branch
   // if the corresponding matrix V is singular. This option matters only if

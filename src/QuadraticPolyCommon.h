@@ -38,6 +38,8 @@
 
 namespace PCMBaseCpp {
 
+typedef unsigned int uint;
+
 struct LengthAndRegime {
   double length_;
   arma::uword regime_;
