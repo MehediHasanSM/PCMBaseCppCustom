@@ -5,7 +5,7 @@
 status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp)
 [![Coverage
 status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](http://cran.rstudio.com/package=PCMBaseCpp)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 [![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](http://cran.rstudio.com/package=PCMBaseCpp)
 
 # PCMBaseCpp
@@ -44,18 +44,18 @@ options(digits = 4)
 benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 #> Performing benchmark for k:  2 ; optionSet:  serial / 1D-multiv. ...
 #>     k  modelType     N  R mode     logLik  logLikCpp  timeR timeCpp
-#>  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.024  0.0009
-#>  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.135  0.0018
-#>  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.444  0.0106
-#>  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 14.307  0.0855
-#>  5: 2     BM (B)    10  2   11 -4.451e+03 -4.451e+03  0.011  0.0003
-#>  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.102  0.0009
-#>  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  1.029  0.0072
-#>  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05 10.238  0.0791
-#>  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.018  0.0007
-#> 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.168  0.0017
-#> 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.739  0.0102
-#> 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 17.217  0.0897
+#>  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.026  0.0008
+#>  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.144  0.0020
+#>  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.537  0.0116
+#>  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 16.076  0.0933
+#>  5: 2     BM (B)    10  2   11 -4.451e+03 -4.451e+03  0.012  0.0003
+#>  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.108  0.0009
+#>  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  1.157  0.0078
+#>  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05 11.565  0.0794
+#>  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.019  0.0008
+#> 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.178  0.0017
+#> 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.875  0.0111
+#> 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 18.881  0.0934
 ```
 
 # How to use the package?
@@ -74,7 +74,7 @@ system.time(llR <- PCMLik(
   tree = PCMBaseTestObjects$tree.ab,
   model = PCMBaseTestObjects$model_MixedGaussian_ab))
 #>    user  system elapsed 
-#>   0.073   0.000   0.073
+#>   0.077   0.001   0.079
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -82,7 +82,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = PCMInfoCpp))
 #>    user  system elapsed 
-#>   0.003   0.000   0.003
+#>   0.004   0.000   0.003
 
 print(llR)
 #> [1] -206.4
@@ -110,20 +110,20 @@ randParam <- PCMParamRandomVecParams(PCMBaseTestObjects$model_MixedGaussian_ab)
 
 system.time(llR <- logLikFunR(randParam))
 #>    user  system elapsed 
-#>   0.071   0.000   0.071
+#>   0.073   0.000   0.075
 
 system.time(llCpp <- logLikFunCpp(randParam))
 #>    user  system elapsed 
 #>   0.002   0.000   0.002
 
 print(llR)
-#> [1] -631.5
+#> [1] -621.1
 #> attr(,"X0")
-#> [1] -9.356 -9.910 -5.537
+#> [1] 5.374 2.940 7.635
 print(llCpp)
-#> [1] -631.5
+#> [1] -621.1
 #> attr(,"X0")
-#> [1] -9.356 -9.910 -5.537
+#> [1] 5.374 2.940 7.635
 ```
 
 ## Passing the meta-information object returned by `PCMInfoCpp` as a `metaI` argument of `PCMLik` and `PCMCreateLikelihood`
@@ -148,7 +148,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.072   0.000   0.072
+#>   0.074   0.001   0.075
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -156,7 +156,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaICpp))
 #>    user  system elapsed 
-#>   0.001   0.000   0.002
+#>   0.001   0.000   0.001
 
 print(llR)
 #> [1] -206.4
@@ -187,7 +187,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.071   0.000   0.072
+#>   0.075   0.000   0.076
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -195,7 +195,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaICpp))
 #>    user  system elapsed 
-#>   0.001   0.000   0.001
+#>   0.001   0.000   0.002
 
 print(llR)
 #> [1] -206.4
@@ -232,9 +232,9 @@ libraries:
   - For data processing in R: data.table v1.12.2 (Dowle and Srinivasan
     2019);
   - For algebraic manipulation: The [Armadillo C++ template
-    library](http://http://arma.sourceforge.net/) (Sanderson and Curtin
-    2016) and its port to R RcppArmadillo v0.9.500.2.0 (Eddelbuettel et
-    al. 2019);
+    library](http://arma.sourceforge.net/) (Sanderson and Curtin 2016)
+    and its port to R RcppArmadillo v0.9.700.2.0 (Eddelbuettel et al.
+    2019);
   - For unit-testing: testthat v2.1.1 (Wickham 2019), covr v3.2.1
     (Hester 2018);
   - For documentation and web-site generation: roxygen2 v6.1.1 (Wickham,
