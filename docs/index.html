@@ -51,9 +51,6 @@
   </a>
 </li>
 <li>
-  <a href="reference/index.html">Reference</a>
-</li>
-<li>
   <a href="news/index.html">News</a>
 </li>
       </ul>
@@ -83,7 +80,7 @@
 <h1 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h1>
 <p>The package needs a C++ 11 compiler and Rcpp to be installed in you R-environment. Once this is done, you can install the most recent version of the package from github:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/reexports">install_github</a></span>(<span class="st">"venelin/PCMBaseCpp"</span>)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/remote-reexports">install_github</a></span>(<span class="st">"venelin/PCMBaseCpp"</span>)</a></code></pre></div>
 <p>If you experience problems installing the package from github, you may try installing a possibly older version from CRAN:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/install.packages">install.packages</a></span>(<span class="st">"PCMBaseCpp"</span>)</a></code></pre></div>
 <p>Once the package is installed, use the function <code>BenchmarkRvsCpp</code> to evaluate the gain in speed of the likelihood calculation on your machine, relative to the R implementation:</p>
@@ -121,14 +118,14 @@
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(PCMBase)</a>
 <a class="sourceLine" id="cb4-2" data-line-number="2"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(PCMBaseCpp)</a>
 <a class="sourceLine" id="cb4-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
+<a class="sourceLine" id="cb4-4" data-line-number="4"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMLik">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb4-5" data-line-number="5">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb4-6" data-line-number="6">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb4-7" data-line-number="7">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab))</a>
 <a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co">#&gt;   0.087   0.002   0.089</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co">#&gt;   0.090   0.003   0.095</span></a>
 <a class="sourceLine" id="cb4-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb4-11" data-line-number="11"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
+<a class="sourceLine" id="cb4-11" data-line-number="11"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMLik">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb4-12" data-line-number="12">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb4-13" data-line-number="13">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb4-14" data-line-number="14">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
@@ -144,23 +141,23 @@
 <a class="sourceLine" id="cb4-24" data-line-number="24"><span class="co">#&gt; [1] -206.4146</span></a>
 <a class="sourceLine" id="cb4-25" data-line-number="25"><span class="co">#&gt; attr(,"X0")</span></a>
 <a class="sourceLine" id="cb4-26" data-line-number="26"><span class="co">#&gt; [1] 5 2 1</span></a></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">logLikFunR &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMCreateLikelihood.html">PCMCreateLikelihood</a></span>(</a>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">logLikFunR &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMCreateLikelihood">PCMCreateLikelihood</a></span>(</a>
 <a class="sourceLine" id="cb5-2" data-line-number="2">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb5-3" data-line-number="3">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb5-4" data-line-number="4">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab)</a>
 <a class="sourceLine" id="cb5-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb5-6" data-line-number="6">logLikFunCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMCreateLikelihood.html">PCMCreateLikelihood</a></span>(</a>
+<a class="sourceLine" id="cb5-6" data-line-number="6">logLikFunCpp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMCreateLikelihood">PCMCreateLikelihood</a></span>(</a>
 <a class="sourceLine" id="cb5-7" data-line-number="7">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb5-8" data-line-number="8">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb5-9" data-line-number="9">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb5-10" data-line-number="10">  <span class="dt">metaI =</span> PCMInfoCpp)</a>
 <a class="sourceLine" id="cb5-11" data-line-number="11"></a>
 <a class="sourceLine" id="cb5-12" data-line-number="12"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Random">set.seed</a></span>(<span class="dv">1</span>, <span class="dt">kind =</span> <span class="st">"Mersenne-Twister"</span>, <span class="dt">normal.kind =</span> <span class="st">"Inversion"</span>)</a>
-<a class="sourceLine" id="cb5-13" data-line-number="13">randParam &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMParamRandomVecParams.html">PCMParamRandomVecParams</a></span>(PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab)</a>
+<a class="sourceLine" id="cb5-13" data-line-number="13">randParam &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMParamRandomVecParams">PCMParamRandomVecParams</a></span>(PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab)</a>
 <a class="sourceLine" id="cb5-14" data-line-number="14"></a>
 <a class="sourceLine" id="cb5-15" data-line-number="15"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw">logLikFunR</span>(randParam))</a>
 <a class="sourceLine" id="cb5-16" data-line-number="16"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb5-17" data-line-number="17"><span class="co">#&gt;   0.069   0.000   0.069</span></a>
+<a class="sourceLine" id="cb5-17" data-line-number="17"><span class="co">#&gt;   0.072   0.001   0.072</span></a>
 <a class="sourceLine" id="cb5-18" data-line-number="18"></a>
 <a class="sourceLine" id="cb5-19" data-line-number="19"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw">logLikFunCpp</span>(randParam))</a>
 <a class="sourceLine" id="cb5-20" data-line-number="20"><span class="co">#&gt;    user  system elapsed </span></a>
@@ -180,7 +177,7 @@
 <a href="#passing-the-meta-information-object-returned-by-pcminfocpp-as-a-metai-argument-of-pcmlik-and-pcmcreatelikelihood" class="anchor"></a>Passing the meta-information object returned by <code>PCMInfoCpp</code> as a <code>metaI</code> argument of <code>PCMLik</code> and <code>PCMCreateLikelihood</code>
 </h2>
 <p>This is the recommended usage in the case of multiple likelihood evaluations, e.g. during model inference:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">metaIR &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMInfo.html">PCMInfo</a></span>(</a>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">metaIR &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMInfo">PCMInfo</a></span>(</a>
 <a class="sourceLine" id="cb6-2" data-line-number="2">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb6-3" data-line-number="3">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb6-4" data-line-number="4">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab)</a>
@@ -190,7 +187,7 @@
 <a class="sourceLine" id="cb6-8" data-line-number="8">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb6-9" data-line-number="9">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab)</a>
 <a class="sourceLine" id="cb6-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb6-11" data-line-number="11"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
+<a class="sourceLine" id="cb6-11" data-line-number="11"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMLik">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb6-12" data-line-number="12">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb6-13" data-line-number="13">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb6-14" data-line-number="14">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
@@ -198,13 +195,13 @@
 <a class="sourceLine" id="cb6-16" data-line-number="16"><span class="co">#&gt;    user  system elapsed </span></a>
 <a class="sourceLine" id="cb6-17" data-line-number="17"><span class="co">#&gt;    0.07    0.00    0.07</span></a>
 <a class="sourceLine" id="cb6-18" data-line-number="18"></a>
-<a class="sourceLine" id="cb6-19" data-line-number="19"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
+<a class="sourceLine" id="cb6-19" data-line-number="19"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMLik">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb6-20" data-line-number="20">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb6-21" data-line-number="21">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb6-22" data-line-number="22">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb6-23" data-line-number="23">  <span class="dt">metaI =</span> metaICpp))</a>
 <a class="sourceLine" id="cb6-24" data-line-number="24"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb6-25" data-line-number="25"><span class="co">#&gt;   0.001   0.000   0.002</span></a>
+<a class="sourceLine" id="cb6-25" data-line-number="25"><span class="co">#&gt;   0.001   0.000   0.001</span></a>
 <a class="sourceLine" id="cb6-26" data-line-number="26"></a>
 <a class="sourceLine" id="cb6-27" data-line-number="27"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(llR)</a>
 <a class="sourceLine" id="cb6-28" data-line-number="28"><span class="co">#&gt; [1] -206.4146</span></a>
@@ -214,33 +211,33 @@
 <a class="sourceLine" id="cb6-32" data-line-number="32"><span class="co">#&gt; [1] -206.4146</span></a>
 <a class="sourceLine" id="cb6-33" data-line-number="33"><span class="co">#&gt; attr(,"X0")</span></a>
 <a class="sourceLine" id="cb6-34" data-line-number="34"><span class="co">#&gt; [1] 5 2 1</span></a></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">logLikFunR &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMCreateLikelihood.html">PCMCreateLikelihood</a></span>(</a>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">logLikFunR &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMCreateLikelihood">PCMCreateLikelihood</a></span>(</a>
 <a class="sourceLine" id="cb7-2" data-line-number="2">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb7-3" data-line-number="3">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb7-4" data-line-number="4">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb7-5" data-line-number="5">  <span class="dt">metaI =</span> metaIR)</a>
 <a class="sourceLine" id="cb7-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb7-7" data-line-number="7">logLikFunCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMCreateLikelihood.html">PCMCreateLikelihood</a></span>(</a>
+<a class="sourceLine" id="cb7-7" data-line-number="7">logLikFunCpp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMCreateLikelihood">PCMCreateLikelihood</a></span>(</a>
 <a class="sourceLine" id="cb7-8" data-line-number="8">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb7-9" data-line-number="9">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb7-10" data-line-number="10">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb7-11" data-line-number="11">  <span class="dt">metaI =</span> metaICpp)</a>
 <a class="sourceLine" id="cb7-12" data-line-number="12"></a>
-<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
+<a class="sourceLine" id="cb7-13" data-line-number="13"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llR &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMLik">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb7-14" data-line-number="14">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb7-15" data-line-number="15">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb7-16" data-line-number="16">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb7-17" data-line-number="17">  <span class="dt">metaI =</span> metaIR))</a>
 <a class="sourceLine" id="cb7-18" data-line-number="18"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="co">#&gt;   0.068   0.000   0.067</span></a>
+<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="co">#&gt;    0.07    0.00    0.07</span></a>
 <a class="sourceLine" id="cb7-20" data-line-number="20"></a>
-<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
+<a class="sourceLine" id="cb7-21" data-line-number="21"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/PCMBase/topics/PCMLik">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb7-22" data-line-number="22">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
 <a class="sourceLine" id="cb7-23" data-line-number="23">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb7-24" data-line-number="24">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb7-25" data-line-number="25">  <span class="dt">metaI =</span> metaICpp))</a>
 <a class="sourceLine" id="cb7-26" data-line-number="26"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb7-27" data-line-number="27"><span class="co">#&gt;   0.001   0.000   0.001</span></a>
+<a class="sourceLine" id="cb7-27" data-line-number="27"><span class="co">#&gt;   0.002   0.000   0.001</span></a>
 <a class="sourceLine" id="cb7-28" data-line-number="28"></a>
 <a class="sourceLine" id="cb7-29" data-line-number="29"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(llR)</a>
 <a class="sourceLine" id="cb7-30" data-line-number="30"><span class="co">#&gt; [1] -206.4146</span></a>
