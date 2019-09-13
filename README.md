@@ -36,26 +36,27 @@ machine, relative to the R implementation:
 
 ``` r
 library(PCMBaseCpp)
-#> Loading required package: Rcpp
+library(data.table)
 options(digits = 4)
 
 # Depending on your use case, you can change the number of traits, as well as the 
 # other arguments:
 benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
-#> Performing benchmark for k:  2 ; optionSet:  serial / 1D-multiv. ...
-#>     k  modelType     N  R mode     logLik  logLikCpp  timeR timeCpp
-#>  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.024  0.0008
-#>  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.134  0.0020
-#>  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.432  0.0107
-#>  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 14.246  0.0881
-#>  5: 2     BM (B)    10  2   11 -4.451e+03 -4.451e+03  0.011  0.0004
-#>  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.102  0.0010
-#>  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  1.021  0.0076
-#>  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05 10.148  0.0761
-#>  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.017  0.0007
-#> 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.168  0.0017
-#> 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.673  0.0100
-#> 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 16.882  0.0918
+# Example output:
+# Performing benchmark for k:  2 ; optionSet:  serial / 1D-multiv. ...
+#     k  modelType     N  R mode     logLik  logLikCpp  timeR timeCpp
+#  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.010  0.0007
+#  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.107  0.0016
+#  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.221  0.0095
+#  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 12.443  0.0795
+#  5: 2     BM (B)    10  2   11 -4.451e+03 -4.451e+03  0.010  0.0003
+#  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.082  0.0008
+#  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  0.847  0.0064
+#  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05  8.414  0.0663
+#  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.016  0.0006
+# 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.147  0.0015
+# 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.505  0.0096
+# 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 15.062  0.0854
 ```
 
 # How to use the package?
@@ -74,7 +75,7 @@ system.time(llR <- PCMLik(
   tree = PCMBaseTestObjects$tree.ab,
   model = PCMBaseTestObjects$model_MixedGaussian_ab))
 #>    user  system elapsed 
-#>   0.075   0.000   0.077
+#>   0.088   0.001   0.089
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -82,14 +83,14 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = PCMInfoCpp))
 #>    user  system elapsed 
-#>   0.003   0.000   0.003
+#>   0.004   0.000   0.004
 
 print(llR)
-#> [1] -206.4
+#> [1] -206.4146
 #> attr(,"X0")
 #> [1] 5 2 1
 print(llCpp)
-#> [1] -206.4
+#> [1] -206.4146
 #> attr(,"X0")
 #> [1] 5 2 1
 ```
@@ -106,24 +107,25 @@ logLikFunCpp <- PCMCreateLikelihood(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = PCMInfoCpp)
 
+set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion")
 randParam <- PCMParamRandomVecParams(PCMBaseTestObjects$model_MixedGaussian_ab)
 
 system.time(llR <- logLikFunR(randParam))
 #>    user  system elapsed 
-#>   0.069   0.000   0.070
+#>   0.071   0.000   0.072
 
 system.time(llCpp <- logLikFunCpp(randParam))
 #>    user  system elapsed 
-#>   0.003   0.000   0.002
+#>   0.002   0.000   0.003
 
 print(llR)
-#> [1] -752
+#> [1] -598.092
 #> attr(,"X0")
-#> [1] -0.03274  9.56079  9.12397
+#> [1] -4.689827 -2.557522  1.457067
 print(llCpp)
-#> [1] -752
+#> [1] -598.092
 #> attr(,"X0")
-#> [1] -0.03274  9.56079  9.12397
+#> [1] -4.689827 -2.557522  1.457067
 ```
 
 ## Passing the meta-information object returned by `PCMInfoCpp` as a `metaI` argument of `PCMLik` and `PCMCreateLikelihood`
@@ -148,7 +150,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.069   0.000   0.069
+#>   0.073   0.001   0.074
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -159,11 +161,11 @@ system.time(llCpp <- PCMLik(
 #>   0.001   0.000   0.001
 
 print(llR)
-#> [1] -206.4
+#> [1] -206.4146
 #> attr(,"X0")
 #> [1] 5 2 1
 print(llCpp)
-#> [1] -206.4
+#> [1] -206.4146
 #> attr(,"X0")
 #> [1] 5 2 1
 ```
@@ -187,7 +189,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.070   0.000   0.071
+#>   0.069   0.000   0.069
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -198,11 +200,11 @@ system.time(llCpp <- PCMLik(
 #>   0.001   0.000   0.001
 
 print(llR)
-#> [1] -206.4
+#> [1] -206.4146
 #> attr(,"X0")
 #> [1] 5 2 1
 print(llCpp)
-#> [1] -206.4
+#> [1] -206.4146
 #> attr(,"X0")
 #> [1] 5 2 1
 ```
