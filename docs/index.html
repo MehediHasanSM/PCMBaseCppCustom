@@ -53,8 +53,6 @@
 <li>
   <a href="reference/index.html">Reference</a>
 </li>
-      </ul>
-<ul class="nav navbar-nav navbar-right">
 <li>
   <a href="https://github.com/venelin/PCMBaseCpp">
     <span class="fa fa-github fa-lg"></span>
@@ -62,6 +60,7 @@
   </a>
 </li>
       </ul>
+<ul class="nav navbar-nav navbar-right"></ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -130,7 +129,7 @@
 <a class="sourceLine" id="cb4-6" data-line-number="6">  <span class="dt">tree =</span> PCMBaseTestObjects<span class="op">$</span>tree.ab,</a>
 <a class="sourceLine" id="cb4-7" data-line-number="7">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab))</a>
 <a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co">#&gt;   0.091   0.003   0.100</span></a>
+<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co">#&gt;   0.090   0.002   0.094</span></a>
 <a class="sourceLine" id="cb4-10" data-line-number="10"></a>
 <a class="sourceLine" id="cb4-11" data-line-number="11"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb4-12" data-line-number="12">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
@@ -168,7 +167,7 @@
 <a class="sourceLine" id="cb5-18" data-line-number="18"></a>
 <a class="sourceLine" id="cb5-19" data-line-number="19"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw">logLikFunCpp</span>(randParam))</a>
 <a class="sourceLine" id="cb5-20" data-line-number="20"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb5-21" data-line-number="21"><span class="co">#&gt;   0.002   0.000   0.002</span></a>
+<a class="sourceLine" id="cb5-21" data-line-number="21"><span class="co">#&gt;   0.003   0.000   0.003</span></a>
 <a class="sourceLine" id="cb5-22" data-line-number="22"></a>
 <a class="sourceLine" id="cb5-23" data-line-number="23"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/print">print</a></span>(llR)</a>
 <a class="sourceLine" id="cb5-24" data-line-number="24"><span class="co">#&gt; [1] -598.092</span></a>
@@ -200,7 +199,7 @@
 <a class="sourceLine" id="cb6-14" data-line-number="14">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb6-15" data-line-number="15">  <span class="dt">metaI =</span> metaIR))</a>
 <a class="sourceLine" id="cb6-16" data-line-number="16"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb6-17" data-line-number="17"><span class="co">#&gt;   0.069   0.000   0.070</span></a>
+<a class="sourceLine" id="cb6-17" data-line-number="17"><span class="co">#&gt;   0.068   0.000   0.068</span></a>
 <a class="sourceLine" id="cb6-18" data-line-number="18"></a>
 <a class="sourceLine" id="cb6-19" data-line-number="19"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb6-20" data-line-number="20">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
@@ -236,7 +235,7 @@
 <a class="sourceLine" id="cb7-16" data-line-number="16">  <span class="dt">model =</span> PCMBaseTestObjects<span class="op">$</span>model_MixedGaussian_ab, </a>
 <a class="sourceLine" id="cb7-17" data-line-number="17">  <span class="dt">metaI =</span> metaIR))</a>
 <a class="sourceLine" id="cb7-18" data-line-number="18"><span class="co">#&gt;    user  system elapsed </span></a>
-<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="co">#&gt;   0.067   0.000   0.068</span></a>
+<a class="sourceLine" id="cb7-19" data-line-number="19"><span class="co">#&gt;    0.07    0.00    0.07</span></a>
 <a class="sourceLine" id="cb7-20" data-line-number="20"></a>
 <a class="sourceLine" id="cb7-21" data-line-number="21"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/system.time">system.time</a></span>(llCpp &lt;-<span class="st"> </span><span class="kw"><a href="http://venelin.github.io/PCMBase/reference/PCMLik.html">PCMLik</a></span>(</a>
 <a class="sourceLine" id="cb7-22" data-line-number="22">  <span class="dt">X =</span> PCMBaseTestObjects<span class="op">$</span>traits.ab<span class="fl">.123</span>, </a>
