@@ -36,4 +36,3 @@ PCMInfoCpp.JOU <- function(X, tree, model,
   res
 }
 
-loadModule( "PCMBaseCpp__QuadraticPolyJOU", TRUE )

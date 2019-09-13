@@ -31,3 +31,4 @@ ByteCompile: yes
 NeedsCompilation: yes
 URL: https://github.com/venelin/PCMBaseCpp, https://venelin.github.io/PCMBase/
 BugReports: https://github.com/venelin/PCMBaseCpp/issues
+Repository: CRAN

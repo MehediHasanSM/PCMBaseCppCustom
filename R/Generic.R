@@ -91,7 +91,7 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 #' @param X a \code{k x N} numerical matrix with possible \code{NA} and \code{NaN} entries. Each
 #'   column of X contains the measured trait values for one species (tip in tree).
 #'   Missing values can be either not-available (\code{NA}) or not existing (\code{NaN}).
-#'   Thse two values have are treated differently when calculating
+#'   These two values have are treated differently when calculating
 #'   likelihoods: see \code{\link{PCMPresentCoordinates}}.
 #' @param tree a phylo object with N tips.
 #' @param model an S3 object specifying both, the model type (class, e.g. "OU") as

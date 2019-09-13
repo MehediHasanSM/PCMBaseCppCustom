@@ -1,0 +1,17 @@
+url: http://venelin.github.io/PCMBaseCpp
+
+template:
+  params:
+    ganalytics: UA-129563006-7
+
+navbar:
+  title: PCMBaseCpp
+  type: default
+  left:
+  - icon: fa-home fa-lg
+    href: index.html
+  - text: Reference
+    href: reference/index.html
+  - text: News
+    href: news/index.html
+  right: []

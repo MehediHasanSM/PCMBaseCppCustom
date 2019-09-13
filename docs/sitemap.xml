@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/index.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/BenchmarkRvsCpp.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/MiniBenchmarkRvsCpp.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/PCListInt.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/PCMBaseCppIsADevRelease.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/PCMInfoCpp.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/PCMParamGetFullVector.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/PCMTreePreorderCpp.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/benchmarkData.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/benchmarkResults.html</loc>
+  </url>
+  <url>
+    <loc>http://venelin.github.io/PCMBaseCpp/reference/benchmarkResultsNoTransform.html</loc>
+  </url>
+</urlset>

@@ -329,7 +329,7 @@ BenchmarkRvsCpp <- function(
       resultData <- cbind(testData[, list(k, modelType, options)], resultData)
       if(verbose) {
         print(resultData[, list(
-          k, modelType, options, N, R, mapping, mode = PCMBase.Lmr.mode, logLik, 
+          k, modelType, N, R, mode = PCMBase.Lmr.mode, logLik, 
           logLikCpp, timeR, timeCpp)])
       }
       resultData

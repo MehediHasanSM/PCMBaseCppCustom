@@ -1,5 +1,6 @@
 ---
 output: github_document
+bibliography: vignettes/REFERENCES.bib
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -15,34 +16,192 @@ knitr::opts_chunk$set(
 
 [![Travis build status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp)
 [![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](http://cran.r-project.org/web/packages/PCMBaseCpp)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](http://cran.rstudio.com/package=PCMBaseCpp)
 [![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](http://cran.rstudio.com/package=PCMBaseCpp)
 
 
 # PCMBaseCpp
 
-The goal of PCMBaseCpp is to provide fast C++ backend for the [PCMBase](https://venelin.github.io/PCMBase) R-package. 
+This is a fast C++ backend for the [PCMBase](https://venelin.github.io/PCMBase) R-package. 
 
-## Installation
+# Installation
 
-The package needs a C++ 11 compiler and Rcpp to be installed in you R-environment. Once this is done, you can install the package from github:
+The package needs a C++ 11 compiler and Rcpp to be installed in you R-environment. Once this is done, you can install the most recent version of the package from github:
 
 ```{r, eval=FALSE}
 devtools::install_github("venelin/PCMBaseCpp")
 ```
 
-<!--
-You can install the github version of PCMBaseCpp: from [CRAN](https://CRAN.R-project.org) with:
+If you experience problems installing the package from github, you may try installing a possibly older version from CRAN:
 
 ```{r, eval = FALSE}
 install.packages("PCMBaseCpp")
 ```
--->
 
-## Example
+Once the package is installed, use the function `BenchmarkRvsCpp` to evaluate the gain in speed of the likelihood calculation on your machine, relative to the R implementation:
 
-This is a basic example which shows you how to solve a common problem:
+```{r}
+library(PCMBaseCpp)
+options(digits = 4)
 
-```{r example}
-## Coming soon
+# Depending on your use case, you can change the number of traits, as well as the 
+# other arguments:
+benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 ```
+
+# How to use the package?
+
+There are two ways to use the package:
+
+## Passing the function `PCMInfoCpp` as a `metaI` argument of `PCMLik` and/or `PCMCreateLikelihood`
+
+```{r}
+library(PCMBase)
+library(PCMBaseCpp)
+
+system.time(llR <- PCMLik(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab))
+
+system.time(llCpp <- PCMLik(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = PCMInfoCpp))
+
+print(llR)
+print(llCpp)
+```
+
+
+```{r}
+logLikFunR <- PCMCreateLikelihood(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab)
+
+logLikFunCpp <- PCMCreateLikelihood(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = PCMInfoCpp)
+
+randParam <- PCMParamRandomVecParams(PCMBaseTestObjects$model_MixedGaussian_ab)
+
+system.time(llR <- logLikFunR(randParam))
+
+system.time(llCpp <- logLikFunCpp(randParam))
+
+print(llR)
+print(llCpp)
+```
+
+## Passing the meta-information object returned by `PCMInfoCpp` as a `metaI` argument of `PCMLik` and `PCMCreateLikelihood`
+
+This is the recommended usage in the case of multiple likelihood evaluations, e.g. during model inference:
+```{r}
+metaIR <- PCMInfo(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab)
+
+metaICpp <- PCMInfoCpp(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab)
+
+system.time(llR <- PCMLik(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaIR))
+
+system.time(llCpp <- PCMLik(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaICpp))
+
+print(llR)
+print(llCpp)
+```
+
+```{r}
+logLikFunR <- PCMCreateLikelihood(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaIR)
+
+logLikFunCpp <- PCMCreateLikelihood(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaICpp)
+
+system.time(llR <- PCMLik(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaIR))
+
+system.time(llCpp <- PCMLik(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaICpp))
+
+print(llR)
+print(llCpp)
+```
+
+# Citing PCMBase
+
+To give credit to the PCMBase package in a publication, please cite the following articles:
+
+Mitov, V., & Stadler, T. (2018). Parallel likelihood calculation for phylogenetic comparative models: The SPLITT C++ library. Methods in Ecology and Evolution, 2041–210X.13136. http://doi.org/10.1111/2041-210X.13136
+
+Mitov, V., Bartoszek, K., Asimomitis, G., & Stadler, T. (2018, September 24). Fast likelihood evaluation for multivariate phylogenetic comparative methods: the PCMBase R package. arXiv.org. https://arxiv.org/abs/1809.09014.
+
+# Used 3rd party libraries
+
+```{r create-references, echo=FALSE, include=FALSE, eval=TRUE}
+rcpp <- c("Rcpp")
+dataProcessing <- c("data.table")
+maths <- c("RcppArmadillo")
+testing <- c("testthat", "covr")
+docs <- c("roxygen2", "pkgdown")
+
+packagesUsed <- c(rcpp, dataProcessing, maths, testing, docs)
+
+printPackages <- function(packs) {
+  res <- ""
+  for(i in 1:length(packs)) {
+    res <- paste0(res, paste0(packs[i], ' v', packageVersion(packs[i]), ' [@R-', packs[i], ']'))
+    if(i < length(packs)) {
+      res <- paste0(res, ', ')
+    }
+  }
+  res
+}
+
+# Write bib information (this line is executed manually and the bib-file is edited manually after that)
+knitr::write_bib(packagesUsed, file = "./vignettes/REFERENCES-R.bib")
+```
+
+The PCMBaseCpp R-package uses the following R-packages and C++ libraries:
+
+* For tree processing in C++: The [SPLITT library](https://venelin.github.io/SPLITT) [@Mitov:2018dqa];
+* For data processing in R: `r printPackages(dataProcessing)`;
+* For algebraic manipulation: The [Armadillo C++ template library](http://http://arma.sourceforge.net/) [@Sanderson:2016cs] and its port to R `r printPackages(maths)`;
+* For unit-testing: `r printPackages(testing)`;
+* For documentation and web-site generation: `r printPackages(docs)`;
+
+# Licence and copyright
+
+Copyright 2016-2019 Venelin Mitov
+
+Source code to PCMBaseCpp is made available under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. PCMBaseCpp is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+# References
