@@ -75,7 +75,7 @@ system.time(llR <- PCMLik(
   tree = PCMBaseTestObjects$tree.ab,
   model = PCMBaseTestObjects$model_MixedGaussian_ab))
 #>    user  system elapsed 
-#>   0.088   0.001   0.089
+#>   0.089   0.003   0.094
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -83,7 +83,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = PCMInfoCpp))
 #>    user  system elapsed 
-#>   0.004   0.000   0.004
+#>   0.005   0.001   0.007
 
 print(llR)
 #> [1] -206.4146
@@ -116,7 +116,7 @@ system.time(llR <- logLikFunR(randParam))
 
 system.time(llCpp <- logLikFunCpp(randParam))
 #>    user  system elapsed 
-#>   0.002   0.000   0.003
+#>   0.003   0.000   0.003
 
 print(llR)
 #> [1] -598.092
@@ -150,7 +150,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.073   0.001   0.074
+#>   0.072   0.000   0.072
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 

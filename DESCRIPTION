@@ -1,7 +1,7 @@
 Package: PCMBaseCpp
 Type: Package
 Title: A C++ Implementation of Parallel Likelihood Calculation for Phylogenetic Comparative Models
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: c(person("Venelin", "Mitov", email = "vmitov@gmail.com",
                  role = c("aut", "cre", "cph")))
 Maintainer: Venelin Mitov <vmitov@gmail.com>
