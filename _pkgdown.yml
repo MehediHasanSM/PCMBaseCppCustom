@@ -7,9 +7,3 @@ template:
 navbar:
   title: PCMBaseCpp
   type: default
-  left:
-  - icon: fa-home fa-lg
-    href: index.html
-  - text: News
-    href: news/index.html
-  right: []
