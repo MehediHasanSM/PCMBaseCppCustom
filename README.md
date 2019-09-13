@@ -6,7 +6,7 @@ status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://tra
 [![Coverage
 status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
-[![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](http://cran.r-project.org/package=PCMBaseCpp)
+[![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 
 # PCMBaseCpp
 
@@ -44,18 +44,18 @@ options(digits = 4)
 benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 #> Performing benchmark for k:  2 ; optionSet:  serial / 1D-multiv. ...
 #>     k  modelType     N  R mode     logLik  logLikCpp  timeR timeCpp
-#>  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.023  0.0008
-#>  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.133  0.0025
-#>  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.425  0.0106
-#>  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 14.126  0.0862
+#>  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.024  0.0008
+#>  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.134  0.0020
+#>  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.432  0.0107
+#>  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 14.246  0.0881
 #>  5: 2     BM (B)    10  2   11 -4.451e+03 -4.451e+03  0.011  0.0004
-#>  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.101  0.0009
-#>  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  1.028  0.0071
-#>  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05 10.692  0.0767
-#>  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.019  0.0008
-#> 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.167  0.0018
-#> 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.796  0.0109
-#> 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 17.282  0.0900
+#>  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.102  0.0010
+#>  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  1.021  0.0076
+#>  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05 10.148  0.0761
+#>  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.017  0.0007
+#> 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.168  0.0017
+#> 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.673  0.0100
+#> 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 16.882  0.0918
 ```
 
 # How to use the package?
@@ -74,7 +74,7 @@ system.time(llR <- PCMLik(
   tree = PCMBaseTestObjects$tree.ab,
   model = PCMBaseTestObjects$model_MixedGaussian_ab))
 #>    user  system elapsed 
-#>   0.071   0.000   0.072
+#>   0.075   0.000   0.077
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -110,20 +110,20 @@ randParam <- PCMParamRandomVecParams(PCMBaseTestObjects$model_MixedGaussian_ab)
 
 system.time(llR <- logLikFunR(randParam))
 #>    user  system elapsed 
-#>   0.069   0.000   0.069
+#>   0.069   0.000   0.070
 
 system.time(llCpp <- logLikFunCpp(randParam))
 #>    user  system elapsed 
-#>   0.002   0.000   0.002
+#>   0.003   0.000   0.002
 
 print(llR)
-#> [1] -897.5
+#> [1] -752
 #> attr(,"X0")
-#> [1] -5.996  7.710 -2.942
+#> [1] -0.03274  9.56079  9.12397
 print(llCpp)
-#> [1] -897.5
+#> [1] -752
 #> attr(,"X0")
-#> [1] -5.996  7.710 -2.942
+#> [1] -0.03274  9.56079  9.12397
 ```
 
 ## Passing the meta-information object returned by `PCMInfoCpp` as a `metaI` argument of `PCMLik` and `PCMCreateLikelihood`
@@ -148,7 +148,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.070   0.001   0.071
+#>   0.069   0.000   0.069
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -187,7 +187,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.071   0.000   0.072
+#>   0.070   0.000   0.071
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
