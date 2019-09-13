@@ -6,8 +6,8 @@
 a tree.}
 \usage{
 PCMInfoCpp(X, tree, model, SE = matrix(0, PCMNumTraits(model),
-  PCMTreeNumTips(tree)), metaI = PCMInfo(X = X, tree = tree, model = model, SE
-  = SE, verbose = verbose, preorder = PCMTreePreorderCpp(tree)),
+  PCMTreeNumTips(tree)), metaI = PCMInfo(X = X, tree = tree, model =
+  model, SE = SE, verbose = verbose, preorder = PCMTreePreorderCpp(tree)),
   verbose = FALSE, ...)
 }
 \arguments{
