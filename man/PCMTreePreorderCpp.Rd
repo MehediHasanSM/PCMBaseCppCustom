@@ -9,6 +9,14 @@ PCMTreePreorderCpp(tree)
 \arguments{
 \item{tree}{a phylo object}
 }
+\value{
+an integer vector containing indices of rows in \code{tree$edge} in
+their preorder order.
+}
 \description{
 Fast preorder of the edges in a tree
+}
+\examples{
+PCMTreePreorderCpp(PCMBase::PCMBaseTestObjects$tree.a)
+
 }

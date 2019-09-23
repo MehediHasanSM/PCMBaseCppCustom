@@ -17,3 +17,6 @@ a numerical vector
 \description{
 Get a vector with all model parameters unrolled
 }
+\examples{
+PCMParamGetFullVector(PCMBase::PCMBaseTestObjects$model.a.123)
+}

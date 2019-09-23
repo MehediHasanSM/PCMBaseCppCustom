@@ -45,3 +45,14 @@ a list to be passed to PCMLik as argument metaI.
 Replace calls to PCMInfo() with this method in order to use C++
 for likelihood calculation.
 }
+\examples{
+metaICpp <- PCMInfoCpp(
+PCMBase::PCMBaseTestObjects$traits.a.123, 
+PCMBase::PCMBaseTestObjects$tree.a,
+PCMBase::PCMBaseTestObjects$model.a.123)
+PCMBase::PCMLik(
+PCMBase::PCMBaseTestObjects$traits.a.123, 
+PCMBase::PCMBaseTestObjects$tree.a,
+PCMBase::PCMBaseTestObjects$model.a.123,
+metaI = metaICpp)
+}

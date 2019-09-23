@@ -51,21 +51,23 @@ a data.frame.
 Evaluate the likelihood calculation times for example trees and data
 }
 \examples{
-\dontrun{
 library(PCMBase)
 library(PCMBaseCpp)
+library(data.table)
 
+testData <- PCMBaseCpp::benchmarkData[1]
 # original MGPM model
-MiniBenchmarkRvsCpp()
+MiniBenchmarkRvsCpp(data = testData)
 
 # original MGPM model and parallel mode
 MiniBenchmarkRvsCpp(
+data = testData,
 listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
 PCMBase.Threshold.SV = 1e-9))
 
 # single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
 MiniBenchmarkRvsCpp(
-data = PCMBaseCpp::benchmarkData[, list(
+data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -75,7 +77,7 @@ PCMBase.Use1DClasses = FALSE))
 
 # random BM (non-MixedGaussian) model and parallel mode
 MiniBenchmarkRvsCpp(
-data = PCMBaseCpp::benchmarkData[, list(
+data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X,
  model = modelBM)],
@@ -84,16 +86,16 @@ PCMBase.Threshold.SV = 1e-9))
 
 # random OU (non-MixedGaussian) model and parallel mode
 MiniBenchmarkRvsCpp(
-data = PCMBaseCpp::benchmarkData[, list(
+data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
- X,, 
+ X,
  model = modelOU)],
 listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
 PCMBase.Threshold.SV = 1e-9))
 
 # test on sinlge-trait data, BM (non-MGPM) model.
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(modelBM, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -104,7 +106,7 @@ MiniBenchmarkRvsCpp(
  
 # test on sinlge-trait data, OU (non-MGPM) model.
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -113,7 +115,7 @@ MiniBenchmarkRvsCpp(
  
 # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -123,7 +125,7 @@ MiniBenchmarkRvsCpp(
 
 # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1:2,, drop=FALSE]), 
  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1:2)))],
@@ -132,7 +134,7 @@ MiniBenchmarkRvsCpp(
    PCMBase.Use1DClasses = TRUE))
 
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -141,7 +143,7 @@ MiniBenchmarkRvsCpp(
 
 #' # test on sinlge-trait data using the PCMBase.Use1DClasses = TRUE option
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -152,13 +154,12 @@ MiniBenchmarkRvsCpp(
 
 # test on sinlge-trait data in parallel mode
 MiniBenchmarkRvsCpp(
- data = PCMBaseCpp::benchmarkData[, list(
+ data = PCMBaseCpp::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
  listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
  PCMBase.Threshold.SV = 1e-9))
 
-MiniBenchmarkRvsCpp(listOptions = list(PCMBase.Lmr.mode = 21))
-}
+MiniBenchmarkRvsCpp(testData, listOptions = list(PCMBase.Lmr.mode = 21))
 }

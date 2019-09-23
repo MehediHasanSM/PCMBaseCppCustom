@@ -20,6 +20,8 @@
 #' @param model a PCM model object
 #' @param ... passed to methods
 #' @return a numerical vector
+#' @examples 
+#' PCMParamGetFullVector(PCMBase::PCMBaseTestObjects$model.a.123)
 #' @export
 PCMParamGetFullVector <- function(model, ...) {
   UseMethod("PCMParamGetFullVector", model)
@@ -111,6 +113,17 @@ PCMParamGetFullVector.MixedGaussian <- function(model, ...) {
 #' @importFrom PCMBase PCMInfo PCMTreeJumps PCMApplyTransformation is.Transformable
 #' PCMNumRegimes PCMNumTraits PCMTreeNumNodes PCMTreeNumTips is.Global is.Omitted is.PCM
 #' @return a list to be passed to PCMLik as argument metaI.
+#' 
+#' @examples 
+#' metaICpp <- PCMInfoCpp(
+#' PCMBase::PCMBaseTestObjects$traits.a.123, 
+#' PCMBase::PCMBaseTestObjects$tree.a,
+#' PCMBase::PCMBaseTestObjects$model.a.123)
+#' PCMBase::PCMLik(
+#' PCMBase::PCMBaseTestObjects$traits.a.123, 
+#' PCMBase::PCMBaseTestObjects$tree.a,
+#' PCMBase::PCMBaseTestObjects$model.a.123,
+#' metaI = metaICpp)
 #' @export
 PCMInfoCpp <- function(
   X, tree, model, 
@@ -127,6 +140,8 @@ PCMInfoCpp <- function(
 #' 
 #' @return an integer vector containing indices of rows in \code{tree$edge} in
 #' their preorder order.
+#' @examples 
+#' PCMTreePreorderCpp(PCMBase::PCMBaseTestObjects$tree.a)
 #' 
 #' @export
 PCMTreePreorderCpp <- function(tree) {
