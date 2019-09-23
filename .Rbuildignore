@@ -8,3 +8,4 @@
 ^\.Rproj\.user$
 ^src/RcppTestDebug.txt
 ^vignettes
+cran-comments
