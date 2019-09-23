@@ -124,6 +124,10 @@ PCMInfoCpp <- function(
 
 #' Fast preorder of the edges in a tree
 #' @param tree a phylo object
+#' 
+#' @return an integer vector containing indices of rows in \code{tree$edge} in
+#' their preorder order.
+#' 
 #' @export
 PCMTreePreorderCpp <- function(tree) {
   trCpp <- PCMBaseCpp__OrderedTree$new(tree)
