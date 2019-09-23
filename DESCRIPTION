@@ -29,7 +29,6 @@ Suggests:
     covr
 LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 6.1.1
-VignetteBuilder: knitr, rmarkdown
 ByteCompile: yes
 NeedsCompilation: yes
 URL: https://github.com/venelin/PCMBaseCpp, https://venelin.github.io/PCMBase/
