@@ -75,103 +75,19 @@
 #' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
 #' PCMBase.Threshold.SV = 1e-9))
 #' 
-#' # single-trait data, original MGPM model and single mode and enabled option PCMBase.Use1DClasses
+#' # single-trait data, original MGPM model and single mode and enabled option 
+#' # PCMBase.Use1DClasses
 #' MiniBenchmarkRvsCpp(
 #' data = PCMBaseCpp::benchmarkData[1, list(
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#' listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
-#' PCMBase.Threshold.SV = 1e-9,
-#' PCMBase.Use1DClasses = FALSE))
-#' 
-#' # random BM (non-MixedGaussian) model and parallel mode
-#' MiniBenchmarkRvsCpp(
-#' data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X,
-#'  model = modelBM)],
-#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
-#' PCMBase.Threshold.SV = 1e-9))
-#' 
-#' # random OU (non-MixedGaussian) model and parallel mode
-#' MiniBenchmarkRvsCpp(
-#' data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X,
-#'  model = modelOU)],
-#' listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
-#' PCMBase.Threshold.SV = 1e-9))
-#'
-#' # test on sinlge-trait data, BM (non-MGPM) model.
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
-#'  model = lapply(modelBM, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
-#'  PCMBase.Threshold.SV = 1e-9, 
-#'  PCMBase.Use1DClasses = FALSE))
-#'  
-#'  
-#' # test on sinlge-trait data, OU (non-MGPM) model.
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
-#'  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
-#'  PCMBase.Threshold.SV = 1e-9))
-#'  
-#' # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
-#'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
-#'  PCMBase.Threshold.SV = 1e-9,
-#'    PCMBase.Use1DClasses = FALSE))
-#'
-#' # test on sinlge-trait data, OU (non-MGPM) model with enabled option PCMBase.Use1DClasses = TRUE
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1:2,, drop=FALSE]), 
-#'  model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = 1:2)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9,
+#' listOptions = list(
+#'   PCMBase.Lmr.mode = 11, 
+#'   PCMBase.Threshold.EV = 1e-9, 
 #'   PCMBase.Threshold.SV = 1e-9,
-#'    PCMBase.Use1DClasses = TRUE))
+#'   PCMBase.Use1DClasses = FALSE))
 #' 
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
-#'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
-#'  PCMBase.Threshold.SV = 1e-9))
-#'
-#' #' # test on sinlge-trait data using the PCMBase.Use1DClasses = TRUE option
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
-#'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(
-#'    PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 1e-9, 
-#'    PCMBase.Threshold.SV = 1e-9,
-#'    PCMBase.Use1DClasses = 1))
-#'
-#' # test on sinlge-trait data in parallel mode
-#' MiniBenchmarkRvsCpp(
-#'  data = PCMBaseCpp::benchmarkData[1, list(
-#'  tree, 
-#'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
-#'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
-#'  listOptions = list(PCMBase.Lmr.mode = 21, PCMBase.Threshold.EV = 1e-9, 
-#'  PCMBase.Threshold.SV = 1e-9))
-#' 
-#' MiniBenchmarkRvsCpp(testData, listOptions = list(PCMBase.Lmr.mode = 21))
 #' @importFrom utils Rprof
 #' @export
 MiniBenchmarkRvsCpp <- function(
