@@ -208,7 +208,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<DOU> QuadraticPolyDOU;
+typedef TraversalTaskWrapper<SPLITT::TraversalTask<DOU>> QuadraticPolyDOU;
 }
 
 #endif // QuadraticPoly_OU_H_

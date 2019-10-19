@@ -130,7 +130,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<White> QuadraticPolyWhite;
+typedef TraversalTaskWrapper<SPLITT::TraversalTask<White>> QuadraticPolyWhite;
 }
 
 #endif // QuadraticPoly_WHITE_H_

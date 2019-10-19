@@ -210,7 +210,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<JOU> QuadraticPolyJOU;
+typedef TraversalTaskWrapper<SPLITT::TraversalTask<JOU>> QuadraticPolyJOU;
 }
 
 #endif // QuadraticPoly_JOU_H_

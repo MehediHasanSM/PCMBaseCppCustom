@@ -245,7 +245,13 @@ PCMLmr.PCMInfoCpp <- function(
   
   par <- PCMParamGetFullVector(model)
   
-  PCMLmr_vec <- metaI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", as.integer(11)))
+  status <- metaI$TraverseTree(par, mode=getOption("PCMBase.Lmr.mode", as.integer(11)))
+  if( status == "" ) {
+    PCMLmr_vec <- metaI$StateAtNode(metaI$M - 1)
+  } else {
+    # An error has been produced during the call
+    stop(status)
+  }
   
   if(root.only) {
     # number of traits (variables)

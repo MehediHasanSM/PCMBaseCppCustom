@@ -145,7 +145,7 @@ public:
   }
 };
 
-typedef SPLITT::TraversalTask<OU1D> QuadraticPolyOU1D;
+typedef TraversalTaskWrapper<SPLITT::TraversalTask<OU1D>> QuadraticPolyOU1D;
 }
 
 #endif // QuadraticPoly_OU1D_H_

@@ -34,6 +34,8 @@
 #include <complex>
 #include <cmath>
 #include <iostream>
+#include <string>
+#include <exception>
 
 
 namespace PCMBaseCpp {
@@ -67,7 +69,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     std::vector<RegimeType> const& regimes_unique) {
   
   if(regimes_unique.size() == 0) {
-    throw std::logic_error("ERR:03101:PCMBaseCpp:QuadraticPolyCommon.h:mapRegimesToIndices:: regimes_unique has 0 length but should have at least one regime.");
+    throw std::logic_error("QuadraticPolyCommon.h:mapRegimesToIndices:: regimes_unique has 0 length but should have at least one regime.");
   }
   std::unordered_map<RegimeType, arma::uword> map_regimes;
   arma::uword next_regime = 0;
@@ -75,7 +77,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     auto it = map_regimes.insert(std::pair<RegimeType, arma::uword>(r, next_regime));
     if(!it.second) {
       std::ostringstream os;
-      os<<"ERR:03102:PCMBaseCpp:QuadraticPolyCommon.h:mapRegimesToIndices:: The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
+      os<<"QuadraticPolyCommon.h:mapRegimesToIndices:: The regime named '"<<r<<"' is dupliclated. Remove duplicates from regimes_unique.";
       throw std::logic_error(os.str());
     } else {
       ++next_regime;
@@ -86,7 +88,7 @@ std::vector<arma::uword> mapRegimesToIndices(
     auto it = map_regimes.find(r);
     if(it == map_regimes.end()) {
       std::ostringstream os;
-      os<<"ERR:03103:PCMBaseCpp:QuadraticPolyCommon.h:mapRegimesToIndices:: The regime named '"<<r<<"' was not found in regimes_unique.";
+      os<<"QuadraticPolyCommon.h:mapRegimesToIndices:: The regime named '"<<r<<"' was not found in regimes_unique.";
       throw std::logic_error(os.str());
     } else {
       regimeIndices.push_back(it->second);
@@ -94,6 +96,52 @@ std::vector<arma::uword> mapRegimesToIndices(
   }
   return regimeIndices;
 }
+
+// Wraps the call TraverseTree with an exception handler. 
+// Needed for https://github.com/venelin/PCMBaseCpp/issues/1#issue-507813590.
+template<class TraversalTask> 
+class TraversalTaskWrapper {
+public:
+  typedef TraversalTask TraversalTaskType;
+  
+  typedef typename TraversalTaskType::StateType StateType;
+  typedef typename TraversalTaskType::ParameterType ParameterType;
+  typedef typename TraversalTaskType::NodeType NodeType;
+  typedef typename TraversalTaskType::LengthType LengthType;
+  typedef typename TraversalTaskType::DataType DataType;
+  
+  typedef typename TraversalTaskType::TreeType TreeType;
+  typedef typename TraversalTaskType::AlgorithmType AlgorithmType;
+  
+  TraversalTaskType taskObject_;
+
+  TraversalTaskWrapper(
+    std::vector<NodeType> const& branch_start_nodes,
+    std::vector<NodeType> const& branch_end_nodes,
+    std::vector<LengthType> const& branch_lengths,
+    DataType const& data): 
+  taskObject_(branch_start_nodes, branch_end_nodes, branch_lengths, data) {}
+  
+  std::string TraverseTree(ParameterType const& par, uint mode) {
+    try {
+      taskObject_.TraverseTree(par, mode);
+    } catch(std::exception& e) {
+      return std::string("error: ") + e.what();
+    } 
+    return std::string("");
+  }
+  
+  StateType StateAtNode(uint i) {
+    return taskObject_.StateAtNode(i);
+  }
+  
+  TreeType & tree() {
+    return taskObject_.tree();
+  }
+  AlgorithmType & algorithm() {
+    return taskObject_.algorithm();
+  }
+};
 }
 
 #endif // PCMBase_QuadraticPolyCommon_H_

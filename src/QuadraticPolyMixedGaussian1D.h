@@ -73,7 +73,7 @@ public:
 };
 
 
-typedef SPLITT::TraversalTask<MixedGaussian1D> QuadraticPolyMixedGaussian1D;
+typedef TraversalTaskWrapper<SPLITT::TraversalTask<MixedGaussian1D>> QuadraticPolyMixedGaussian1D;
 }
 
 #endif // QuadraticPoly_MixedGaussian1D_H_

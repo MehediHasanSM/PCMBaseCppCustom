@@ -196,7 +196,7 @@ BenchmarkRvsCpp <- function(
   verbose = FALSE) {
 
   benchmarkData <- PCMBaseCpp::benchmarkData
-  X <- model <- modelBM <- modelOU <- modelType <- N <- R <- mapping <- 
+  X <- tree <-  model <- modelBM <- modelOU <- modelType <- N <- R <- mapping <- 
     PCMBase.Lmr.mode <- logLik <- logLikCpp <- timeR <- timeCpp <- NULL
   
   resultList <- lapply(ks, function(k) {
