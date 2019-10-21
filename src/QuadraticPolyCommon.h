@@ -99,10 +99,10 @@ std::vector<arma::uword> mapRegimesToIndices(
 
 // Wraps the call TraverseTree with an exception handler. 
 // Needed for https://github.com/venelin/PCMBaseCpp/issues/1#issue-507813590.
-template<class TraversalTask> 
+template<class TraversalSpec> 
 class TraversalTaskWrapper {
 public:
-  typedef TraversalTask TraversalTaskType;
+  typedef typename SPLITT::TraversalTask<TraversalSpec> TraversalTaskType;
   
   typedef typename TraversalTaskType::StateType StateType;
   typedef typename TraversalTaskType::ParameterType ParameterType;

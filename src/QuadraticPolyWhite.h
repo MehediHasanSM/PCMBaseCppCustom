@@ -75,7 +75,7 @@ struct CondGaussianWhite: public CondGaussianOmegaPhiV {
     uint npar = R_*(k_*k_ + k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03601:PCMBaseCpp:QuadraticPolyWhite.h:CondGaussianWhite.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"QuadraticPolyWhite.h:CondGaussianWhite.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(k^2+k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
@@ -130,7 +130,7 @@ public:
 };
 
 
-typedef TraversalTaskWrapper<SPLITT::TraversalTask<White>> QuadraticPolyWhite;
+typedef TraversalTaskWrapper<White> QuadraticPolyWhite;
 }
 
 #endif // QuadraticPoly_WHITE_H_

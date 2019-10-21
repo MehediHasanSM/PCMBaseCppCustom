@@ -125,7 +125,7 @@ public:
 };
 
 
-typedef TraversalTaskWrapper<SPLITT::TraversalTask<BM1D>> QuadraticPolyBM1D;
+typedef TraversalTaskWrapper<BM1D> QuadraticPolyBM1D;
 }
 
 #endif // QuadraticPoly_BM1D_H_

@@ -115,7 +115,7 @@ struct CondGaussianOU: public CondGaussianOmegaPhiV {
     uint npar = R_*(3*k_*k_ + 2*k_);
     if(par.size() - offset < npar) {
       std::ostringstream os;
-      os<<"ERR:03401:PCMBaseCpp:QuadraticPolyOU.h:CondOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
+      os<<"QuadraticPolyOU.h:CondOU.SetParameter:: The length of the parameter vector minus offset ("<<par.size() - offset<<
         ") should be at least of R*(3k^2+2k), where k="<<k_<<" is the number of traits and "<<
           " R="<<R_<<" is the number of regimes.";
       throw std::logic_error(os.str());
@@ -204,7 +204,7 @@ public:
   }
 };
 
-typedef TraversalTaskWrapper<SPLITT::TraversalTask<OU>> QuadraticPolyOU;
+typedef TraversalTaskWrapper<OU> QuadraticPolyOU;
 }
 
 #endif // QuadraticPoly_OU_H_
