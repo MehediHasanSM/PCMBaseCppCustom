@@ -2,7 +2,7 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 [![Travis build
-status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp)
+status](https://travis-ci.com/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.com/venelin/PCMBaseCpp)
 [![Coverage
 status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
@@ -75,7 +75,7 @@ system.time(llR <- PCMLik(
   tree = PCMBaseTestObjects$tree.ab,
   model = PCMBaseTestObjects$model_MixedGaussian_ab))
 #>    user  system elapsed 
-#>   0.089   0.003   0.094
+#>   0.095   0.003   0.170
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -83,7 +83,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = PCMInfoCpp))
 #>    user  system elapsed 
-#>   0.005   0.001   0.007
+#>   0.006   0.001   0.011
 
 print(llR)
 #> [1] -206.4146
@@ -107,22 +107,41 @@ logLikFunCpp <- PCMCreateLikelihood(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = PCMInfoCpp)
 
+metaICpp <- PCMInfoCpp(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab)
+
+logLikFunCpp2 <- PCMCreateLikelihood(
+  X = PCMBaseTestObjects$traits.ab.123, 
+  tree = PCMBaseTestObjects$tree.ab,
+  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
+  metaI = metaICpp)
+
 set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion")
 randParam <- PCMParamRandomVecParams(PCMBaseTestObjects$model_MixedGaussian_ab)
 
 system.time(llR <- logLikFunR(randParam))
 #>    user  system elapsed 
-#>   0.071   0.000   0.072
+#>   0.074   0.001   0.078
 
 system.time(llCpp <- logLikFunCpp(randParam))
 #>    user  system elapsed 
-#>   0.003   0.000   0.003
+#>   0.002   0.000   0.002
+
+system.time(llCpp2 <- logLikFunCpp2(randParam))
+#>    user  system elapsed 
+#>   0.002   0.000   0.002
 
 print(llR)
 #> [1] -598.092
 #> attr(,"X0")
 #> [1] -4.689827 -2.557522  1.457067
 print(llCpp)
+#> [1] -598.092
+#> attr(,"X0")
+#> [1] -4.689827 -2.557522  1.457067
+print(llCpp2)
 #> [1] -598.092
 #> attr(,"X0")
 #> [1] -4.689827 -2.557522  1.457067
@@ -150,7 +169,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.072   0.000   0.072
+#>   0.075   0.000   0.076
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -158,7 +177,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaICpp))
 #>    user  system elapsed 
-#>   0.001   0.000   0.001
+#>   0.001   0.000   0.002
 
 print(llR)
 #> [1] -206.4146
@@ -189,7 +208,7 @@ system.time(llR <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaIR))
 #>    user  system elapsed 
-#>   0.069   0.000   0.069
+#>   0.075   0.000   0.076
 
 system.time(llCpp <- PCMLik(
   X = PCMBaseTestObjects$traits.ab.123, 
@@ -197,7 +216,7 @@ system.time(llCpp <- PCMLik(
   model = PCMBaseTestObjects$model_MixedGaussian_ab, 
   metaI = metaICpp))
 #>    user  system elapsed 
-#>   0.001   0.000   0.001
+#>   0.001   0.000   0.002
 
 print(llR)
 #> [1] -206.4146

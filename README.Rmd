@@ -16,7 +16,7 @@ library(PCMBase)
 library(PCMBaseCpp)
 ```
 
-[![Travis build status](https://travis-ci.org/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.org/venelin/PCMBaseCpp)
+[![Travis build status](https://travis-ci.com/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.com/venelin/PCMBaseCpp)
 [![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 [![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
