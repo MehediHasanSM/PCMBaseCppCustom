@@ -125,8 +125,10 @@ public:
   std::string TraverseTree(ParameterType const& par, uint mode) {
     try {
       taskObject_.TraverseTree(par, mode);
+    } catch(std::logic_error& e) {
+      return std::string("logic_error: ") + e.what();
     } catch(std::exception& e) {
-      return std::string("error: ") + e.what();
+      return std::string("exception: ") + e.what();
     } catch(...) {
       return std::string("unknown error.");
     } 
