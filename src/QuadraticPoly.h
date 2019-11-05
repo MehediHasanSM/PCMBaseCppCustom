@@ -91,7 +91,7 @@ inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType&
   P.slice(r) = eigvec;
   if(IsSingular(P.slice(r), threshold_SV)) {
     std::ostringstream os;
-    os<<"ERR:03402:PCMBaseCpp:QuadraticPoly.h:DecomposeH:: Defective H matrix:"<<
+    os<<"QuadraticPoly.h:DecomposeH:: Defective H matrix:"<<
       H.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
     throw std::logic_error(os.str());
   }
@@ -427,7 +427,7 @@ public:
            threshold_skip_singular_ < ti) {
           ostringstream oss;
           oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
-            this->ref_tree_.FindNodeWithId(i)<<" (branch-length="<<ti<<
+            this->ref_tree_.FindNodeWithId(i)<<" (branch length="<<ti<<
               ") is nearly singular; V.slice(i)(ki,ki):"<<std::endl<<V.slice(i)(ki,ki);
           throw logic_error(oss.str());  
         } 
@@ -468,7 +468,7 @@ public:
               ostringstream oss;
               oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
                 this->ref_tree_.FindNodeWithId(i)<<" (branch length="<<ti<<") "<<
-                  "is nearly singular or not positive definite; near-0 or "<<
+                  "is nearly singular or not positive definite; near 0 or "<<
                     "negative eigenvalue found: "<<eigv<<
                       "; V.slice(i)(ki,ki): "<<std::endl<<V.slice(i)(ki,ki);
               throw logic_error(oss.str());
