@@ -127,6 +127,8 @@ public:
       taskObject_.TraverseTree(par, mode);
     } catch(std::exception& e) {
       return std::string("error: ") + e.what();
+    } catch(...) {
+      return std::string("unknown error.");
     } 
     return std::string("");
   }
