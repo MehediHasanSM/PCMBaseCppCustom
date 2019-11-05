@@ -31,7 +31,8 @@
 # shared libraries. Yet, for these options to have an effect, the compiler itself
 # should support OpenMP, i.e. it should include the appropriate OpenMP headers,
 # and the openmp shared library binaries in its distribution (see above comments).
-PKG_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) -DARMA_DONT_USE_OPENMP
-PKG_LIBS=$(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+#PKG_CXXFLAGS=$(SHLIB_OPENMP_CXXFLAGS) -DARMA_DONT_USE_OPENMP
+PKG_LIBS=$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+#PKG_LIBS=$(SHLIB_OPENMP_CXXFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 CXX_STD = CXX11
