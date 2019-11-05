@@ -9,11 +9,11 @@ if(PCMBaseCppIsADevRelease()) {
   
   modelBM <- PCM(model = "BM", k = 1)
   
-  mTraits <- matrix(0,ncol=PCMTreeNumTips(phyltree),nrow=1)
-  
   phyltree <- tree.a
   phyltree$part.regime <- NULL
   phyltree$edge.regime <- NULL
+  
+  mTraits <- matrix(0,ncol=PCMTreeNumTips(phyltree),nrow=1)
   
   metaI <- PCMInfo(mTraits, phyltree, modelBM)
   metaICpp <- PCMInfoCpp(mTraits, phyltree, modelBM)
