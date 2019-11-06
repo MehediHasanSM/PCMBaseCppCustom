@@ -123,15 +123,15 @@ public:
   taskObject_(branch_start_nodes, branch_end_nodes, branch_lengths, data) {}
   
   std::string TraverseTree(ParameterType const& par, uint mode) {
-  //  try {
+    try {
       taskObject_.TraverseTree(par, mode);
-    // } catch(std::logic_error& e) {
-    //   return std::string("logic_error: ") + e.what();
-    // } catch(std::exception& e) {
-    //   return std::string("exception: ") + e.what();
-    // } catch(...) {
-    //   return std::string("unknown error.");
-    // } 
+    } catch(std::logic_error& e) {
+      return std::string("logic_error: ") + e.what();
+    } catch(std::exception& e) {
+      return std::string("exception: ") + e.what();
+    } catch(...) {
+      return std::string("unknown error.");
+    }
     return std::string("");
   }
   
