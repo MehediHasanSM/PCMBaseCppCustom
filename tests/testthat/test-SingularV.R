@@ -7,11 +7,13 @@ if(PCMBaseCppIsADevRelease()) {
   context("Test singular matrix V")  
   load("testobjects.RData")
   
-  modelBM <- PCM(model = "BM", k = 1)
+  
   
   phyltree <- tree.a
   phyltree$part.regime <- NULL
   phyltree$edge.regime <- NULL
+  
+  modelBM <- PCM(model = "BM", k = 1)
   
   mTraits <- matrix(0,ncol=PCMTreeNumTips(phyltree),nrow=1)
   
