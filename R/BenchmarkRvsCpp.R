@@ -38,6 +38,8 @@
 #' }
 #' Defaults: to `benchmarkData`, which is small data.table included
 #' with the PCMBaseCpp package.
+#' @param includeR logical (default TRUE) indicating if likelihood calculations
+#' in R should be included in the benchmark (can be slow).
 #' @param includeTransformationTime logical (default TRUE) indicating if the time for
 #' \code{\link{PCMApplyTransformation}} should be included in the benchmark.
 #' @param nRepsCpp : number of repetitions for the cpp likelihood calculation 
@@ -92,6 +94,7 @@
 #' @export
 MiniBenchmarkRvsCpp <- function(
   data = PCMBaseCpp::benchmarkData, 
+  includeR = TRUE,
   includeTransformationTime = TRUE,
   nRepsCpp = 10L, 
   listOptions = list(
@@ -115,23 +118,28 @@ MiniBenchmarkRvsCpp <- function(
     }
     
     metaIR <- PCMInfo(X, tree, model)
+    
     metaICpp <- PCMInfoCpp(X, tree, model, metaI = metaIR)
     
-    valueR <- valueCpp <- as.double(NA)
+    valueR <- valueCpp <- NA_real_
   
-    if(doProf) {
-      do.call(
-        Rprof, 
-        c(list(filename = RprofR.out),
-          getOption("PCMBaseCpp.ArgsRprofR", list(append = TRUE, line.profiling = TRUE))))
+    if(includeR) {
+      if(doProf) {
+        do.call(
+          Rprof, 
+          c(list(filename = RprofR.out),
+            getOption("PCMBaseCpp.ArgsRprofR", 
+                      list(append = TRUE, line.profiling = TRUE))))
+      }
+      timeR <- system.time({
+        valueR <- PCMLik(X, tree, model, metaI = metaIR)
+      })[3]
+      if(doProf) {
+        Rprof(NULL)
+      }
+    } else {
+      timeR <- NA_real_
     }
-    timeR <- system.time({
-      valueR <- PCMLik(X, tree, model, metaI = metaIR)
-    })[3]
-    if(doProf) {
-      Rprof(NULL)
-    }
-    
     
     if(doProf) {
       do.call(
@@ -189,6 +197,7 @@ MiniBenchmarkRvsCpp <- function(
 #' @importFrom PCMBase PCMExtractDimensions
 BenchmarkRvsCpp <- function(
   ks = c(1, 2, 4, 8),
+  includeR = TRUE,
   includeTransformationTime = TRUE, 
   optionSets = NULL,
   includeParallelMode = TRUE,
@@ -238,7 +247,8 @@ BenchmarkRvsCpp <- function(
           model = lapply(modelOU, function(m) PCMExtractDimensions(m, dims = ds, nRepBlocks = nRB)))]))
       
       resultData <- MiniBenchmarkRvsCpp(
-        data = testData, 
+        data = testData,
+        includeR = includeR,
         includeTransformationTime = includeTransformationTime,
         listOptions = optionSets[[oset]],
         doProf = doProf, RprofR.out = RprofR.out, RprofCpp.out = RprofCpp.out)

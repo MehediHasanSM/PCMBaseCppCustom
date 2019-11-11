@@ -5,14 +5,18 @@
 \title{A log-likelihood calculation time comparison for different numbers of traits 
 and option-sets}
 \usage{
-BenchmarkRvsCpp(ks = c(1, 2, 4, 8), includeTransformationTime = TRUE,
-  optionSets = NULL, includeParallelMode = TRUE, doProf = FALSE,
+BenchmarkRvsCpp(ks = c(1, 2, 4, 8), includeR = TRUE,
+  includeTransformationTime = TRUE, optionSets = NULL,
+  includeParallelMode = TRUE, doProf = FALSE,
   RprofR.out = "RprofR.out", RprofCpp.out = "RprofCpp.out",
   verbose = FALSE)
 }
 \arguments{
 \item{ks}{a vector of positive integers, denoting different numbers of traits. 
 Default: \code{c(1, 2, 4, 8)}.}
+
+\item{includeR}{logical (default TRUE) indicating if likelihood calculations
+in R should be included in the benchmark (can be slow).}
 
 \item{includeTransformationTime}{logical (default TRUE) indicating if the time for
 \code{\link{PCMApplyTransformation}} should be included in the benchmark.}

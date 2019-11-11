@@ -4,7 +4,7 @@
 \alias{MiniBenchmarkRvsCpp}
 \title{Evaluate the likelihood calculation times for example trees and data}
 \usage{
-MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData,
+MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData, includeR = TRUE,
   includeTransformationTime = TRUE, nRepsCpp = 10L,
   listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 0,
   PCMBase.Threshold.SV = 0), doProf = FALSE, RprofR.out = "RprofR.out",
@@ -19,6 +19,9 @@ MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData,
 }
 Defaults: to `benchmarkData`, which is small data.table included
 with the PCMBaseCpp package.}
+
+\item{includeR}{logical (default TRUE) indicating if likelihood calculations
+in R should be included in the benchmark (can be slow).}
 
 \item{includeTransformationTime}{logical (default TRUE) indicating if the time for
 \code{\link{PCMApplyTransformation}} should be included in the benchmark.}
