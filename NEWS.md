@@ -1,3 +1,15 @@
+---
+title: "NEWS about the PCMBaseCpp R-package"
+author: "Venelin Mitov"
+date: "20 November, 2019"
+output: html_document
+---
+
+# PCMBaseCpp 0.1.7
+
+* Disabled tests causing failures on CRAN "Fedora clang" and "Solaris" systems - none of these failures could be reproduced using `devtools::check_rhub()`.
+* Generated project web-page: https://venelin.github.io/PCMBaseCpp .
+
 # PCMBaseCpp 0.1.6
 
 * Fixed an crash situation on Windows due to exceptions bypassing the 
