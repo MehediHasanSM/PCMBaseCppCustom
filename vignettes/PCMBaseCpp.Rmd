@@ -1,23 +1,43 @@
 ---
 title: "Getting started with the PCMBaseCpp R-package"
-output: rmarkdown::html_vignette
+date: '`r Sys.Date()`'
+output: 
+  rmarkdown::html_vignette:
+    fig_caption: yes
+    toc: true
+    toc_depth: 3
 vignette: >
   %\VignetteIndexEntry{Getting started}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
+<!--
+# Copyright 2019 Venelin Mitov
+#
+# This file is part of PCMBaseCpp.
+#
+# PCMBaseCpp is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# PCMBaseCpp is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 # How to use the package?
 
-There are two ways to use the package:
+There are two ways to use PCMBaseCpp:
 
 ## Passing the function `PCMInfoCpp` as a `metaI` argument of `PCMLik` and/or `PCMCreateLikelihood`
 

@@ -7,6 +7,5 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^src/RcppTestDebug.txt
-^vignettes
 cran-comments
 ^pkgdown$

@@ -1,4 +1,3 @@
-destination: docs
 url: http://venelin.github.io/PCMBaseCpp
 
 template:
@@ -18,3 +17,10 @@ navbar:
   - text: News
     href: news/index.html
   right: []
+
+articles:
+- title: All vignettes
+  desc: ~
+  contents:
+  - '`PCMBaseCpp`'
+
