@@ -16,15 +16,11 @@
 # along with PCMBase.  If not, see <http://www.gnu.org/licenses/>.
 
 #' Check if the PCMBaseCpp version correpsonds to a dev release
-#' @importFrom utils packageDescription
-#' @description We define a dev release as having a sub-release, eg 0.9.15.5 is
-#' one whereas 0.9.16 is not. The number of components in the version can be
-#' changed through the argument numVersionComponents.
+#' @description This function is used during unit-testing, to disable some unit-
+#' tests which run extremely long or are consistently failing on some systems.
 #' @return a logical
 #' @export
 PCMBaseCppIsADevRelease <- function() {
-  # !is.na( packageDescription("PCMBaseCpp") ) &&
-  #   length(strsplit(packageDescription("PCMBaseCpp")$Version, "\\.")[[1]]) >= 3
   TRUE
 }
 

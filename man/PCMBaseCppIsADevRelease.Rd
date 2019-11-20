@@ -10,7 +10,6 @@ PCMBaseCppIsADevRelease()
 a logical
 }
 \description{
-We define a dev release as having a sub-release, eg 0.9.15.5 is
-one whereas 0.9.16 is not. The number of components in the version can be
-changed through the argument numVersionComponents.
+This function is used during unit-testing, to disable some unit-
+tests which run extremely long or are consistently failing on some systems.
 }
