@@ -1,6 +1,6 @@
 library(PCMBaseCpp)
 
-if(FALSE) {
+if(PCMBaseCppIsADevRelease()) {
   library(testthat)
   library(PCMBase)
   

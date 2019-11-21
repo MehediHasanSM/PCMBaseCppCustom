@@ -1,13 +1,13 @@
 ---
 title: "NEWS about the PCMBaseCpp R-package"
 author: "Venelin Mitov"
-date: "20 November, 2019"
+date: "21 November, 2019"
 output: html_document
 ---
 
 # PCMBaseCpp 0.1.7
 
-* Disabled tests causing failures on CRAN "Fedora clang" and "Solaris" systems - none of these failures could be reproduced using `devtools::check_rhub()`.
+* Disabled OPENMP compilation in an attempt to fix the failures on "Fedora clang" and "Solaris". Note that these errors could not be reproduced using devtools::check_rhub().
 * Generated project web-page: https://venelin.github.io/PCMBaseCpp .
 
 # PCMBaseCpp 0.1.6
