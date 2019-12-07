@@ -59,174 +59,10 @@ benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 # 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 15.062  0.0854
 ```
 
-# How to use the package?
-
-There are two ways to use the
-package:
-
-## Passing the function `PCMInfoCpp` as a `metaI` argument of `PCMLik` and/or `PCMCreateLikelihood`
-
-``` r
-library(PCMBase)
-library(PCMBaseCpp)
-
-system.time(llR <- PCMLik(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab))
-#>    user  system elapsed 
-#>   0.095   0.003   0.170
-
-system.time(llCpp <- PCMLik(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = PCMInfoCpp))
-#>    user  system elapsed 
-#>   0.006   0.001   0.011
-
-print(llR)
-#> [1] -206.4146
-#> attr(,"X0")
-#> [1] 5 2 1
-print(llCpp)
-#> [1] -206.4146
-#> attr(,"X0")
-#> [1] 5 2 1
-```
-
-``` r
-logLikFunR <- PCMCreateLikelihood(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab)
-
-logLikFunCpp <- PCMCreateLikelihood(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = PCMInfoCpp)
-
-metaICpp <- PCMInfoCpp(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab)
-
-logLikFunCpp2 <- PCMCreateLikelihood(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaICpp)
-
-set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion")
-randParam <- PCMParamRandomVecParams(PCMBaseTestObjects$model_MixedGaussian_ab)
-
-system.time(llR <- logLikFunR(randParam))
-#>    user  system elapsed 
-#>   0.074   0.001   0.078
-
-system.time(llCpp <- logLikFunCpp(randParam))
-#>    user  system elapsed 
-#>   0.002   0.000   0.002
-
-system.time(llCpp2 <- logLikFunCpp2(randParam))
-#>    user  system elapsed 
-#>   0.002   0.000   0.002
-
-print(llR)
-#> [1] -598.092
-#> attr(,"X0")
-#> [1] -4.689827 -2.557522  1.457067
-print(llCpp)
-#> [1] -598.092
-#> attr(,"X0")
-#> [1] -4.689827 -2.557522  1.457067
-print(llCpp2)
-#> [1] -598.092
-#> attr(,"X0")
-#> [1] -4.689827 -2.557522  1.457067
-```
-
-## Passing the meta-information object returned by `PCMInfoCpp` as a `metaI` argument of `PCMLik` and `PCMCreateLikelihood`
-
-This is the recommended usage in the case of multiple likelihood
-evaluations, e.g. during model inference:
-
-``` r
-metaIR <- PCMInfo(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab)
-
-metaICpp <- PCMInfoCpp(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab)
-
-system.time(llR <- PCMLik(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaIR))
-#>    user  system elapsed 
-#>   0.075   0.000   0.076
-
-system.time(llCpp <- PCMLik(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaICpp))
-#>    user  system elapsed 
-#>   0.001   0.000   0.002
-
-print(llR)
-#> [1] -206.4146
-#> attr(,"X0")
-#> [1] 5 2 1
-print(llCpp)
-#> [1] -206.4146
-#> attr(,"X0")
-#> [1] 5 2 1
-```
-
-``` r
-logLikFunR <- PCMCreateLikelihood(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaIR)
-
-logLikFunCpp <- PCMCreateLikelihood(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaICpp)
-
-system.time(llR <- PCMLik(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaIR))
-#>    user  system elapsed 
-#>   0.075   0.000   0.076
-
-system.time(llCpp <- PCMLik(
-  X = PCMBaseTestObjects$traits.ab.123, 
-  tree = PCMBaseTestObjects$tree.ab,
-  model = PCMBaseTestObjects$model_MixedGaussian_ab, 
-  metaI = metaICpp))
-#>    user  system elapsed 
-#>   0.001   0.000   0.002
-
-print(llR)
-#> [1] -206.4146
-#> attr(,"X0")
-#> [1] 5 2 1
-print(llCpp)
-#> [1] -206.4146
-#> attr(,"X0")
-#> [1] 5 2 1
-```
+For further examples, read the [Getting
+started](https://venelin.github.io/PCMBaseCpp/PCMBaseCpp.html) guide and
+the reference available on the package
+[homepage](https://venelin.github.io/PCMBaseCpp).
 
 # Citing PCMBase
 
@@ -238,10 +74,10 @@ phylogenetic comparative models: The SPLITT C++ library. Methods in
 Ecology and Evolution, 2041–210X.13136.
 <http://doi.org/10.1111/2041-210X.13136>
 
-Mitov, V., Bartoszek, K., Asimomitis, G., & Stadler, T. (2018, September
-24). Fast likelihood evaluation for multivariate phylogenetic
-comparative methods: the PCMBase R package. arXiv.org.
-<https://arxiv.org/abs/1809.09014>.
+Mitov, V., Bartoszek, K., Asimomitis, G., & Stadler, T. (2019). Fast
+likelihood calculation for multivariate Gaussian phylogenetic models
+with shifts. Theor. Popul. Biol.
+<https://doi.org/10.1016/j.tpb.2019.11.005>
 
 # Used 3rd party libraries
 

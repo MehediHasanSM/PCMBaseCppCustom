@@ -74,7 +74,7 @@ To give credit to the PCMBase package in a publication, please cite the followin
 
 Mitov, V., & Stadler, T. (2018). Parallel likelihood calculation for phylogenetic comparative models: The SPLITT C++ library. Methods in Ecology and Evolution, 2041–210X.13136. http://doi.org/10.1111/2041-210X.13136
 
-Mitov, V., Bartoszek, K., Asimomitis, G., & Stadler, T. (2018, September 24). Fast likelihood evaluation for multivariate phylogenetic comparative methods: the PCMBase R package. arXiv.org. https://arxiv.org/abs/1809.09014.
+Mitov, V., Bartoszek, K., Asimomitis, G., & Stadler, T. (2019). Fast likelihood calculation for multivariate Gaussian phylogenetic models with shifts. Theor. Popul. Biol. https://doi.org/10.1016/j.tpb.2019.11.005
 
 # Used 3rd party libraries
 
