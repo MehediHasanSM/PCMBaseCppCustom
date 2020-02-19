@@ -1,0 +1,138 @@
+---
+title: "Likelihood Computations with mvMORPH, PCMBase and PhylogeneticEM"
+author: "Venelin Mitov, Paul Bastide"
+date: "10/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r packages, message=FALSE}
+library(mvMORPH)
+library(PCMBase)
+library(PCMBaseCpp)
+library(ape)
+library(PhylogeneticEM)
+```
+
+## Simulate a Tree
+
+Generate a random (non ultrametric) tree, and map one shift on it.
+
+```{r tree}
+set.seed(1, kind = "Mersenne-Twister", normal.kind = "Inversion")
+
+# Generating a random tree
+tree <- rtree(50)
+
+# Shift
+# plot(tree); edgelabels()
+edge_shifts <- c(32) # 2 regimes
+tree <- shifts_to_simmap(tree, edge_shifts)
+plot(tree)
+```
+
+## Simulate Data
+
+Simulating trait evolution using the mvMORPH package.
+
+```{r data}
+alpha <- matrix(c(1, 0.1, 0, 2), 2) 
+sigma <- matrix(c(.1, .1, 0, .1), 2)
+theta <- c(2, 3)
+theta1 <- c(-2, -3)
+
+data <- mvSIM(tree, param = list(
+  sigma = sigma, alpha = alpha, ntraits = 2, theta = rbind(theta, theta1),
+  names_traits = c("head.size", "mouth.size")), model = "OUM", nsim = 1)
+```
+
+## Likelihood with mvMOPRH
+
+```{r mvMORPH}
+# Create a log-likelihood calculation function for an OUBM model using mvMORPH:
+llmvMORPH <- mvOU(
+  tree, data, model = "OUM", optimization = "fixed")[["llik"]]
+
+# Calculating the log-likelihood value of the parameters using mvMORPH:
+listParams <- c(alpha[lower.tri(alpha, diag = TRUE)],
+                sigma[lower.tri(sigma, diag = TRUE)],
+                theta = rbind(theta, theta, theta1))
+llmvMORPH(listParams, root.mle = FALSE)
+```
+
+## Likelihood with PCMBase
+
+```{r PCMBase}
+# Convert the tree with mapped regimes to a PCMTree object
+pcmTree <- PCMTree(map.to.singleton(tree))
+PCMTreeSetRegimesForEdges(pcmTree, names(pcmTree[["edge.length"]]))
+
+# Create a PCM model object using PCMBase.
+pcmOUBM <- PCM("OU", k = 2, regimes = c("0", "1"))
+
+# Specify the parameter values for the model
+pcmOUBM[["H"]][,,1] <- pcmOUBM[["H"]][,,2] <- alpha %*% t(alpha) 
+pcmOUBM[["Sigma_x"]][,,1] <- pcmOUBM[["Sigma_x"]][,,2] <- UpperChol(sigma %*% t(sigma))
+pcmOUBM[["Theta"]][,1] <- theta
+pcmOUBM[["Theta"]][,2] <- theta1
+pcmOUBM[["X0"]][] <- theta
+
+# Calculate the log-likelihood value using PCMBase:
+PCMLik(t(data), pcmTree, pcmOUBM)
+```
+
+## Likelihood with PhylogeneticEM
+
+```{r PhylogeneticEM}
+# Parameters
+params <- params_OU(p = 2,
+                    variance = sigma %*% t(sigma),
+                    selection.strength = alpha %*% t(alpha),
+                    optimal.value = theta,
+                    random = FALSE,
+                    stationary.root = FALSE,
+                    value.root = theta,
+                    edges = edge_shifts,
+                    values = matrix(theta1 - theta, ncol = 1))
+
+# Plot the parameters to check
+plot(params, phylo = map.to.singleton(tree), data = t(data))
+
+# Compute the likelihood
+log_likelihood(params, phylo = tree, Y_data = t(data))
+```
+
+## Comparisons
+
+The three values are equal (up to numerical accuracy):
+
+```{r comparison}
+all.equal(target = llmvMORPH(unlist(listParams), root.mle = FALSE), 
+          current = log_likelihood(params, phylo = tree, Y_data = t(data)),
+          check.attributes = FALSE)
+
+all.equal(target = PCMLik(t(data), pcmTree, pcmOUBM), 
+          current = log_likelihood(params, phylo = tree, Y_data = t(data)),
+          check.attributes = FALSE)
+```
+
+Timing:
+
+```{r timing}
+library(PCMBaseCpp)
+metaICpp <- PCMInfoCpp(t(data), pcmTree, pcmOUBM)
+microbenchmark::microbenchmark(PCMBase = PCMLik(t(data), pcmTree, pcmOUBM),
+                               PCMBaseCpp = PCMLik(t(data), pcmTree, pcmOUBM, metaI = metaICpp),
+                               PhyloEM = log_likelihood(params, phylo = tree, Y_data = t(data)),
+                               mvMORPH = llmvMORPH(unlist(listParams), root.mle = FALSE))
+```
+
+## Session Information
+
+```{r info}
+sessionInfo()
+```
