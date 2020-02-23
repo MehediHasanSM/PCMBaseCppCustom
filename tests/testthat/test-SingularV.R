@@ -7,8 +7,6 @@ if(PCMBaseCppIsADevRelease()) {
   context("Test singular matrix V")  
   load("testobjects.RData")
   
-  
-  
   phyltree <- tree.a
   phyltree$part.regime <- NULL
   phyltree$edge.regime <- NULL

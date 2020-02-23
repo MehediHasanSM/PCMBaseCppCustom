@@ -60,8 +60,8 @@ benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 ```
 
 For further examples, read the [Getting
-started](https://venelin.github.io/PCMBaseCpp/PCMBaseCpp.html) guide and
-the reference available on the package
+started](https://venelin.github.io/PCMBaseCpp/articles/PCMBaseCpp.html)
+guide and the reference available on the package
 [homepage](https://venelin.github.io/PCMBaseCpp).
 
 # Citing PCMBase
@@ -86,7 +86,7 @@ libraries:
 
   - For tree processing in C++: The [SPLITT
     library](https://venelin.github.io/SPLITT) (Mitov and Stadler 2018);
-  - For data processing in R: data.table v1.12.2 (Dowle and Srinivasan
+  - For data processing in R: data.table v1.12.8 (Dowle and Srinivasan
     2019);
   - For algebraic manipulation: The [Armadillo C++ template
     library](http://arma.sourceforge.net/) (Sanderson and Curtin 2016)

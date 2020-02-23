@@ -66,7 +66,7 @@ benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 # 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 15.062  0.0854
 ```
 
-For further examples, read the [Getting started](https://venelin.github.io/PCMBaseCpp/PCMBaseCpp.html) guide and the  reference available on the package [homepage](https://venelin.github.io/PCMBaseCpp).
+For further examples, read the [Getting started](https://venelin.github.io/PCMBaseCpp/articles/PCMBaseCpp.html) guide and the  reference available on the package [homepage](https://venelin.github.io/PCMBaseCpp).
 
 # Citing PCMBase
 
