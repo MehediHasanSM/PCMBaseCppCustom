@@ -55,7 +55,10 @@ inline bool IsDiagonal(MatType const& X) {
 }
 
 template<class MatType>
-inline bool IsSingular(MatType const& X, double threshold_SV) {
+inline bool IsSingular(
+    MatType const& X, 
+    double threshold_SV) {
+  
   using namespace arma;
   vec svd_V = svd(X);
   double ratio_SV = (*(svd_V.cend()-1)) / (*svd_V.cbegin());
@@ -63,7 +66,10 @@ inline bool IsSingular(MatType const& X, double threshold_SV) {
 }
 
 template<class MatType, class VecType>
-inline void PairSums(MatType& pairSums, VecType const& elems) {
+inline void PairSums(
+    MatType& pairSums, 
+    VecType const& elems) {
+  
   using namespace arma;
   uword k = elems.n_elem;
   for(uword i = 0; i < k; ++i)
@@ -72,8 +78,14 @@ inline void PairSums(MatType& pairSums, VecType const& elems) {
 }
 
 template<class MatEigvalType, class CubeEigvecType, class CubeHType>
-inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType& P_1, CubeHType const& H, 
-                       arma::uword r, double threshold_SV) {
+inline void DecomposeH(
+    MatEigvalType& lambda, 
+    CubeEigvecType& P, 
+    CubeEigvecType& P_1, 
+    CubeHType const& H, 
+    arma::uword r, 
+    double threshold_SV) {
+  
   using namespace arma;
   cx_vec eigval(H.slice(r).n_rows);
   eigval.fill(std::complex<double>(0.0, 0.0));
@@ -93,7 +105,7 @@ inline void DecomposeH(MatEigvalType& lambda, CubeEigvecType& P, CubeEigvecType&
     std::ostringstream os;
     os<<"QuadraticPoly.h:DecomposeH:: Defective H matrix:"<<
       H.slice(r)<<" - the matrix of eigenvectors is computationally singular.";
-    throw std::logic_error(os.str());
+    throw std::logic_error(os.str());  
   }
   P_1.slice(r) = inv(P.slice(r));
   
@@ -171,18 +183,29 @@ struct NumericTraitData {
 // not depend on Xj. This is an abstract class implemented by specific models
 class CondGaussianOmegaPhiV {
 public:
-  virtual arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) = 0;
-  virtual void CalculateOmegaPhiV(uint i, arma::uword ri, arma::mat& omega, arma::cube& Phi, arma::cube& V) = 0;
+  virtual arma::uword SetParameter(
+      std::vector<double> const& par, 
+      arma::uword offset) = 0;
+  
+  virtual void CalculateOmegaPhiV(
+      uint i, 
+      arma::uword ri, 
+      arma::mat& omega, 
+      arma::cube& Phi, 
+      arma::cube& V) = 0;
+  
   virtual ~CondGaussianOmegaPhiV() {}
 };
 
 template<class Tree>
 class QuadraticPoly: public SPLITT::TraversalSpecification<Tree> {
 public:
+  
   typedef SPLITT::TraversalSpecification<Tree> BaseType;
   typedef Tree TreeType;
   typedef std::vector<double> StateType;
-
+  typedef QuadraticPoly<TreeType> MyType;
+  
   // singular value threshold for the determinant of V_i
   double threshold_SV_ = 1e-6;
   // positive eigenvalue threshold for V_i. 
@@ -258,7 +281,7 @@ public:
   // number of traits
   arma::uword k;
 
-  std::vector<CondGaussianOmegaPhiV*> ptr_cond_dist_;
+  std::vector< CondGaussianOmegaPhiV* > ptr_cond_dist_;
   
   QuadraticPoly(
     TreeType const& tree,
@@ -325,8 +348,10 @@ public:
       pc.push_back(input_data.Pc_[ordNodes(i)]);
       if(pc[i].n_elem == 0) {
         std::ostringstream oss;
-        oss<<"QuadraticPoly:: Some tips ("<< this->ref_tree_.FindNodeWithId(i) <<") have 0 present coordinates. Consider removing these tips.";
-        throw std::logic_error(oss.str());
+        oss<<"QuadraticPoly:: Some tips ("<< 
+          this->ref_tree_.FindNodeWithId(i) <<
+            ") have 0 present coordinates. Consider removing these tips.";
+        this->SetError(oss.str()); //throw logic_error(oss.str());  
       }
     }
   }
@@ -427,9 +452,12 @@ public:
            threshold_skip_singular_ < ti) {
           ostringstream oss;
           oss<<"QuadraticPoly.h:InitNode:: The matrix V for node "<<
-            this->ref_tree_.FindNodeWithId(i)<<" (branch length="<<ti<<
-              ") is nearly singular; V.slice(i)(ki,ki):"<<std::endl<<V.slice(i)(ki,ki);
-          throw logic_error(oss.str());  
+            this->ref_tree_.FindNodeWithId(i)<<
+              " (branch length="<<ti<<
+              ") is nearly singular; V.slice(i)(ki,ki):"<<
+                std::endl<<V.slice(i)(ki,ki);
+          
+          this->SetError(oss.str()); //throw logic_error(oss.str());  
         } 
       } 
       
@@ -471,7 +499,7 @@ public:
                   "is nearly singular or not positive definite; near 0 or "<<
                     "negative eigenvalue found: "<<eigv<<
                       "; V.slice(i)(ki,ki): "<<std::endl<<V.slice(i)(ki,ki);
-              throw logic_error(oss.str());
+              this->SetError(oss.str()); //throw logic_error(oss.str());  
             }
             break;
           } else {

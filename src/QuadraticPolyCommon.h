@@ -124,6 +124,7 @@ public:
   
   std::string TraverseTree(ParameterType const& par, uint mode) {
     try {
+      taskObject_.spec().ResetError();
       taskObject_.TraverseTree(par, mode);
     } catch(std::logic_error& e) {
       return std::string("logic_error: ") + e.what();
@@ -132,7 +133,7 @@ public:
     } catch(...) {
       return std::string("unknown error.");
     }
-    return std::string("");
+    return taskObject_.spec().GetError();
   }
   
   StateType StateAtNode(uint i) {

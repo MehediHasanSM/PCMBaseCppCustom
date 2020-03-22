@@ -109,6 +109,9 @@
 //' \item{\link[=SPLITT::OrderedTree]{OrderedTree}}{}
 //' \item{\link[=SPLITT::ThreadExceptionHandler]{ThreadExceptionHandler}}{}
 //' }
+//' 
+//' // to enable generation of man-pages use Rcpp::export below (no spaces between :'s).
+//' [[Rcpp : : export]]
 namespace SPLITT{
 
 
@@ -471,7 +474,45 @@ protected:
   // A protected constructor that initializes the tree-reference. This constructor
   // must be called explicitly in the initalization list of inheriting class constructors.
   TraversalSpecification(Tree const& tree): ref_tree_(tree) {}
+  
+  // used for performing thread-safe access to some singleton variables, e.g. error_.
+  std::mutex lock_;
+  
+  // used to set an error description for an error occuring during ttree traversal
+  std::string error_;
+  
 public:
+  // A thread-safe error setter. The error state gets changed only if not already set.
+  void SetError(std::string const& error) {
+    std::unique_lock<std::mutex> guard(lock_);
+    if(!HasError()) {
+      error_.assign(error);
+    }
+  }
+  
+  void SetError(const char* error) {
+    std::unique_lock<std::mutex> guard(lock_);
+    if(!HasError()) {
+      error_.assign(error);
+    }
+  }
+  
+  // Clear the error status
+  void ResetError() {
+    std::unique_lock<std::mutex> guard(lock_);
+    error_.clear();
+  }
+  // Error state access
+  std::string GetError() const {
+    return error_;
+  }
+  
+  // Returns true if an error has been set. 
+  bool HasError() const {
+    return error_.length() != 0;
+  }
+
+  
   // public typedefs. These typedefs must be provided by an implementation class.
   // 1. typedef Tree TreeType;
   // 2. typedef PostOrderTraversal<ImlementationClass> AlgorithmType;
@@ -647,6 +688,7 @@ public:
     algorithm_(tree_, spec_) {}
   
   StateType TraverseTree(ParameterType const& par, uint mode) {
+    spec_.ResetError();
     spec_.SetParameter(par);
     algorithm_.TraverseTree(static_cast<ModeType>(mode));
     return spec_.StateAtRoot();

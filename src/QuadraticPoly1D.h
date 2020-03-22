@@ -99,8 +99,17 @@ inline void CDFExpDivLambda1D(MatType& fLambda_ij, MatType const& Lambda_ij, dou
 // not depend on Xj. This is an abstract class implemented by specific models
 class CondGaussianOmegaPhiV1D {
 public:
-  virtual arma::uword SetParameter(std::vector<double> const& par, arma::uword offset) = 0;
-  virtual void CalculateOmegaPhiV(uint i, arma::uword ri, arma::vec& omega, arma::vec& Phi, arma::vec& V) = 0;
+  virtual arma::uword SetParameter(
+      std::vector<double> const& par, 
+      arma::uword offset) = 0;
+  
+  virtual void CalculateOmegaPhiV(
+      uint i, 
+      arma::uword ri, 
+      arma::vec& omega, 
+      arma::vec& Phi, 
+      arma::vec& V) = 0;
+  
   virtual ~CondGaussianOmegaPhiV1D() {}
 };
 
@@ -321,7 +330,7 @@ public:
               ". Check the model parameters, the length of the branch leading"<<
                 "to the node, and the PCMBase.Threshold.SV option"<<
                   " For details on this error, read the User Guide.";
-          throw logic_error(oss.str());  
+          this->SetError(oss.str()); // throw logic_error(oss.str());  
         } 
       } 
       
@@ -333,7 +342,7 @@ public:
             this->ref_tree_.FindNodeWithId(i)<<
               " is nearly 0 or negative: "<<V(i)<<"<"<<threshold_EV_<<
                 ". Check the model parameters and the PCMBase.Threshold.EV option.";
-          throw logic_error(oss.str());
+          this->SetError(oss.str()); //  throw logic_error(oss.str());
         }
       
         V_1(i) = 1.0 / V(i);
