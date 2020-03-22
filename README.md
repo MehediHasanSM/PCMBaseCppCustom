@@ -100,7 +100,7 @@ libraries:
 
 # Licence and copyright
 
-Copyright 2016-2019 Venelin Mitov
+Copyright 2016-2020 Venelin Mitov
 
 Source code to PCMBaseCpp is made available under the terms of the GNU
 General Public License as published by the Free Software Foundation,

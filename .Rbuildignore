@@ -9,3 +9,5 @@
 ^src/RcppTestDebug.txt
 cran-comments
 ^pkgdown$
+^doc$
+^Meta$
