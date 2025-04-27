@@ -4,15 +4,21 @@
 \alias{MiniBenchmarkRvsCpp}
 \title{Evaluate the likelihood calculation times for example trees and data}
 \usage{
-MiniBenchmarkRvsCpp(data = PCMBaseCpp::benchmarkData, includeR = TRUE,
-  includeTransformationTime = TRUE, nRepsCpp = 10L,
+MiniBenchmarkRvsCpp(
+  data = PCMBaseCpp::benchmarkData,
+  includeR = TRUE,
+  includeTransformationTime = TRUE,
+  nRepsCpp = 10L,
   listOptions = list(PCMBase.Lmr.mode = 11, PCMBase.Threshold.EV = 0,
-  PCMBase.Threshold.SV = 0), doProf = FALSE, RprofR.out = "RprofR.out",
-  RprofCpp.out = "RprofCpp.out")
+    PCMBase.Threshold.SV = 0),
+  doProf = FALSE,
+  RprofR.out = "RprofR.out",
+  RprofCpp.out = "RprofCpp.out"
+)
 }
 \arguments{
 \item{data}{a `data.frame` with at least the following columns: 
-\itemize{
+\describe{
 \item{tree: }{a list column of phylo objects with an edge.part member set.}
 \item{X: }{a list column of k x N numerical matrices.}
 \item{model: }{a list column of PCM objects.}
@@ -24,7 +30,7 @@ with the PCMBaseCpp package.}
 in R should be included in the benchmark (can be slow).}
 
 \item{includeTransformationTime}{logical (default TRUE) indicating if the time for
-\code{\link{PCMApplyTransformation}} should be included in the benchmark.}
+\code{\link[PCMBase]{PCMApplyTransformation}} should be included in the benchmark.}
 
 \item{nRepsCpp}{: number of repetitions for the cpp likelihood calculation 
 calls: a bigger value increases the precision of time estimation at the 

@@ -1,9 +1,13 @@
 ---
 title: "NEWS about the PCMBaseCpp R-package"
 author: "Venelin Mitov"
-date: "23 March, 2020"
+date: "27 April, 2025"
 output: html_document
 ---
+
+
+# PCMBaseCpp 0.1.10
+Fixed CRAN check notes.
 
 # PCMBaseCpp 0.1.9
 Fixing an R-process crash on CRAN fedora-clang.

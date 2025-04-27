@@ -4,7 +4,8 @@
 \name{benchmarkData}
 \alias{benchmarkData}
 \title{Data for performing a benchmark}
-\format{A data frame with 4 rows and 8 variables:
+\format{
+A data frame with 4 rows and 8 variables:
 \describe{
   \item{tree}{phylogenetic tree (phylo) with set edge.regimes member}
   \item{model}{MGPM model used to simulate the data in X}
@@ -14,7 +15,8 @@
   \item{llBM}{log-likelihood value form modelBM}
   \item{modelOU}{a random OU model}
   \item{llOU}{log-likelihood value for modelOU}
-}}
+}
+}
 \usage{
 benchmarkData
 }

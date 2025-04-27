@@ -5,11 +5,17 @@
 \title{A log-likelihood calculation time comparison for different numbers of traits 
 and option-sets}
 \usage{
-BenchmarkRvsCpp(ks = c(1, 2, 4, 8), includeR = TRUE,
-  includeTransformationTime = TRUE, optionSets = NULL,
-  includeParallelMode = TRUE, doProf = FALSE,
-  RprofR.out = "RprofR.out", RprofCpp.out = "RprofCpp.out",
-  verbose = FALSE)
+BenchmarkRvsCpp(
+  ks = c(1, 2, 4, 8),
+  includeR = TRUE,
+  includeTransformationTime = TRUE,
+  optionSets = NULL,
+  includeParallelMode = TRUE,
+  doProf = FALSE,
+  RprofR.out = "RprofR.out",
+  RprofCpp.out = "RprofCpp.out",
+  verbose = FALSE
+)
 }
 \arguments{
 \item{ks}{a vector of positive integers, denoting different numbers of traits. 
@@ -19,7 +25,7 @@ Default: \code{c(1, 2, 4, 8)}.}
 in R should be included in the benchmark (can be slow).}
 
 \item{includeTransformationTime}{logical (default TRUE) indicating if the time for
-\code{\link{PCMApplyTransformation}} should be included in the benchmark.}
+\code{\link[PCMBase]{PCMApplyTransformation}} should be included in the benchmark.}
 
 \item{optionSets}{a named list of lists of PCM-options. If NULL (the default) 
 the option set is set to \code{DefaultBenchmarkOptions(k, includeParallelMode)}
@@ -37,11 +43,7 @@ be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRpro
 and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
 \code{list(append = TRUE, line.profiling = TRUE)}.}
 
-\item{RprofR.out}{character strings indicating Rprof.out files 
-for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
-'RprofR.out' and 'Rprofcpp.out'.}
-
-\item{RprofCpp.out}{character strings indicating Rprof.out files 
+\item{RprofR.out, RprofCpp.out}{character strings indicating Rprof.out files 
 for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
 'RprofR.out' and 'Rprofcpp.out'.}
 

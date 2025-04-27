@@ -31,7 +31,7 @@
 
 #' Evaluate the likelihood calculation times for example trees and data
 #' @param data a `data.frame` with at least the following columns: 
-#' \itemize{
+#' \describe{
 #' \item{tree: }{a list column of phylo objects with an edge.part member set.}
 #' \item{X: }{a list column of k x N numerical matrices.}
 #' \item{model: }{a list column of PCM objects.}
@@ -41,7 +41,7 @@
 #' @param includeR logical (default TRUE) indicating if likelihood calculations
 #' in R should be included in the benchmark (can be slow).
 #' @param includeTransformationTime logical (default TRUE) indicating if the time for
-#' \code{\link{PCMApplyTransformation}} should be included in the benchmark.
+#' \code{\link[PCMBase]{PCMApplyTransformation}} should be included in the benchmark.
 #' @param nRepsCpp : number of repetitions for the cpp likelihood calculation 
 #' calls: a bigger value increases the precision of time estimation at the 
 #' expense of longer running time for the benchmark. Defaults to 10.

@@ -5,7 +5,9 @@
 \alias{benchmarkResultsNoTransform}
 \title{Results from running a performance benchmark on a personal computer 
 excluding the time for parameter transformation}
-\format{A data.table}
+\format{
+A data.table
+}
 \usage{
 benchmarkResultsNoTransform
 }

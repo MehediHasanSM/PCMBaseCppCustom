@@ -5,7 +5,9 @@
 \alias{benchmarkResults}
 \title{Results from running a performance benchmark on a personal computer 
 including the time for parameter transformation}
-\format{A data.table}
+\format{
+A data.table
+}
 \usage{
 benchmarkResults
 }
