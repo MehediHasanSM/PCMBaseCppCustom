@@ -1,10 +1,12 @@
 ---
 title: "NEWS about the PCMBaseCpp R-package"
 author: "Venelin Mitov"
-date: "27 April, 2025"
+date: "04 May, 2025"
 output: html_document
 ---
 
+# PCMBaseCpp 0.1.11
+Fixed gcc compiler warning.
 
 # PCMBaseCpp 0.1.10
 Fixed CRAN check notes.

@@ -1,22 +1,20 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Travis build
-status](https://travis-ci.com/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.com/venelin/PCMBaseCpp)
 [![Coverage
-status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
+status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://app.codecov.io/github/venelin/PCMBaseCpp?branch=master)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 [![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 
 # PCMBaseCpp
 
 This is a fast C++ backend for the
-[PCMBase](https://venelin.github.io/PCMBase) R-package.
+[PCMBase](https://venelin.github.io/PCMBase/) R-package.
 
 # Installation
 
-The package needs a C++ 11 compiler and Rcpp to be installed in you
-R-environment. Once this is done, you can install the most recent
+The package needs a C++ 11 or later compiler and Rcpp to be installed in
+you R-environment. Once this is done, you can install the most recent
 version of the package from github:
 
 ``` r
@@ -62,7 +60,7 @@ benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 For further examples, read the [Getting
 started](https://venelin.github.io/PCMBaseCpp/articles/PCMBaseCpp.html)
 guide and the reference available on the package
-[homepage](https://venelin.github.io/PCMBaseCpp).
+[homepage](https://venelin.github.io/PCMBaseCpp/).
 
 # Citing PCMBase
 
@@ -84,19 +82,19 @@ with shifts. Theor. Popul. Biol.
 The PCMBaseCpp R-package uses the following R-packages and C++
 libraries:
 
-  - For tree processing in C++: The [SPLITT
-    library](https://venelin.github.io/SPLITT) (Mitov and Stadler 2018);
-  - For data processing in R: data.table v1.12.8 (Dowle and Srinivasan
-    2019);
-  - For algebraic manipulation: The [Armadillo C++ template
-    library](http://arma.sourceforge.net/) (Sanderson and Curtin 2016)
-    and its port to R RcppArmadillo v0.9.700.2.0 (Eddelbuettel et al.
-    2019);
-  - For unit-testing: testthat v2.1.1 (Wickham 2019), covr v3.2.1
-    (Hester 2018);
-  - For documentation and web-site generation: roxygen2 v6.1.1 (Wickham,
-    Danenberg, and Eugster 2018), pkgdown v1.3.0 (Wickham and
-    Hesselberth 2018);
+- For tree processing in C++: The [SPLITT
+  library](https://venelin.github.io/SPLITT/) (Mitov and Stadler 2018);
+- For data processing in R: data.table v1.14.8 (Dowle and Srinivasan
+  2019);
+- For algebraic manipulation: The [Armadillo C++ template
+  library](https://arma.sourceforge.net/) (Sanderson and Curtin 2016)
+  and its port to R RcppArmadillo v0.12.6.1.0 (Eddelbuettel et al.
+  2019);
+- For unit-testing: testthat v3.1.10 (Wickham 2019), covr v3.6.2 (Hester
+  2018);
+- For documentation and web-site generation: roxygen2 v7.2.3 (Wickham,
+  Danenberg, and Eugster 2018), pkgdown v2.0.7 (Wickham and Hesselberth
+  2018);
 
 # Licence and copyright
 
@@ -112,16 +110,16 @@ Public License for more details.
 
 # References
 
-<div id="refs" class="references">
+<div id="refs" class="references csl-bib-body hanging-indent">
 
-<div id="ref-R-data.table">
+<div id="ref-R-data.table" class="csl-entry">
 
 Dowle, Matt, and Arun Srinivasan. 2019. *Data.table: Extension of
 ‘Data.frame‘*. <https://CRAN.R-project.org/package=data.table>.
 
 </div>
 
-<div id="ref-R-RcppArmadillo">
+<div id="ref-R-RcppArmadillo" class="csl-entry">
 
 Eddelbuettel, Dirk, Romain Francois, Doug Bates, and Binxiang Ni. 2019.
 *RcppArmadillo: ’Rcpp’ Integration for the ’Armadillo’ Templated Linear
@@ -129,48 +127,48 @@ Algebra Library*. <https://CRAN.R-project.org/package=RcppArmadillo>.
 
 </div>
 
-<div id="ref-R-covr">
+<div id="ref-R-covr" class="csl-entry">
 
 Hester, Jim. 2018. *Covr: Test Coverage for Packages*.
 <https://CRAN.R-project.org/package=covr>.
 
 </div>
 
-<div id="ref-Mitov:2018dqa">
+<div id="ref-Mitov:2018dqa" class="csl-entry">
 
-Mitov, Venelin, and Tanja Stadler. 2018. “Parallel likelihood
-calculation for phylogenetic comparative models: The SPLITT C++
-library.” *Methods in Ecology and Evolution*, December,
+Mitov, Venelin, and Tanja Stadler. 2018. “<span class="nocase">Parallel
+likelihood calculation for phylogenetic comparative models: The SPLITT
+C++ library</span>.” *Methods in Ecology and Evolution*, December,
 2041–210X.13136.
 
 </div>
 
-<div id="ref-Sanderson:2016cs">
+<div id="ref-Sanderson:2016cs" class="csl-entry">
 
-Sanderson, Conrad, and Ryan Curtin. 2016. “Armadillo: a template-based
-C++ library for linear algebra.” *Journal of Open Source Software* 1
-(2).
+Sanderson, Conrad, and Ryan Curtin. 2016.
+“<span class="nocase">Armadillo: a template-based C++ library for linear
+algebra</span>.” *Journal of Open Source Software* 1 (2).
 
 </div>
 
-<div id="ref-R-testthat">
+<div id="ref-R-testthat" class="csl-entry">
 
-Wickham, Hadley. 2019. *Testthat: Unit Testing for R*.
+Wickham, Hadley. 2019. *Testthat: Unit Testing for r*.
 <https://CRAN.R-project.org/package=testthat>.
 
 </div>
 
-<div id="ref-R-roxygen2">
+<div id="ref-R-roxygen2" class="csl-entry">
 
 Wickham, Hadley, Peter Danenberg, and Manuel Eugster. 2018. *Roxygen2:
-In-Line Documentation for R*.
+In-Line Documentation for r*.
 <https://CRAN.R-project.org/package=roxygen2>.
 
 </div>
 
-<div id="ref-R-pkgdown">
+<div id="ref-R-pkgdown" class="csl-entry">
 
-Wickham, Hadley, and Jay Hesselberth. 2018. *Pkgdown: Make Static Html
+Wickham, Hadley, and Jay Hesselberth. 2018. *Pkgdown: Make Static HTML
 Documentation for a Package*.
 <https://CRAN.R-project.org/package=pkgdown>.
 

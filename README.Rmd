@@ -16,19 +16,18 @@ library(PCMBase)
 library(PCMBaseCpp)
 ```
 
-[![Travis build status](https://travis-ci.com/venelin/PCMBaseCpp.svg?branch=master)](https://travis-ci.com/venelin/PCMBaseCpp)
-[![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://codecov.io/github/venelin/PCMBaseCpp?branch=master)
+[![Coverage status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://app.codecov.io/github/venelin/PCMBaseCpp?branch=master)
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 [![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
 
 
 # PCMBaseCpp
 
-This is a fast C++ backend for the [PCMBase](https://venelin.github.io/PCMBase) R-package. 
+This is a fast C++ backend for the [PCMBase](https://venelin.github.io/PCMBase/) R-package. 
 
 # Installation
 
-The package needs a C++ 11 compiler and Rcpp to be installed in you R-environment. Once this is done, you can install the most recent version of the package from github:
+The package needs a C++ 11 or later compiler and Rcpp to be installed in you R-environment. Once this is done, you can install the most recent version of the package from github:
 
 ```{r, eval=FALSE}
 devtools::install_github("venelin/PCMBaseCpp")
@@ -66,7 +65,7 @@ benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
 # 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 15.062  0.0854
 ```
 
-For further examples, read the [Getting started](https://venelin.github.io/PCMBaseCpp/articles/PCMBaseCpp.html) guide and the  reference available on the package [homepage](https://venelin.github.io/PCMBaseCpp).
+For further examples, read the [Getting started](https://venelin.github.io/PCMBaseCpp/articles/PCMBaseCpp.html) guide and the  reference available on the package [homepage](https://venelin.github.io/PCMBaseCpp/).
 
 # Citing PCMBase
 
@@ -104,9 +103,9 @@ knitr::write_bib(packagesUsed, file = "./vignettes/REFERENCES-R.bib")
 
 The PCMBaseCpp R-package uses the following R-packages and C++ libraries:
 
-* For tree processing in C++: The [SPLITT library](https://venelin.github.io/SPLITT) [@Mitov:2018dqa];
+* For tree processing in C++: The [SPLITT library](https://venelin.github.io/SPLITT/) [@Mitov:2018dqa];
 * For data processing in R: `r printPackages(dataProcessing)`;
-* For algebraic manipulation: The [Armadillo C++ template library](http://arma.sourceforge.net/) [@Sanderson:2016cs] and its port to R `r printPackages(maths)`;
+* For algebraic manipulation: The [Armadillo C++ template library](https://arma.sourceforge.net/) [@Sanderson:2016cs] and its port to R `r printPackages(maths)`;
 * For unit-testing: `r printPackages(testing)`;
 * For documentation and web-site generation: `r printPackages(docs)`;
 
