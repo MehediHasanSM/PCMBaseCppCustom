@@ -32,7 +32,7 @@ Suggests:
 LinkingTo: Rcpp, RcppArmadillo
 ByteCompile: yes
 NeedsCompilation: yes
-URL: https://github.com/venelin/PCMBaseCpp, https://venelin.github.io
-BugReports: https://github.com/venelin/PCMBaseCpp/issues
+URL: https://github.com/MehediHasanSM/PCMBaseCppCustom 
+BugReports: https://github.com/MehediHasanSM/PCMBaseCppCustom/issues
 VignetteBuilder: knitr, rmarkdown
 RoxygenNote: 7.3.2
