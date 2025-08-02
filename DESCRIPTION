@@ -23,7 +23,8 @@ Depends:
 Imports:
     PCMBase,
     data.table,
-    abind
+    abind,
+    phytools
 Suggests:
     testthat,
     knitr,

@@ -6,6 +6,7 @@
 #' @importFrom PCMBase PCMListParameterizations
 #' @importFrom PCMBase PCMParentClasses
 #' @importFrom PCMBase PCMSpecify
+#' @importFrom phytools nodeHeights
 #'
 
 #' @export
