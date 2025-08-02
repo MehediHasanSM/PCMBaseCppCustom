@@ -30,6 +30,8 @@
 #include "QuadraticPolyWhite.h"
 #include "QuadraticPolyBM.h"
 #include "QuadraticPolyBM1D.h"
+#include "QuadraticPolyEB.h"
+#include "QuadraticPolyEB1D.h"
 #include "QuadraticPolyOU.h"
 #include "QuadraticPolyOU1D.h"
 #include "QuadraticPolyJOU.h"
@@ -835,5 +837,146 @@ RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyMixedGaussian1D::AlgorithmType)
       .method( "StateAtNode", &QuadraticPolyMixedGaussian1D::StateAtNode )
       .property( "tree", &QuadraticPolyMixedGaussian1D::tree )
       .property( "algorithm", &QuadraticPolyMixedGaussian1D::algorithm )
+    ;
+  }
+
+
+QuadraticPolyEB* CreateQuadraticPolyEB(
+    arma::mat const& X, 
+    Rcpp::List const& tree, 
+    Rcpp::List const& model,
+    Rcpp::List const& metaInfo) { 
+  
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
+  
+  std::vector<typename QuadraticPolyEB::LengthType> lengths(pObjs.num_branches);
+  
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+  }
+  
+  typename QuadraticPolyEB::DataType data(
+      pObjs.tip_names, pObjs.X, pObjs.VE, pObjs.Pc, pObjs.RModel, 
+      std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
+  
+  return new QuadraticPolyEB(pObjs.br_0, pObjs.br_1, lengths, data);
+}
+
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyEB::AlgorithmType)
+
+RCPP_MODULE(PCMBaseCpp__QuadraticPolyEB) {
+  Rcpp::class_<QuadraticPolyEB::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyEB_Tree" )
+  .property("num_nodes", &QuadraticPolyEB::TreeType::Tree::num_nodes )
+  .property("num_tips", &QuadraticPolyEB::TreeType::Tree::num_tips )
+  .method("FindNodeWithId", &QuadraticPolyEB::TreeType::Tree::FindNodeWithId )
+  .method("FindIdOfNode", &QuadraticPolyEB::TreeType::Tree::FindIdOfNode )
+  .method("FindIdOfParent", &QuadraticPolyEB::TreeType::Tree::FindIdOfParent )
+  .method("OrderNodes", &QuadraticPolyEB::TreeType::Tree::OrderNodes )
+  ;
+  Rcpp::class_<QuadraticPolyEB::TreeType>( "PCMBaseCpp__QuadraticPolyEB_OrderedTree" )
+    .derives<QuadraticPolyEB::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyEB_Tree" )
+    .method("RangeIdPruneNode", &QuadraticPolyEB::TreeType::RangeIdPruneNode )
+    .method("RangeIdVisitNode", &QuadraticPolyEB::TreeType::RangeIdVisitNode )
+    .property("num_levels", &QuadraticPolyEB::TreeType::num_levels )
+    .property("ranges_id_visit", &QuadraticPolyEB::TreeType::ranges_id_visit )
+    .property("ranges_id_prune", &QuadraticPolyEB::TreeType::ranges_id_prune )
+  ;
+  Rcpp::class_<QuadraticPolyEB::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyEB_TraversalAlgorithm" )
+    .property( "VersionOPENMP", &QuadraticPolyEB::AlgorithmType::ParentType::VersionOPENMP )
+    .property( "NumOmpThreads", &QuadraticPolyEB::AlgorithmType::NumOmpThreads )
+  ;
+  Rcpp::class_<QuadraticPolyEB::AlgorithmType> ( "PCMBaseCpp__QuadraticPolyEB_ParallelPruning" )
+    .derives<QuadraticPolyEB::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyEB_TraversalAlgorithm" )
+    .method( "ModeAutoStep", &QuadraticPolyEB::AlgorithmType::ModeAutoStep )
+    .property( "ModeAutoCurrent", &QuadraticPolyEB::AlgorithmType::ModeAutoCurrent )
+    .property( "IsTuning", &QuadraticPolyEB::AlgorithmType::IsTuning )
+    .property( "min_size_chunk_visit", &QuadraticPolyEB::AlgorithmType::min_size_chunk_visit )
+    .property( "min_size_chunk_prune", &QuadraticPolyEB::AlgorithmType::min_size_chunk_prune )
+    .property( "durations_tuning", &QuadraticPolyEB::AlgorithmType::durations_tuning )
+    .property( "fastest_step_tuning", &QuadraticPolyEB::AlgorithmType::fastest_step_tuning )
+  ;
+  Rcpp::class_<QuadraticPolyEB>( "PCMBaseCpp__QuadraticPolyEB" )
+    .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyEB)
+    .method( "TraverseTree", &QuadraticPolyEB::TraverseTree )
+    .method( "StateAtNode", &QuadraticPolyEB::StateAtNode )
+    .property( "tree", &QuadraticPolyEB::tree )
+    .property( "algorithm", &QuadraticPolyEB::algorithm )
+  ;
+}
+
+QuadraticPolyEB1D* CreateQuadraticPolyEB1D(
+    arma::mat const& X, 
+    Rcpp::List const& tree, 
+    Rcpp::List const& model,
+    Rcpp::List const& metaInfo) { 
+  
+  ParsedRObjects pObjs(X, tree, model, metaInfo);
+  
+  vector<typename QuadraticPolyEB1D::LengthType> lengths(pObjs.num_branches);
+  
+  for(arma::uword i = 0; i < pObjs.num_branches; ++i) {
+    lengths[i].length_ = pObjs.t[i];
+    lengths[i].regime_ = pObjs.regimes[i] - 1;
+  }
+  
+  typename QuadraticPolyEB1D::DataType data(
+      pObjs.tip_names, pObjs.X, pObjs.VE, 
+      pObjs.RModel, 
+      std::vector<std::string>(), 
+      pObjs.threshold_SV, pObjs.threshold_EV, 
+      pObjs.threshold_skip_singular, pObjs.skip_singular,
+      pObjs.transpose_Sigma_x,
+      pObjs.threshold_Lambda_ij,
+      pObjs.NA_double_);
+  
+  return new QuadraticPolyEB1D(pObjs.br_0, pObjs.br_1, lengths, data);
+}
+
+//RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyEB1D::TreeType)
+RCPP_EXPOSED_CLASS_NODECL(QuadraticPolyEB1D::AlgorithmType)
+  
+  RCPP_MODULE(PCMBaseCpp__QuadraticPolyEB1D) {
+    Rcpp::class_<QuadraticPolyEB1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyEB1D_Tree" )
+    .property("num_nodes", &QuadraticPolyEB1D::TreeType::Tree::num_nodes )
+    .property("num_tips", &QuadraticPolyEB1D::TreeType::Tree::num_tips )
+    .method("FindNodeWithId", &QuadraticPolyEB1D::TreeType::Tree::FindNodeWithId )
+    .method("FindIdOfNode", &QuadraticPolyEB1D::TreeType::Tree::FindIdOfNode )
+    .method("FindIdOfParent", &QuadraticPolyEB1D::TreeType::Tree::FindIdOfParent )
+    .method("OrderNodes", &QuadraticPolyEB1D::TreeType::Tree::OrderNodes )
+    ;
+    Rcpp::class_<QuadraticPolyEB1D::TreeType>( "PCMBaseCpp__QuadraticPolyEB1D_OrderedTree" )
+      .derives<QuadraticPolyEB1D::TreeType::Tree> ( "PCMBaseCpp__QuadraticPolyEB1D_Tree" )
+      .method("RangeIdPruneNode", &QuadraticPolyEB1D::TreeType::RangeIdPruneNode )
+      .method("RangeIdVisitNode", &QuadraticPolyEB1D::TreeType::RangeIdVisitNode )
+      .property("num_levels", &QuadraticPolyEB1D::TreeType::num_levels )
+      .property("ranges_id_visit", &QuadraticPolyEB1D::TreeType::ranges_id_visit )
+      .property("ranges_id_prune", &QuadraticPolyEB1D::TreeType::ranges_id_prune )
+    ;
+    Rcpp::class_<QuadraticPolyEB1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyEB1D_TraversalAlgorithm" )
+      .property( "VersionOPENMP", &QuadraticPolyEB1D::AlgorithmType::ParentType::VersionOPENMP )
+      .property( "NumOmpThreads", &QuadraticPolyEB1D::AlgorithmType::NumOmpThreads )
+    ;
+    Rcpp::class_<QuadraticPolyEB1D::AlgorithmType> ( "PCMBaseCpp__QuadraticPolyEB1D_ParallelPruning" )
+      .derives<QuadraticPolyEB1D::AlgorithmType::ParentType>( "PCMBaseCpp__QuadraticPolyEB1D_TraversalAlgorithm" )
+      .method( "ModeAutoStep", &QuadraticPolyEB1D::AlgorithmType::ModeAutoStep )
+      .property( "ModeAutoCurrent", &QuadraticPolyEB1D::AlgorithmType::ModeAutoCurrent )
+      .property( "IsTuning", &QuadraticPolyEB1D::AlgorithmType::IsTuning )
+      .property( "min_size_chunk_visit", &QuadraticPolyEB1D::AlgorithmType::min_size_chunk_visit )
+      .property( "min_size_chunk_prune", &QuadraticPolyEB1D::AlgorithmType::min_size_chunk_prune )
+      .property( "durations_tuning", &QuadraticPolyEB1D::AlgorithmType::durations_tuning )
+      .property( "fastest_step_tuning", &QuadraticPolyEB1D::AlgorithmType::fastest_step_tuning )
+    ;
+    Rcpp::class_<QuadraticPolyEB1D>( "PCMBaseCpp__QuadraticPolyEB1D" )
+      .factory<arma::mat const&, Rcpp::List const&, Rcpp::List const&, Rcpp::List const&>(&CreateQuadraticPolyEB1D)
+      .method( "TraverseTree", &QuadraticPolyEB1D::TraverseTree )
+      .method( "StateAtNode", &QuadraticPolyEB1D::StateAtNode )
+      .property( "tree", &QuadraticPolyEB1D::tree )
+      .property( "algorithm", &QuadraticPolyEB1D::algorithm )
     ;
   }

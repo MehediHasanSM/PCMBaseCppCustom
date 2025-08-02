@@ -1,4 +1,4 @@
-library(PCMBaseCpp)
+library(PCMBaseCppCustom)
 
 if(PCMBaseCppIsADevRelease()) {
   library(testthat)

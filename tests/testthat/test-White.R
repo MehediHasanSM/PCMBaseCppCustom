@@ -2,7 +2,7 @@ library(testthat)
 context("PCMLik, White")
 
 library(PCMBase)
-library(PCMBaseCpp)
+library(PCMBaseCppCustom)
 
 if(PCMBaseCppIsADevRelease()) {
   

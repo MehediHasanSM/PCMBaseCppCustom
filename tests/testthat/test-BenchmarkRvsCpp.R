@@ -2,7 +2,7 @@ library(testthat)
 context("BenchmarkRvsCpp")
 
 library(PCMBase)
-library(PCMBaseCpp)
+library(PCMBaseCppCustom)
 
 test_that(
   "BenchmarkRvsCpp is passing.", 

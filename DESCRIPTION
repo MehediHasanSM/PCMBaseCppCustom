@@ -1,15 +1,16 @@
-Package: PCMBaseCpp
+Package: PCMBaseCppCustom
 Type: Package
-Title: Fast Likelihood Calculation for Phylogenetic Comparative Models
-Version: 0.1.11
-Authors@R: c(person("Venelin", "Mitov", email = "vmitov@gmail.com",
-                 comment = '<a href="https://venelin.github.io">venelin.github.io</a>',
-                 role = c("aut", "cre", "cph")))
-Maintainer: Venelin Mitov <vmitov@gmail.com>
-Description: Provides a C++ backend for multivariate phylogenetic comparative
-  models implemented in the R-package 'PCMBase'. Can be used in combination
-  with 'PCMBase' to enable fast and parallel likelihood calculation. Implements
-  the pruning likelihood calculation algorithm described in Mitov et al. (2020) 
+Title: Fast Likelihood Calculation for Phylogenetic Comparative Models (with EB Model)
+Version: 0.2.0
+Authors@R: c(
+    person("Venelin", "Mitov", email = "vmitov@gmail.com",
+           comment = '<a href="https://venelin.github.io">venelin.github.io</a>',
+           role = c("aut", "cph")),
+    person("S M Mehedi", "Hasan", email = "hossainn501@gmail.com",
+           role = c("aut", "cre", "ctb")))
+Maintainer: S M Mehedi Hasan <hossainn501@gmail.com>
+Description: A customized version of the 'PCMBaseCpp' package. This version adds   
+    a C++ implementation for the Early Burst (EB) model, in addition to the original models.
   <doi:10.1016/j.tpb.2019.11.005>. Uses the 'SPLITT' C++ library for parallel tree traversal 
   described in Mitov and Stadler (2018) <doi:10.1111/2041-210X.13136>.
 Encoding: UTF-8
@@ -33,6 +34,5 @@ ByteCompile: yes
 NeedsCompilation: yes
 URL: https://github.com/venelin/PCMBaseCpp, https://venelin.github.io
 BugReports: https://github.com/venelin/PCMBaseCpp/issues
-Repository: CRAN
 VignetteBuilder: knitr, rmarkdown
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

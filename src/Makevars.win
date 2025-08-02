@@ -1,0 +1,2 @@
+PKG_CXXFLAGS = -Wa,-mbig-obj -fopenmp -DARMA_DONT_USE_OPENMP
+PKG_LIBS = -fopenmp $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

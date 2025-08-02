@@ -2,7 +2,7 @@ library(testthat)
 context("PCMLik, MixedGaussian")
 
 library(PCMBase)
-library(PCMBaseCpp)
+library(PCMBaseCppCustom)
 library(data.table)
 
 if(PCMBaseCppIsADevRelease()) {

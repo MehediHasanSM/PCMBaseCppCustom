@@ -17,7 +17,7 @@
 
 #' @import Rcpp
 #' @import methods
-#' @useDynLib PCMBaseCpp
+#' @useDynLib PCMBaseCppCustom
 loadModule( "PCMBaseCpp__Tree", TRUE )
 loadModule( "PCMBaseCpp__OrderedTree", TRUE )
 loadModule( "PCMBaseCpp__QuadraticPolyBM", TRUE )
@@ -29,3 +29,5 @@ loadModule( "PCMBaseCpp__QuadraticPolyOU", TRUE )
 loadModule( "PCMBaseCpp__QuadraticPolyOU1D", TRUE )
 loadModule( "PCMBaseCpp__QuadraticPolyJOU", TRUE )
 loadModule( "PCMBaseCpp__QuadraticPolyWhite", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyEB", TRUE )
+loadModule( "PCMBaseCpp__QuadraticPolyEB1D", TRUE )
