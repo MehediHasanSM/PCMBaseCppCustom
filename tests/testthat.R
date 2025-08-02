@@ -1,4 +1,4 @@
 library(testthat)
 library(PCMBase)
 
-test_check("PCMBaseCpp")
+test_check("PCMBaseCppCustom")

@@ -37,7 +37,7 @@
 #' \item{model: }{a list column of PCM objects.}
 #' }
 #' Defaults: to `benchmarkData`, which is small data.table included
-#' with the PCMBaseCpp package.
+#' with the PCMBaseCppCustom package.
 #' @param includeR logical (default TRUE) indicating if likelihood calculations
 #' in R should be included in the benchmark (can be slow).
 #' @param includeTransformationTime logical (default TRUE) indicating if the time for
@@ -53,8 +53,8 @@
 #' for possible values).
 #' @param doProf logical indicating if profiling should be activated (see Rprof
 #' from the utils R-package). Default: FALSE. Additional arguments to Rprof can 
-#' be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRprofR'
-#' and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
+#' be specified by assigning lists of arguments to the options 'PCMBaseCppCustom.ArgsRprofR'
+#' and 'PCMBaseCppCustom.ArgsRprofCpp'. The default values for both options is
 #' \code{list(append = TRUE, line.profiling = TRUE)}.
 #' @param RprofR.out,RprofCpp.out character strings indicating Rprof.out files 
 #' for the R and Cpp implementations; ignored if doProf is FALSE. Default values:
@@ -64,10 +64,10 @@
 #' @importFrom stats logLik
 #' @examples
 #' library(PCMBase)
-#' library(PCMBaseCpp)
+#' library(PCMBaseCppCustom)
 #' library(data.table)
 #' 
-#' testData <- PCMBaseCpp::benchmarkData[1]
+#' testData <- PCMBaseCppCustom::benchmarkData[1]
 #' # original MGPM model
 #' MiniBenchmarkRvsCpp(data = testData)
 #' 
@@ -80,7 +80,7 @@
 #' # single-trait data, original MGPM model and single mode and enabled option 
 #' # PCMBase.Use1DClasses
 #' MiniBenchmarkRvsCpp(
-#' data = PCMBaseCpp::benchmarkData[1, list(
+#' data = PCMBaseCppCustom::benchmarkData[1, list(
 #'  tree, 
 #'  X = lapply(X, function(x) x[1,, drop=FALSE]), 
 #'  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],
@@ -93,7 +93,7 @@
 #' @importFrom utils Rprof
 #' @export
 MiniBenchmarkRvsCpp <- function(
-  data = PCMBaseCpp::benchmarkData, 
+  data = PCMBaseCppCustom::benchmarkData, 
   includeR = TRUE,
   includeTransformationTime = TRUE,
   nRepsCpp = 10L, 
@@ -128,7 +128,7 @@ MiniBenchmarkRvsCpp <- function(
         do.call(
           Rprof, 
           c(list(filename = RprofR.out),
-            getOption("PCMBaseCpp.ArgsRprofR", 
+            getOption("PCMBaseCppCustom.ArgsRprofR", 
                       list(append = TRUE, line.profiling = TRUE))))
       }
       timeR <- system.time({
@@ -145,7 +145,7 @@ MiniBenchmarkRvsCpp <- function(
       do.call(
         Rprof, 
         c(list(filename = RprofCpp.out),
-          getOption("PCMBaseCpp.ArgsRprofCpp", list(append = TRUE, line.profiling = TRUE))))
+          getOption("PCMBaseCppCustom.ArgsRprofCpp", list(append = TRUE, line.profiling = TRUE))))
     }
     timeCpp <- system.time(
       valueCpp <-replicate(
@@ -183,7 +183,7 @@ MiniBenchmarkRvsCpp <- function(
 #' @param optionSets a named list of lists of PCM-options. If NULL (the default) 
 #' the option set is set to \code{DefaultBenchmarkOptions(k, includeParallelMode)}
 #' for each \code{k} in \code{ks} (see the code in 
-#' \code{PCMBaseCpp:::DefaultBenchmarkOptions}). 
+#' \code{PCMBaseCppCustom:::DefaultBenchmarkOptions}). 
 #' @param includeParallelMode logical (default TRUE) indicating if the default 
 #' optionSet should include parallel execution modes, i.e. setting the option 
 #' PCMBase.Lmr.mode to 21 instead of 11. This argument is taken into account 
@@ -204,7 +204,7 @@ BenchmarkRvsCpp <- function(
   doProf = FALSE, RprofR.out = "RprofR.out", RprofCpp.out = "RprofCpp.out",
   verbose = FALSE) {
 
-  benchmarkData <- PCMBaseCpp::benchmarkData
+  benchmarkData <- PCMBaseCppCustom::benchmarkData
   X <- tree <-  model <- modelBM <- modelOU <- modelType <- N <- R <- mapping <- 
     PCMBase.Lmr.mode <- logLik <- logLikCpp <- timeR <- timeCpp <- NULL
   

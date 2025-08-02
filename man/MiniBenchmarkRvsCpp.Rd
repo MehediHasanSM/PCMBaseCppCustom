@@ -5,7 +5,7 @@
 \title{Evaluate the likelihood calculation times for example trees and data}
 \usage{
 MiniBenchmarkRvsCpp(
-  data = PCMBaseCpp::benchmarkData,
+  data = PCMBaseCppCustom::benchmarkData,
   includeR = TRUE,
   includeTransformationTime = TRUE,
   nRepsCpp = 10L,
@@ -24,7 +24,7 @@ MiniBenchmarkRvsCpp(
 \item{model: }{a list column of PCM objects.}
 }
 Defaults: to `benchmarkData`, which is small data.table included
-with the PCMBaseCpp package.}
+with the PCMBaseCppCustom package.}
 
 \item{includeR}{logical (default TRUE) indicating if likelihood calculations
 in R should be included in the benchmark (can be slow).}
@@ -45,8 +45,8 @@ for possible values).}
 
 \item{doProf}{logical indicating if profiling should be activated (see Rprof
 from the utils R-package). Default: FALSE. Additional arguments to Rprof can 
-be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRprofR'
-and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
+be specified by assigning lists of arguments to the options 'PCMBaseCppCustom.ArgsRprofR'
+and 'PCMBaseCppCustom.ArgsRprofCpp'. The default values for both options is
 \code{list(append = TRUE, line.profiling = TRUE)}.}
 
 \item{RprofR.out, RprofCpp.out}{character strings indicating Rprof.out files 
@@ -61,10 +61,10 @@ Evaluate the likelihood calculation times for example trees and data
 }
 \examples{
 library(PCMBase)
-library(PCMBaseCpp)
+library(PCMBaseCppCustom)
 library(data.table)
 
-testData <- PCMBaseCpp::benchmarkData[1]
+testData <- PCMBaseCppCustom::benchmarkData[1]
 # original MGPM model
 MiniBenchmarkRvsCpp(data = testData)
 
@@ -77,7 +77,7 @@ PCMBase.Threshold.SV = 1e-9))
 # single-trait data, original MGPM model and single mode and enabled option 
 # PCMBase.Use1DClasses
 MiniBenchmarkRvsCpp(
-data = PCMBaseCpp::benchmarkData[1, list(
+data = PCMBaseCppCustom::benchmarkData[1, list(
  tree, 
  X = lapply(X, function(x) x[1,, drop=FALSE]), 
  model = lapply(model, function(m) PCMExtractDimensions(m, dims = 1)))],

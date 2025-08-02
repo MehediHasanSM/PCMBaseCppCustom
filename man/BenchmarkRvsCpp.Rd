@@ -30,7 +30,7 @@ in R should be included in the benchmark (can be slow).}
 \item{optionSets}{a named list of lists of PCM-options. If NULL (the default) 
 the option set is set to \code{DefaultBenchmarkOptions(k, includeParallelMode)}
 for each \code{k} in \code{ks} (see the code in 
-\code{PCMBaseCpp:::DefaultBenchmarkOptions}).}
+\code{PCMBaseCppCustom:::DefaultBenchmarkOptions}).}
 
 \item{includeParallelMode}{logical (default TRUE) indicating if the default 
 optionSet should include parallel execution modes, i.e. setting the option 
@@ -39,8 +39,8 @@ only with the argument \code{optionSets} set to NULL (the default).}
 
 \item{doProf}{logical indicating if profiling should be activated (see Rprof
 from the utils R-package). Default: FALSE. Additional arguments to Rprof can 
-be specified by assigning lists of arguments to the options 'PCMBaseCpp.ArgsRprofR'
-and 'PCMBaseCpp.ArgsRprofCpp'. The default values for both options is
+be specified by assigning lists of arguments to the options 'PCMBaseCppCustom.ArgsRprofR'
+and 'PCMBaseCppCustom.ArgsRprofCpp'. The default values for both options is
 \code{list(append = TRUE, line.profiling = TRUE)}.}
 
 \item{RprofR.out, RprofCpp.out}{character strings indicating Rprof.out files 
