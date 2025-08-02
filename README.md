@@ -1,66 +1,21 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Coverage
-status](https://codecov.io/gh/venelin/PCMBaseCpp/branch/master/graph/badge.svg)](https://app.codecov.io/github/venelin/PCMBaseCpp?branch=master)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
-[![Downloads](http://cranlogs.r-pkg.org/badges/PCMBaseCpp?color=blue)](https://cran.r-project.org/package=PCMBaseCpp)
+# PCMBaseCppCustom
 
-# PCMBaseCpp
-
-This is a fast C++ backend for the
-[PCMBase](https://venelin.github.io/PCMBase/) R-package.
+This is a customized version of the fast C++ backend for the PCMBase
+R-package. This version adds a C++ implementation for the Early Burst
+(EB) phylogenetic comparative model.
 
 # Installation
 
 The package needs a C++ 11 or later compiler and Rcpp to be installed in
-you R-environment. Once this is done, you can install the most recent
+your R-environment. Once this is done, you can install the most recent
 version of the package from github:
 
 ``` r
-devtools::install_github("venelin/PCMBaseCpp")
+devtools::install_github("MehediHasanSM/PCMBaseCppCustom", force = TRUE)
 ```
-
-If you experience problems installing the package from github, you may
-try installing a possibly older version from CRAN:
-
-``` r
-install.packages("PCMBaseCpp")
-```
-
-Once the package is installed, use the function `BenchmarkRvsCpp` to
-evaluate the gain in speed of the likelihood calculation on your
-machine, relative to the R implementation:
-
-``` r
-library(PCMBaseCpp)
-library(data.table)
-options(digits = 4)
-
-# Depending on your use case, you can change the number of traits, as well as the 
-# other arguments:
-benchRes <- BenchmarkRvsCpp(ks = 2, includeParallelMode = FALSE, verbose = TRUE)
-# Example output:
-# Performing benchmark for k:  2 ; optionSet:  serial / 1D-multiv. ...
-#     k  modelType     N  R mode     logLik  logLikCpp  timeR timeCpp
-#  1: 2 MGPM (A-F)    10  2   11 -7.416e+02 -7.416e+02  0.010  0.0007
-#  2: 2 MGPM (A-F)   100  4   11 -4.294e+03 -4.294e+03  0.107  0.0016
-#  3: 2 MGPM (A-F)  1000 11   11 -1.700e+05 -1.700e+05  1.221  0.0095
-#  4: 2 MGPM (A-F) 10000 11   11 -1.210e+06 -1.210e+06 12.443  0.0795
-#  5: 2     BM (B)    10  2   11 -4.451e+03 -4.451e+03  0.010  0.0003
-#  6: 2     BM (B)   100  4   11 -8.427e+03 -8.427e+03  0.082  0.0008
-#  7: 2     BM (B)  1000 11   11 -1.830e+04 -1.830e+04  0.847  0.0064
-#  8: 2     BM (B) 10000 11   11 -6.574e+05 -6.574e+05  8.414  0.0663
-#  9: 2     OU (E)    10  2   11 -1.126e+04 -1.126e+04  0.016  0.0006
-# 10: 2     OU (E)   100  4   11 -8.486e+05 -8.486e+05  0.147  0.0015
-# 11: 2     OU (E)  1000 11   11 -1.234e+06 -1.234e+06  1.505  0.0096
-# 12: 2     OU (E) 10000 11   11 -1.058e+07 -1.058e+07 15.062  0.0854
-```
-
-For further examples, read the [Getting
-started](https://venelin.github.io/PCMBaseCpp/articles/PCMBaseCpp.html)
-guide and the reference available on the package
-[homepage](https://venelin.github.io/PCMBaseCpp/).
 
 # Citing PCMBase
 
@@ -79,38 +34,26 @@ with shifts. Theor. Popul. Biol.
 
 # Used 3rd party libraries
 
-The PCMBaseCpp R-package uses the following R-packages and C++
+The PCMBaseCppCustom R-package uses the following R-packages and C++
 libraries:
 
 - For tree processing in C++: The [SPLITT
   library](https://venelin.github.io/SPLITT/) (Mitov and Stadler 2018);
-- For data processing in R: data.table v1.14.8 (Dowle and Srinivasan
+- For data processing in R: data.table v1.17.8 (Dowle and Srinivasan
   2019);
 - For algebraic manipulation: The [Armadillo C++ template
   library](https://arma.sourceforge.net/) (Sanderson and Curtin 2016)
-  and its port to R RcppArmadillo v0.12.6.1.0 (Eddelbuettel et al.
-  2019);
-- For unit-testing: testthat v3.1.10 (Wickham 2019), covr v3.6.2 (Hester
+  and its port to R RcppArmadillo v14.6.0.1 (Eddelbuettel et al. 2019);
+- For unit-testing: testthat v3.2.3 (Wickham 2019), covr v3.6.4 (Hester
   2018);
-- For documentation and web-site generation: roxygen2 v7.2.3 (Wickham,
-  Danenberg, and Eugster 2018), pkgdown v2.0.7 (Wickham and Hesselberth
+- For documentation and web-site generation: roxygen2 v7.3.2 (Wickham,
+  Danenberg, and Eugster 2018), pkgdown v2.1.3 (Wickham and Hesselberth
   2018);
-
-# Licence and copyright
-
-Copyright 2016-2020 Venelin Mitov
-
-Source code to PCMBaseCpp is made available under the terms of the GNU
-General Public License as published by the Free Software Foundation,
-either version 3 of the License, or (at your option) any later version.
-PCMBaseCpp is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
-Public License for more details.
 
 # References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-R-data.table" class="csl-entry">
 

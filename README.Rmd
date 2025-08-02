@@ -25,7 +25,7 @@ This is a customized version of the fast C++ backend for the PCMBase R-package. 
 The package needs a C++ 11 or later compiler and Rcpp to be installed in your R-environment. Once this is done, you can install the most recent version of the package from github:
 
 ```{r, eval=FALSE}
-devtools::install_github("MehediHasanSM/PCMBaseCppCustom")
+devtools::install_github("MehediHasanSM/PCMBaseCppCustom", force = TRUE)
 ```
 
 # Citing PCMBase
