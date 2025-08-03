@@ -1,2 +1,12 @@
+# Compiler and linker flags for the package on Windows
+
+# PKG_CXXFLAGS sets the flags for the C++ compiler.
+# -Wa,-mbig-obj: Fixes the "file too big" error on Windows by allowing more sections in the compiled object file.
+# -fopenmp: Enables OpenMP to allow the SPLITT library to run in parallel on multiple CPU cores.
+# -DARMA_DONT_USE_OPENMP: Prevents conflicts by telling the low-level Armadillo library not to use its own parallelism.
+
+# PKG_LIBS sets the libraries to link against.
+# $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS): Links the standard, high-performance math libraries provided by R.
+
 PKG_CXXFLAGS = -Wa,-mbig-obj -fopenmp -DARMA_DONT_USE_OPENMP
 PKG_LIBS = -fopenmp $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
